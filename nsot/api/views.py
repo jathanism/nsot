@@ -712,3 +712,65 @@ class AuthTokenVerifyView(APIView):
                 ('data', True),
             ])
         )
+
+
+class StatsView(APIView):
+    """
+    Stats endpoint.
+
+    Metrics are historical counters which are rolled up daily, weekly,
+    monthly, and yearly.
+
+    Gauges are cumulative counters which do not have history.
+    """
+
+    # FIXME(jathan): This is a total hack that will not grow gracefully, and
+    # doesn't really provide ANY error-handling for when URI patterns don't
+    # match. Instead it just defaults to the stats index, lising the slugs for
+    # existing metrics ans gauges.
+    def get(self, request, *args, **kwargs):
+        """Retrieve stats from django-redis-metrics."""
+        import re
+        from redis_metrics.models import R
+
+        r = R()
+        view_name = self.get_view_name().lower()
+        path = request.path
+
+        # Parse out the slug (metrics or gauges) and the category (e.g.
+        # 'networks') so that queries like this work:
+        # GET /api/stats/metrics/
+        # GET /api/stats/metrics/networks/
+        # GET /api/stats/gauges/networks-ipv4/
+        re_pat = r'/api/stats/([a-z]+)/([a-z0-9\-]+)?/?$'
+        m = re.match(re_pat, path)
+        if m:
+            slug, category = m.groups()
+        else:
+            slug = category = ''
+
+        gauges = r.gauge_slugs()
+        metrics = r.metric_slugs_by_category()
+
+        # Display metrics by category or list the categories/metrics
+        if slug == 'metrics':
+            if category:
+                data = r.get_category_metrics(category)
+            else:
+                data = metrics
+        # Display gauges by slug or list the slugs
+        elif slug == 'gauges':
+            if category:
+                data = r.get_gauge(category)
+            else:
+                data = gauges
+        # Default to listing metric categories/slugs and all gauge slugs
+        else:
+            data = dict(metrics=metrics, gauges=gauges)
+
+        return Response(
+            OrderedDict([
+                ('status', 'ok'),
+                ('data', data),
+            ])
+        )

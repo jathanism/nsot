@@ -57,4 +57,8 @@ urlpatterns = [
         name='authenticate'),
     url(r'^verify_token/', views.AuthTokenVerifyView.as_view(),
         name='verify_token'),
+
+    # Endpoint for API stats/metrics/gauges
+    url(r'^stats/', views.StatsView.as_view(),
+        name='stats'),
 ]

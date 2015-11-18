@@ -37,6 +37,9 @@ urlpatterns = [
     # Smart selects chaining
     url(r'^chaining/', include('smart_selects.urls')),
 
+    # django-redis-metrics
+    url(r'^metrics/', include('redis_metrics.urls')),
+
     # FE handlers
     # Catch index
     url(r'^$', FeView.as_view(), name='index'),
