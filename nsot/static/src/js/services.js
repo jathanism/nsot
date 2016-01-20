@@ -73,6 +73,33 @@
         );
     });
 
+    // NEW (Restangular) User model
+    app.factory('Users', function(Restangular) {
+        var Users = Restangular.service('users');
+
+        Restangular.extendModel('users', function(model) {
+            model.isAdmin = function(siteId, permissions) {
+                var user_permissions = this.permissions[siteId] || {};
+                    user_permissions = user_permissions.permissions || [];
+
+                return _.any(user_permissions, function(value){
+                    return _.contains(permissions, value);
+                });
+            };
+            model.rotateSecretKey = function() {
+                var userId = this.id;
+                return Users.one(userId).customPOST({}, 'rotate_secret_key').then(function(response) {
+                    return response.data.secret_key;
+                });
+            };
+
+            return model;
+        });
+
+        return Users;
+    });
+
+    // OLD User model
     app.factory("User", function($resource, $http){
         var User = $resource(
             "/api/users/:id/",
