@@ -23,6 +23,8 @@ urlpatterns = [
     # Catchall for missing endpoints
     url(r'^api/.*/$', NotFoundViewSet.as_view({'get': 'list'})),
 
+    url(r'^jsreverse/$', 'django_js_reverse.views.urls_js', name='js_reverse'),
+
     # Docs (Swagger)
     url(r'^docs/', include('rest_framework_swagger.urls')),
 

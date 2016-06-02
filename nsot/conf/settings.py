@@ -38,8 +38,10 @@ INSTALLED_APPS = (
     'django_filters',
     'smart_selects',
     'rest_framework',
+    'django_js_reverse',
     'rest_framework_swagger',
     'custom_user',
+    'corsheaders',
     'nsot',
 )
 
@@ -59,6 +61,7 @@ AUTHENTICATION_BACKENDS = (
 MIDDLEWARE_CLASSES = (
     'nsot.middleware.request_logging.LoggingMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -81,7 +84,8 @@ WSGI_APPLICATION = 'nsot.wsgi.application'
 # same URL with a slash appended. Note that the redirect may cause any data
 # submitted in a POST request to be lost.
 # Default: True
-APPEND_SLASH = True
+# APPEND_SLASH = True
+APPEND_SLASH = False
 
 from nsot.version import __version__
 NSOT_VERSION = __version__
@@ -289,6 +293,26 @@ CSRF_COOKIE_NAME = '_xsrf'
 # when authenticated using the "auth header" method, which is the default.
 # Default: True
 NSOT_NEW_USERS_AS_SUPERUSER = True
+
+# If True, allow all origins for CORS.
+# CORS_ORIGIN_ALLOW_ALL = False
+CORS_ORIGIN_ALLOW_ALL = True
+
+# Specify the number of seconds a client/browser can cache the preflight
+# response.
+CORS_PREFLIGHT_MAX_AGE = 86400
+
+CORS_ALLOW_HEADERS = (
+    'x-requested-with',
+    'content-type',
+    'accept',
+    'origin',
+    'authorization',
+    'x-csrftoken',
+    'cache-control',
+    'expires',
+)
+
 
 ################
 # Static files #

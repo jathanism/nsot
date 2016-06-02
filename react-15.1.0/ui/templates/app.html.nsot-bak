@@ -1,0 +1,21 @@
+{% load render_bundle from webpack_loader %}
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <link href='https://fonts.googleapis.com/css?family=Roboto:400,300,500' rel='stylesheet' type='text/css'>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!--
+    <link rel="stylesheet" type="text/css" href="css/main.css">
+    -->
+    <link rel="stylesheet" type="text/css" href="http://www.material-ui.com/css/main.css">
+    <title>Network Source of Truth | Devices</title>
+  </head>
+
+  <body>
+    <div id="react-app"></div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+    <script src="http://jpillora.com/jquery.rest/dist/1/jquery.rest.min.js"></script>
+    {% render_bundle 'main' 'js' %}
+  </body>
+</html>
