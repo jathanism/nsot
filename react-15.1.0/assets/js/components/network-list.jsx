@@ -78,8 +78,6 @@ class Network extends React.Component {
 class NetworkList extends React.Component {
   render() {
     return (
-      <div>
-      <h1>Networks</h1>
       <Table>
         <TableHeader displaySelectAll={false}>
           <TableRow>
@@ -91,7 +89,6 @@ class NetworkList extends React.Component {
           {this.props.networks.map(this.createTableRow)}
         </TableBody>
       </Table>
-      </div>
     );
   }
 

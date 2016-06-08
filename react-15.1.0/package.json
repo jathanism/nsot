@@ -41,11 +41,12 @@
     "react-notification": "^5.0.4",
     "react-redux": "^4.4.5",
     "react-router": "^2.4.1",
+    "react-router-breadcrumbs": "^1.0.13",
     "react-router-redux": "^4.0.4",
     "react-tap-event-plugin": "^1.0.0",
     "redux": "^3.5.2",
     "redux-api-middleware": "^1.0.2",
-    "redux-form": "^5.2.5",
+    "redux-form": "^6.0.0-alpha.15",
     "redux-form-material-ui": "^2.0.0",
     "redux-rest-resource": "^0.4.1",
     "redux-thunk": "^2.1.0"

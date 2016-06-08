@@ -35,7 +35,7 @@ const client = new Api();
 class Attribute extends React.Component {
   render() {
     return (
-      <div className="attribute">
+      <div className="attribute" style={{display: 'inline-block', padding: '4px'}}>
         <b>{this.props.name}:</b> {this.props.value}
       </div>
     )
@@ -88,16 +88,17 @@ class Device extends React.Component {
 }
 
 
-
-
 // Displays a list of Devices
 class DeviceList extends React.Component {
   render() {
-    const {submitForm} = this.props;
+    const {devices, loading, submitForm} = this.props;
+
+    if (loading) {
+      return <div><h1>Loading...</h1></div>
+    }
 
     return (
       <div>
-        <h1>Devices</h1>
         <DeviceForm onSubmit={submitForm} />
         <Table>
           <TableHeader displaySelectAll={false}>
@@ -107,7 +108,7 @@ class DeviceList extends React.Component {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {this.props.devices.map(this.createTableRow)}
+            {devices.map(this.createTableRow)}
           </TableBody>
         </Table>
       </div>
@@ -123,7 +124,10 @@ class DeviceList extends React.Component {
 
 
 @connect(
-  state => ({devices: state.devices.items}),
+  state => ({
+    devices: state.devices.items,
+    loading: state.devices.isFetching
+  }),
   dispatch => ({
     actions: bindActionCreators({...deviceActions, urlRedirect}, dispatch)
   })
@@ -191,8 +195,10 @@ export default class DeviceListContainer extends React.Component {
   }
 
   render() {
+    const {devices, loading} = this.props;
     return (
-      <DeviceList devices={this.props.devices} submitForm={this.submitForm} />
+      // <DeviceList devices={this.props.devices} submitForm={this.submitForm} />
+      <DeviceList devices={devices} loading={loading} submitForm={this.submitForm} />
     );
   }
 

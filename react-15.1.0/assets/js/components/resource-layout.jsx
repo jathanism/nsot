@@ -3,7 +3,7 @@ import React from 'react';
 class ResourceLayout extends React.Component {
   render() {
     return (
-      <div>
+      <div id="resourceLayout">
         {this.props.children}
       </div>
     );

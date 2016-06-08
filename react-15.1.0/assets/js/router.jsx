@@ -47,30 +47,30 @@ class PageNotFound extends React.Component {
 
 export default (
   <Router history={browserHistory}>
-    <Route component={MainLayout}>
-      <Route path="/" component={Home} />
+    <Route name="Home" component={MainLayout}>
+      <Route path="/" component={Home} breadcrumbIgnore />
 
-      <Route component={ResourceLayout}>
+      <Route component={ResourceLayout} breadcrumbIgnore>
 
-        <Route path="devices">
-          <IndexRoute component={DeviceListContainer} />
-          <Route path=":deviceId" component={DeviceDetailContainer} />
+        <Route name="Devices" path="devices">
+          <IndexRoute component={DeviceListContainer} breadcrumbIgnore />
+          <Route name="Device" path=":deviceId" component={DeviceDetailContainer} />
         </Route>
 
-        <Route path="networks">
-          <IndexRoute component={NetworkListContainer} />
-          <Route path=":networkId" component={NetworkDetailContainer} />
+        <Route name="Networks" path="networks">
+          <IndexRoute component={NetworkListContainer} breadcrumbIgnore />
+          <Route name="Network" path=":networkId" component={NetworkDetailContainer} />
         </Route>
 
         <Route path="changes">
-          <IndexRoute component={ChangeListContainer} />
-          <Route path=":changeId" component={ChangeDetailContainer} />
+          <IndexRoute component={ChangeListContainer} breadcrumbIgnore />
+          <Route name="Change" path=":changeId" component={ChangeDetailContainer} />
         </Route>
 
 
       </Route>
 
-      <Route path="*" component={PageNotFound} />
+      <Route name="404" path="*" component={PageNotFound} />
 
     </Route>
   </Router>

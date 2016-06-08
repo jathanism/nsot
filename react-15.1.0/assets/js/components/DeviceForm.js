@@ -1,7 +1,6 @@
 import React from 'react';
 import {Link} from 'react-router';
 import {connect} from 'react-redux';
-import {bindActionCreators} from 'redux';
 
 import Menu from 'material-ui/Menu';
 import Paper from 'material-ui/Paper';
@@ -76,7 +75,12 @@ class DeviceForm extends React.Component {
 
     return (
       <div>
-        <RaisedButton label="Create Device" onTouchTap={this.handleOpen} />
+        <RaisedButton
+          label="Create Device"
+          primary
+          style={{float: 'right'}}
+          onTouchTap={this.handleOpen}
+        />
         <Dialog
           ref="deviceDialog"
           title="Create Device"
@@ -95,14 +99,14 @@ class DeviceForm extends React.Component {
             />
             <FlatButton
               label="Close"
-              primary={true}
+              primary
               onTouchTap={this.handleClose}
             />
             <FlatButton
               label="Create"
               type="submit"
-              primary={true}
-              keyboardFocused={true}
+              primary
+              keyboardFocused
               disabled={pristine || submitting}
             />
           </form>
