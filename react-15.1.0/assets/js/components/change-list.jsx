@@ -1,6 +1,7 @@
 import React from 'react';
 import {Link} from 'react-router';
 import {connect} from 'react-redux';
+import {bindActionCreators} from 'redux';
 
 import Menu from 'material-ui/Menu';
 import MenuItem from 'material-ui/MenuItem';
@@ -9,15 +10,83 @@ import {
   Table, TableBody, TableHeader, TableHeaderColumn, TableRow, TableRowColumn
 } from 'material-ui/Table';
 
-import store from '../store';
-import Api from '../api';
+import {actions as changeActions} from '../change-reducers';
+document.changeActions = changeActions;
 
+// import store from '../store';
 
-const client = new Api();
+/*
+import Backbone from 'backbone';
+import React from 'react.backbone';
+const Change = Backbone.Model.extend({
+  url: 'http://localhost:8991/api/changes',
+  defaults: function() {
+    return {
+      user: {},
+      site: {},
+      event: '',
+      change_at: 0,
+      resource: {},
+      resource_id: 0
+    }
+  }
+});
+document.Change = Change;
 
+const Changes = Backbone.Collection.extend({
+  model: Change,
+  url: 'http://localhost:8991/api/changes'
+});
+document.Changes = Changes;
+export default Changes;
+
+/////////////////
+// react.backbone
+/////////////////
+var ChangeViewComponent = React.createBackboneClass({
+  // changeOptions: "change:id",
+  render: function() {
+    return (
+      <div>
+        <h1>{this.getModel().get('id')}</h1>
+      </div>
+    );
+  }
+});
+
+var ChangeListViewComponent = React.createBackboneClass({
+  componentDidMount: function() {
+    this.props.collection.fetch();
+  },
+
+  render: function() {
+    var changeList = this.getCollection().map(function(change) {
+      return <ChangeViewComponent model={change} key={change.id} />;
+    });
+
+    return (
+      <div>
+        <ul>
+          {changeList}
+        </ul>
+      </div>
+    );
+  }
+});
+
+var changeCollection = new Changes();
+export default changeCollection;
+console.log('changeList =>', changeCollection);
+var ChangeListView = React.createFactory(ChangeListViewComponent);
+var ChangeListContainer = ChangeListView({collection: changeCollection});
+document.ChangeListContainer = ChangeListContainer;
+export default ChangeListContainer;
+// react.backbone 
+/////////////////
+*/
 
 // Displays a Change by hostname followed by its attributes
-class Change extends React.Component {
+class ChangeView extends React.Component {
   render() {
     return (
       <TableRow>
@@ -64,42 +133,34 @@ class ChangeList extends React.Component {
 
   createTableRow(change) {
     return (
-      <Change change={change} key={change.id} />
+      <ChangeView change={change} key={change.id} />
     );
   }
 }
 
-
+@connect(
+  state => ({
+    changes: state.changes.items
+  }),
+  dispatch => ({
+    actions: bindActionCreators({...changeActions}, dispatch)
+  })
+)
 class ChangeListContainer extends React.Component {
   // Load the changes and store them as a state object once the
   // response is ready.
   componentDidMount() {
-    var request = client.changes.read();
-    var response = request.done((data, textStatus, xhrObject) => {
-        console.log(data);
-        // this.setState({changes: data});
-        store.dispatch({
-          type: 'CHANGE_LIST',
-          changes: data
-        })
-      }
-    );
-
+    const {actions} = this.props;
+    actions.fetchChanges();
   }
 
   render() {
+    const changes = this.props.changes || [];
     return (
       // <ChangeList changes={this.state.changes} />
-      <ChangeList changes={this.props.changes} />
+      <ChangeList changes={changes} />
     );
   }
 
 }
-
-const mapStateToProps = function(store) {
-  return {
-    changes: store.changeState.changes
-  };
-}
-
-export default connect(mapStateToProps)(ChangeListContainer)
+export default ChangeListContainer;

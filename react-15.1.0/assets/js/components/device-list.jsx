@@ -20,7 +20,6 @@ import {
   Checkbox, RadioButtonGroup, SelectField, Slider, TextField, Toggle
 } from 'redux-form-material-ui';
 
-import {createDevice, fetchDevicesIfNeeded} from '../actions';
 import {urlRedirect} from '../actions';
 import {actions as deviceActions} from '../reducers';
 import DeviceForm from './DeviceForm';

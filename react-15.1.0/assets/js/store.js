@@ -3,20 +3,18 @@ import {
   routerMiddleware, syncHistoryWithStore, routeReducer
 } from 'react-router-redux';
 import thunkMiddleware from 'redux-thunk';
-import {apiMiddleware} from 'redux-api-middleware';
 import createLogger from 'redux-logger';
-
 import { reducer as formReducer } from 'redux-form';
 import {browserHistory} from 'react-router';
 
 import {reducers as deviceReducers} from './reducers';
-import {changes} from './reducers';
+import {reducers as changeReducers} from './change-reducers';
 
 
 const reducer = combineReducers(
   Object.assign({},
     {devices: deviceReducers},
-    {changes},
+    {changes: changeReducers},
     {form: formReducer}
   )
 );
@@ -26,10 +24,10 @@ const loggerMiddleware = createLogger();
 
 // Instantiate middleware
 const middleware = applyMiddleware(
-  apiMiddleware, thunkMiddleware, loggerMiddleware
+  thunkMiddleware, loggerMiddleware
 );
 
 // Create the store.
 const store = createStore(reducer, middleware);
-
+document.store = store;
 export default store;

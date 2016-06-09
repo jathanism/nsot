@@ -62,7 +62,8 @@ export default (
           <Route name="Network" path=":networkId" component={NetworkDetailContainer} />
         </Route>
 
-        <Route path="changes">
+        <Route name="Changes" path="changes">
+          {/*<IndexRoute component={() => (ChangeListContainer)} breadcrumbIgnore />*/}
           <IndexRoute component={ChangeListContainer} breadcrumbIgnore />
           <Route name="Change" path=":changeId" component={ChangeDetailContainer} />
         </Route>

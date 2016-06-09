@@ -1,7 +1,7 @@
 import {List, Map} from 'immutable';
 import {createResource, mergeReducers} from 'redux-rest-resource';
 
-const API_ROOT = 'http://localhost:8991';
+import API_ROOT from './constants';
 
 // Device reducer
 // FIXME(jathan): Having to hard-code every resource to use PATCH (upper) sucks.
@@ -36,11 +36,3 @@ const reducers = mergeReducers(
 );
 
 export {types, actions, reducers};
-
-// Change reducer
-/*
-export const {types, actions, reducers} = createResource({
-  name: 'change',
-  url: `${API_ROOT}/changes/:id`
-});
-*/

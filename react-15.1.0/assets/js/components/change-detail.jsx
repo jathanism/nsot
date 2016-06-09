@@ -1,42 +1,41 @@
 import React from 'react';
-import Api from '../api';
+import {bindActionCreators} from 'redux';
+import {connect} from 'react-redux';
 
-const client = new Api();
+import {actions as changeActions} from '../change-reducers';
+
 
 class ChangeDetail extends React.Component {
   render() {
+    const {change} = this.props;
     return (
       <div>
-        <h1>{this.props.change.hostname}</h1>
-        Change detail for id: {this.props.change.id}
+        <h1>{change.event} {change.resource_name} {change.resource_id}</h1>
+        Change detail for id: {change.id}
       </div>
     );
   }
 }
 
-// export default ChangeDetail;
-
-
+@connect(
+  state => ({
+    change: state.changes.item || {},
+  }),
+  dispatch => ({
+    actions: bindActionCreators({...changeActions}, dispatch)
+  })
+)
 class ChangeDetailContainer extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {change: {}};
-  }
-
   componentDidMount() {
-    console.log(this.props.params);
-    var request = client.changes.read(this.props.params.changeId);
-    var response = request.done((data, textStatus, xhrObject) => {
-        console.log(data);
-        this.setState({change: data});
-      }
-    );
-
+    const {changeId} = this.props.params;
+    const {actions} = this.props;
+    actions.getChange(changeId);
   }
 
   render() {
+    const {change} = this.props;
     return (
-      <ChangeDetail change={this.state.change} />
+      <ChangeDetail change={change} />
     );
   }
 }
