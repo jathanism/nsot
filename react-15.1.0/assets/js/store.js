@@ -8,6 +8,7 @@ import { reducer as formReducer } from 'redux-form';
 import {browserHistory} from 'react-router';
 
 import {reducers as deviceReducers} from './reducers';
+import {reducers as attributeReducers} from './attribute-reducers';
 import {reducers as changeReducers} from './change-reducers';
 
 
@@ -15,6 +16,7 @@ const reducer = combineReducers(
   Object.assign({},
     {devices: deviceReducers},
     {changes: changeReducers},
+    {attributes: attributeReducers},
     {form: formReducer}
   )
 );

@@ -27,6 +27,8 @@ const muiTheme = getMuiTheme({
 import Home from './components/home';
 import MainLayout from './components/main-layout';
 import ResourceLayout from './components/resource-layout';
+import AttributeListContainer from './components/attribute-list';
+import AttributeDetailContainer from './components/attribute-detail';
 import DeviceListContainer from './components/device-list';
 import DeviceDetailContainer from './components/device-detail';
 import NetworkListContainer from './components/network-list';
@@ -51,6 +53,11 @@ export default (
       <Route path="/" component={Home} breadcrumbIgnore />
 
       <Route component={ResourceLayout} breadcrumbIgnore>
+
+        <Route name="Attributes" path="attributes">
+          <IndexRoute component={AttributeListContainer} breadcrumbIgnore />
+          <Route name="Attribute" path=":attributeId" component={AttributeDetailContainer} />
+        </Route>
 
         <Route name="Devices" path="devices">
           <IndexRoute component={DeviceListContainer} breadcrumbIgnore />
