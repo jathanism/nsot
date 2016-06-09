@@ -19,7 +19,6 @@ import {
 import {urlRedirect} from '../actions';
 import {actions as deviceActions} from '../reducers';
 
-
 class DeviceForm extends React.Component {
   constructor(props) {
     super(props);
@@ -42,8 +41,6 @@ class DeviceForm extends React.Component {
 
   handleClose() {
     console.log('DeviceForm.handleClose()');
-    console.log('OPEN?', this.state.open);
-    console.log('ERROR?', this.props.error);
     this.setState({open: false});
   }
 
@@ -61,29 +58,28 @@ class DeviceForm extends React.Component {
 
   render() {
     const {
-      error,
-      submitFailed,
-      handleSubmit,
-      pristine,
-      submitting
+      device, title, error, submitFailed, handleSubmit, pristine, submitting
     } = this.props;
 
+    /*
     console.log('DeviceForm.props =>', this.props);
     console.log('DeviceForm.dir =>', this);
     console.log('DeviceForm.props.error =>', error);
+    console.log('DeviceForm.device =>', device);
     console.log('DeviceForm.refs=>', this.refs);
+    */
 
     return (
       <div>
         <RaisedButton
-          label="Create Device"
+          label={title}
           primary
           style={{float: 'right'}}
           onTouchTap={this.handleOpen}
         />
         <Dialog
           ref="deviceDialog"
-          title="Create Device"
+          title={title}
           modal={false}
           open={this.state.open}
           onRequestClose={this.handleClose}
@@ -91,6 +87,7 @@ class DeviceForm extends React.Component {
           A device represents a node on your network.<br />
           <form onSubmit={this.performSubmit}>
             <Field
+              defaultValue={device && device.hostname || ''}
               name="hostname"
               component={TextField}
               hintText="Hostname"
@@ -103,7 +100,7 @@ class DeviceForm extends React.Component {
               onTouchTap={this.handleClose}
             />
             <FlatButton
-              label="Create"
+              label={title.split(' ')[0]}
               type="submit"
               primary
               keyboardFocused

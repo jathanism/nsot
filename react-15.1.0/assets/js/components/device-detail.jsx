@@ -1,6 +1,7 @@
 import React from 'react';
 import {bindActionCreators} from 'redux';
 import {connect} from 'react-redux';
+import { SubmissionError } from 'redux-form';
 
 import Dialog from 'material-ui/Dialog';
 import Paper from 'material-ui/Paper';
@@ -8,14 +9,14 @@ import FlatButton from 'material-ui/FlatButton';
 import RaisedButton from 'material-ui/RaisedButton';
 
 import store from '../store';
-import {urlRedirect} from '../actions';
+import {urlRedirect, refreshDevice} from '../actions';
 import {actions as deviceActions} from '../reducers';
+import DeviceForm from './DeviceForm';
 
 const style = {
   margin: '16px 32px',
   padding: '16px'
 }
-
 
 const butt_style = {
   float: 'right'
@@ -26,27 +27,20 @@ class DeviceDetail extends React.Component {
     super(props);
 
     this.state = {
-      delete_open: false
+      delete_open: false,
     }
 
     this.performDelete = this.performDelete.bind(this);
     this.confirmDelete = this.confirmDelete.bind(this);
     this.closeDelete = this.closeDelete.bind(this);
-    this.performUpdate = this.performUpdate.bind(this);
-  }
-
-  performUpdate(event) {
-    console.log('DeviceDetail.performUpdate() => CLICKED', event);
   }
 
   performDelete(event) {
     console.log('DeviceDetail.performDelete() => CLICKED', event);
 
     const {actions, device} = this.props;
-
-    // alert('Actually deleting device:}' + device.id);
-
     const promise = actions.deleteDevice(device.id);
+
     promise.then(resolve => (
       this.closeDelete() && actions.urlRedirect('/devices')
     ));
@@ -63,10 +57,9 @@ class DeviceDetail extends React.Component {
   }
 
   render() {
-    // console.log('DeviceDetail => props', this.props);
-
-    const {device, interfaces, loading} = this.props;
+    const {device, interfaces, loading, submitForm} = this.props;
     const {actions} = this.props;
+
 
     if (loading) {
       return <Paper style={style}>Loading...</Paper>
@@ -85,6 +78,8 @@ class DeviceDetail extends React.Component {
       />,
     ];
 
+    console.log('DeviceDetail.device =>', device);
+
     return (
       <Paper style={style}>
         <h1>{device.hostname}</h1>
@@ -94,17 +89,12 @@ class DeviceDetail extends React.Component {
           style={butt_style}
           onTouchTap={this.confirmDelete}
         />
-        <RaisedButton
-          label="Update Device"
-          primary
-          style={butt_style}
-          onTouchTap={this.performUpdate}
-        />
+        <DeviceForm onSubmit={submitForm} device={device} title="Update Device" />
         Device detail for id: {device.id}<br />
         Attributes: {JSON.stringify(device.attributes)}<br />
         Interfaces: {JSON.stringify(interfaces) || 'Loading...' }<br />
         <Dialog
-          ref="confirmDeleteModal"
+          ref="confirmDeleteDialog"
           title="Delete Device"
           open={this.state.delete_open}
           onRequestClose={this.closeDelete}
@@ -117,18 +107,24 @@ class DeviceDetail extends React.Component {
   }
 }
 
-
 @connect(
   state => ({
     device: state.devices.item || {},
+    devices: state.devices.items,
     interfaces: state.devices.interfaces.items,
     loading: state.devices.isFetchingItem
   }),
   dispatch => ({
-    actions: bindActionCreators({...deviceActions, urlRedirect}, dispatch)
+    actions: bindActionCreators({...deviceActions, urlRedirect, refreshDevice}, dispatch)
   })
 )
 export default class DeviceDetailContainer extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.submitForm = this.submitForm.bind(this);
+  }
+
   componentDidMount() {
     const {deviceId} = this.props.params;
     const {actions, device, interfaces} = this.props;
@@ -146,6 +142,54 @@ export default class DeviceDetailContainer extends React.Component {
     }
   }
 
+  submitForm(data) {
+    const {actions, device} = this.props;
+    console.log('Incoming data =', data);
+    console.log('Incoming device =', device);
+
+    // Merge existing device w/ updated form data.
+    let new_device = Object.assign({}, device, data);
+    console.log('Submitting merged device =>', new_device);
+
+    var resp = actions.updateDevice(new_device);
+    console.log('submitForm.resp =>', resp);
+
+    return resp.then(function(obj) {
+      console.log('Update response:', resp);
+      const result = obj.body;
+      console.log('Object body =>', result);
+      console.log('Object context =>', obj.context);
+
+      if ('error' in result) {
+        console.log(JSON.stringify(result, null, 4));
+        const error = result.error;
+
+        const error_keys = ['hostname', 'name', '__all__'];
+
+        let message;
+        for (var idx in error_keys) {
+          var error_key = error_keys[idx];
+          if (error_key in error.message) {
+            message = error.message[error_key];
+            break;
+          }
+        }
+
+        console.log('Error message =', message);
+        let err = new SubmissionError(
+          {hostname: message, _error: 'Device update failed!'}
+        );
+        console.log('SubmissionError =>', err);
+        throw err;
+      }
+      else {
+        console.log('SUCCESS: DEVICE UPDATED!');
+        // Replace the new device w/ the existing props device??
+        actions.refreshDevice(obj);
+      }
+    });
+  }
+
   render() {
     const {device, interfaces, loading} = this.props;
     const {actions} = this.props;
@@ -156,6 +200,7 @@ export default class DeviceDetailContainer extends React.Component {
         interfaces={interfaces}
         loading={loading}
         actions={actions}
+        submitForm={this.submitForm}
       />
     );
   }

@@ -4,10 +4,16 @@ import {createResource, mergeReducers} from 'redux-rest-resource';
 const API_ROOT = 'http://localhost:8991';
 
 // Device reducer
+// FIXME(jathan): Having to hard-code every resource to use PATCH (upper) sucks.
 const deviceResource = createResource({
   name: 'device',
   pluralName: 'devices',
-  url: API_ROOT + Urls.device_detail(':id')
+  url: API_ROOT + Urls.device_detail(':id'),
+  actions: {
+    'update': {
+      'method': 'PATCH'
+    }
+  }
 });
 
 // Device.interfaces reducer

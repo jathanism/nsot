@@ -79,8 +79,6 @@ class NsotAppBar extends React.Component {
 }
 
 
-
-
 const main_style = {
   display: 'inline-block',
   padding: '16px',

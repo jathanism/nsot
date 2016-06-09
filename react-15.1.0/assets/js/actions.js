@@ -53,6 +53,21 @@ export function showDevicesResult(jsonResult) {
   };
 }
 
+// Manually tell redux-rest-resource to update the store w/ the contents of the
+// incoming device.
+// FIXME(jathan): This isn't going to scale.
+export function refreshDevice(action) {
+  console.log('refreshDevice() =>', action);
+  const retval = {
+    type: '@@resource/DEVICE/GET',
+    status: 'resolved',
+    body: action.context,
+    receivedAt: action.receivedAt
+  }
+  console.log('refreshDevice() => retval', retval);
+  return retval
+}
+
 export function _loadDevice(id) {
   return (dispatch, getState) => {
     console.log('Loading device:', id);

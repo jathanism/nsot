@@ -3,7 +3,6 @@ import {Link} from 'react-router';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 
-
 import Menu from 'material-ui/Menu';
 import MenuItem from 'material-ui/MenuItem';
 import Paper from 'material-ui/Paper';
@@ -24,11 +23,7 @@ import {
 import {createDevice, fetchDevicesIfNeeded} from '../actions';
 import {urlRedirect} from '../actions';
 import {actions as deviceActions} from '../reducers';
-import Api from '../api';
 import DeviceForm from './DeviceForm';
-
-
-const client = new Api();
 
 
 // Displays an attribute as "<b>key</b>: value"
@@ -99,7 +94,7 @@ class DeviceList extends React.Component {
 
     return (
       <div>
-        <DeviceForm onSubmit={submitForm} />
+        <DeviceForm onSubmit={submitForm} title="Create Device" />
         <Table>
           <TableHeader displaySelectAll={false}>
             <TableRow>
@@ -111,6 +106,7 @@ class DeviceList extends React.Component {
             {devices.map(this.createTableRow)}
           </TableBody>
         </Table>
+
       </div>
     );
   }
@@ -143,14 +139,10 @@ export default class DeviceListContainer extends React.Component {
   // response is ready.
   componentDidMount() {
     const {actions} = this.props;
-    // this.props.dispatch(fetchDevicesIfNeeded());
     actions.fetchDevices();
   }
 
   submitForm(data) {
-    // console.log('DeviceForm.props =>', this.props);
-    // alert(JSON.stringify(data, null, 4));
-    // this.props.dispatch(createDevice(data));
     console.log('submitForm().data =>', data);
     const {actions} = this.props;
 
