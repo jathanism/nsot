@@ -10,7 +10,9 @@ import {
   Table, TableBody, TableHeader, TableHeaderColumn, TableRow, TableRowColumn
 } from 'material-ui/Table';
 
+import {urlRedirect} from '../actions';
 import {actions as attributeActions} from '../attribute-reducers';
+import AttributeForm from './AttributeForm';
 
 // Displays a Attribute
 class AttributeView extends React.Component {
@@ -38,22 +40,35 @@ class AttributeView extends React.Component {
 // Displays a list of Attributes
 class AttributeList extends React.Component {
   render() {
+    const {attributes, loading, submitForm} = this.props;
+
+    if (loading) {
+      return (
+        <div class="progress">
+          <div class="indeterminate"></div>
+        </div>
+      );
+    }
+
     return (
-      <Table>
-        <TableHeader displaySelectAll={false}>
-          <TableRow>
-            <TableHeaderColumn>Name</TableHeaderColumn>
-            <TableHeaderColumn>Resource Name</TableHeaderColumn>
-            <TableHeaderColumn>Required</TableHeaderColumn>
-            <TableHeaderColumn>Multi</TableHeaderColumn>
-            <TableHeaderColumn>Display</TableHeaderColumn>
-            <TableHeaderColumn>Description</TableHeaderColumn>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {this.props.attributes.map(this.createTableRow)}
-        </TableBody>
-      </Table>
+      <div>
+        <AttributeForm onSubmit={submitForm} title="Create Attribute" />
+        <Table>
+          <TableHeader displaySelectAll={false} adjustForCheckbox={false}>
+            <TableRow>
+              <TableHeaderColumn>Name</TableHeaderColumn>
+              <TableHeaderColumn>Resource Name</TableHeaderColumn>
+              <TableHeaderColumn>Required</TableHeaderColumn>
+              <TableHeaderColumn>Multi</TableHeaderColumn>
+              <TableHeaderColumn>Display</TableHeaderColumn>
+              <TableHeaderColumn>Description</TableHeaderColumn>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {attributes.map(this.createTableRow)}
+          </TableBody>
+        </Table>
+      </div>
     );
   }
 
@@ -66,13 +81,20 @@ class AttributeList extends React.Component {
 
 @connect(
   state => ({
-    attributes: state.attributes.items
+    attributes: state.attributes.items,
+    loading: state.attributes.isFetching
   }),
   dispatch => ({
-    actions: bindActionCreators({...attributeActions}, dispatch)
+    actions: bindActionCreators({...attributeActions, urlRedirect}, dispatch)
   })
 )
 class AttributeListContainer extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.submitForm = this.submitForm.bind(this);
+  }
+
   // Load the changes and store them as a state object once the
   // response is ready.
   componentDidMount() {
@@ -80,10 +102,59 @@ class AttributeListContainer extends React.Component {
     actions.fetchAttributes();
   }
 
+  submitForm(data) {
+    console.log('submitForm().data =>', data);
+    const {actions} = this.props;
+
+    data.site_id = 1;  // Hack in stie_id.
+    var resp = actions.createAttribute(data);
+    console.log('submitForm.resp =>', resp);
+    return resp.then(function(obj) {
+
+      console.log('Response:', resp);
+      const result = obj.body;
+
+      if ('error' in result) {
+        console.log(JSON.stringify(result, null, 4));
+        const error = result.error;
+
+        // Potential keys for the error.
+        const error_keys = ['name', 'resource_name', '__all__'];
+
+        let message;
+        for (var idx in error_keys) {
+          var error_key = error_keys[idx];
+          if (error_key in error.message) {
+            message = error.message[error_key];
+            break;
+          }
+        }
+
+        console.log('Error error =', error);
+        console.log('Error message =', message);
+
+        let err = new SubmissionError(
+          {hostname: message, _error: 'Attribute creation failed!'}
+        );
+        console.log('SubmissionError =>', err);
+        throw err;
+      }
+      else {
+        actions.urlRedirect('/attributes/' + result.id);
+      }
+
+    });
+  }
+
   render() {
-    const attributes = this.props.attributes || [];
+    const {attributes, loading} = this.props;
+
     return (
-      <AttributeList attributes={attributes} />
+      <AttributeList
+        attributes={attributes}
+        loading={loading}
+        submitForm={this.submitForm}
+      />
     );
   }
 

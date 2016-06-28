@@ -88,14 +88,19 @@ class DeviceList extends React.Component {
     const {devices, loading, submitForm} = this.props;
 
     if (loading) {
-      return <div><h1>Loading...</h1></div>
+      // return <div><h1>Loading...</h1></div>
+      return (
+        <div class="progress">
+          <div class="indeterminate"></div>
+        </div>
+      );
     }
 
     return (
       <div>
         <DeviceForm onSubmit={submitForm} title="Create Device" />
         <Table>
-          <TableHeader displaySelectAll={false}>
+          <TableHeader displaySelectAll={false} adjustForCheckbox={false}>
             <TableRow>
               <TableHeaderColumn>Hostname</TableHeaderColumn>
               <TableHeaderColumn>Attributes</TableHeaderColumn>

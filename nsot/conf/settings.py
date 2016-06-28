@@ -302,6 +302,17 @@ CORS_ORIGIN_ALLOW_ALL = True
 # response.
 CORS_PREFLIGHT_MAX_AGE = 86400
 
+CORS_URLS_REGEX = r'^/api/.*$'
+
+CORS_ALLOW_METHODS = (
+    'GET',
+    'POST',
+    'PUT',
+    'PATCH',
+    'DELETE',
+    'OPTIONS'
+)
+
 CORS_ALLOW_HEADERS = (
     'x-requested-with',
     'content-type',

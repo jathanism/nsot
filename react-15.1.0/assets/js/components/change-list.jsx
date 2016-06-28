@@ -109,6 +109,9 @@ class ChangeView extends React.Component {
 // Displays a list of Changes
 class ChangeList extends React.Component {
   render() {
+    const {changes} = this.props;
+    console.log('ChangeList.props.changes =>', changes);
+
     return (
       <div>
       <h1>Changes</h1>
@@ -138,6 +141,21 @@ class ChangeList extends React.Component {
   }
 }
 
+import ReactPaginate from 'react-paginate';
+import FlatButton from 'material-ui/FlatButton';
+import NavigationFirstPage from 'material-ui/svg-icons/navigation/first-page';
+import NavigationLastPage from 'material-ui/svg-icons/navigation/last-page';
+import NavigationChevronLeft from 'material-ui/svg-icons/navigation/chevron-left';
+import NavigationChevronRight from 'material-ui/svg-icons/navigation/chevron-right';
+const flatButtonStyle = {
+    minWidth: 36
+};
+
+import {
+  Page, Ellipsis, FirstPageLink, PreviousPageLink, NextPageLink, LastPageLink
+} from './pagination';
+
+
 @connect(
   state => ({
     changes: state.changes.items
@@ -147,18 +165,65 @@ class ChangeList extends React.Component {
   })
 )
 class ChangeListContainer extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      limit: 10,
+      offset: 0,
+      pageNum: 0,
+    };
+  }
+
   // Load the changes and store them as a state object once the
   // response is ready.
   componentDidMount() {
+    this.loadChangesFromServer()
+  }
+
+  loadChangesFromServer() {
     const {actions} = this.props;
-    actions.fetchChanges();
+    const {limit, offset} = this.state;
+
+    var resp = actions.fetchChanges({limit: limit, offset: offset});
+    resp.then(result => {
+      var data = result.body;
+      this.setState({
+        pageNum: Math.ceil(data.count / data.limit)
+      });
+    });
+  }
+
+  handlePageClick = (data) => {
+    let selected = data.selected;
+    // let offset = Math.ceil(selected * this.props.perPage);
+    let offset = Math.ceil(selected * this.state.limit);
+
+    this.setState({offset: offset}, () => {
+      this.loadChangesFromServer();
+    });
   }
 
   render() {
-    const changes = this.props.changes || [];
+    const changes = this.props.changes.results || [];
+
     return (
-      // <ChangeList changes={this.state.changes} />
-      <ChangeList changes={changes} />
+      <div>
+        <ReactPaginate
+          previousLabel={<FlatButton style={flatButtonStyle} icon={<NavigationChevronLeft/>} />}
+          nextLabel={<FlatButton style={flatButtonStyle} icon={<NavigationChevronRight/>} />}
+          breakLabel={<a href="">...</a>}
+          marginPagesDisplayed={2}
+          pageRangeDisplayed={5}
+          clickCallback={this.handlePageClick}
+          pageClassName={"waves-effect"}
+          containerClassName={"pagination"}
+          subContainerClassName={"pages pagination"}
+          activeClassName={"active"}
+          disabledClassName={"disabled"}
+        />
+        <ChangeList changes={changes} />
+      </div>
     );
   }
 

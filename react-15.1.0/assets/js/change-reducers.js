@@ -5,5 +5,5 @@ import API_ROOT from './constants';
 export const {types, actions, reducers} = createResource({
   name: 'change',
   pluralName: 'changes',
-  url: API_ROOT + Urls.change_detail(':id')
+  url: API_ROOT + Urls.change_detail(':id') + '?limit=:limit&offset=:offset'
 });

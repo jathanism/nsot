@@ -91,8 +91,10 @@ class DeviceDetail extends React.Component {
         />
         <DeviceForm onSubmit={submitForm} device={device} title="Update Device" />
         Device detail for id: {device.id}<br />
-        Attributes: {JSON.stringify(device.attributes)}<br />
-        Interfaces: {JSON.stringify(interfaces) || 'Loading...' }<br />
+        Attributes:<br />
+        <pre>{JSON.stringify(device.attributes, null, 4)}</pre>
+        Interfaces:<br />
+        <pre>{JSON.stringify(interfaces, null, 4) || 'Loading...' }</pre>
         <Dialog
           ref="confirmDeleteDialog"
           title="Delete Device"
