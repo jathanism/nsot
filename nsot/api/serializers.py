@@ -76,6 +76,26 @@ class MACAddressField(fields.Field):
         return validators.validate_mac_address(value)
 
 
+class NaturalKeySlugRelatedField(serializers.SlugRelatedField):
+    """Field that takes either a primary key or a natural key."""
+    def to_representation(self, value):
+        return value
+
+    def to_internal_value(self, value):
+        # import pdb; pdb.set_trace()
+        try:
+            pk_field = serializers.PrimaryKeyRelatedField(
+                queryset=self.get_queryset()
+            )
+            return pk_field.to_internal_value(value)
+        except Exception as err:
+            slug_field = serializers.SlugRelatedField(
+                slug_field=self.slug_field,
+                queryset=self.get_queryset()
+            )
+            return slug_field.to_internal_value(value)
+
+
 ###################
 # Base Serializer #
 ###################
@@ -394,6 +414,12 @@ class InterfaceSerializer(ResourceSerializer):
         required=False, allow_null=True,
         label=get_field_attr(models.Interface, 'parent', 'verbose_name'),
         help_text=get_field_attr(models.Interface, 'parent', 'help_text'),
+    )
+    device = NaturalKeySlugRelatedField(
+        slug_field='hostname',
+        queryset=models.Device.objects.all(),
+        label=get_field_attr(models.Interface, 'device', 'verbose_name'),
+        help_text=get_field_attr(models.Interface, 'device', 'help_text'),
     )
 
     class Meta:
