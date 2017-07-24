@@ -18,6 +18,7 @@ const URL = 'http://localhost:8991/api/';
 class Api {
   constructor(url=URL) {
     var client = new $.RestClient(url);
+    // var client = new $.RestClient(url, {stripTrailingSlash: true});
 
     //
     //  Here we're setting up endpoints for all of the NSoT API resources.
@@ -97,3 +98,5 @@ class Network extends Api {
 }
 document.Network = Network;
 */
+
+// hi
