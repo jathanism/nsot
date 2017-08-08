@@ -34,9 +34,22 @@ class BaseNsotViewSet(viewsets.ReadOnlyModelViewSet):
     #: Natural key for the resource. If not defined, defaults to pk-only.
     natural_key = None
 
+    #: Mapping of `request.method` to `serializer_class`.
+    #: e.g. {'post': FooCreateSerializer, 'put': FooUpdateSerializer'}
+    serializer_classes = {}
+
     @property
     def model_name(self):
         return self.queryset.model.__name__
+
+    def get_serializer_class(self):
+        """Fetch the correct serializer class based on the request method."""
+        request_method = getattr(self.request, 'method', None)
+        if request_method is not None:
+            request_method = request_method.lower()
+        return self.serializer_classes.get(
+            request_method, self.serializer_class
+        )
 
     def get_natural_key_kwargs(self, filter_value):
         """
@@ -311,11 +324,9 @@ class ValueViewSet(NsotViewSet):
     queryset = models.Value.objects.all()
     serializer_class = serializers.ValueSerializer
     filter_fields = ('name', 'value', 'resource_name', 'resource_id')
-
-    def get_serializer_class(self):
-        if self.request.method == 'POST':
-            return serializers.ValueCreateSerializer
-        return self.serializer_class
+    serializer_classes = {
+        'post': serializers.ValueCreateSerializer
+    }
 
 
 class NsotBulkUpdateModelMixin(bulk_mixins.BulkUpdateModelMixin):
@@ -364,6 +375,7 @@ class ResourceViewSet(NsotBulkUpdateModelMixin, NsotViewSet,
         return obj
 
 
+# FIXME(jathan): Change base to NsotViewSet. Attributes do NOT have set query.
 class AttributeViewSet(ResourceViewSet):
     """
     API endpoint that allows Attributes to be viewed or edited.
@@ -371,13 +383,11 @@ class AttributeViewSet(ResourceViewSet):
     queryset = models.Attribute.objects.all()
     serializer_class = serializers.AttributeSerializer
     filter_fields = ('name', 'resource_name', 'required', 'display', 'multi')
-
-    def get_serializer_class(self):
-        if self.request.method == 'POST':
-            return serializers.AttributeCreateSerializer
-        if self.request.method in ('PUT', 'PATCH'):
-            return serializers.AttributeUpdateSerializer
-        return self.serializer_class
+    serializer_classes = {
+        'post': serializers.AttributeCreateSerializer,
+        'put': serializers.AttributeUpdateSerializer,
+        'patch': serializers.AttributeUpdateSerializer,
+    }
 
 
 class DeviceViewSet(ResourceViewSet):
@@ -388,16 +398,11 @@ class DeviceViewSet(ResourceViewSet):
     serializer_class = serializers.DeviceSerializer
     filter_class = filters.DeviceFilter
     natural_key = 'hostname'
-
-    def get_serializer_class(self):
-        if self.request.method == 'POST':
-            return serializers.DeviceCreateSerializer
-        if self.request.method == 'PUT':
-            return serializers.DeviceUpdateSerializer
-        if self.request.method == 'PATCH':
-            return serializers.DevicePartialUpdateSerializer
-
-        return self.serializer_class
+    serializer_classes = {
+        'post': serializers.DeviceCreateSerializer,
+        'put': serializers.DeviceUpdateSerializer,
+        'patch': serializers.DevicePartialUpdateSerializer,
+    }
 
     @detail_route(methods=['get'])
     def interfaces(self, request, pk=None, site_pk=None, *args, **kwargs):
@@ -423,18 +428,13 @@ class NetworkViewSet(ResourceViewSet):
     queryset = models.Network.objects.all()
     serializer_class = serializers.NetworkSerializer
     filter_class = filters.NetworkFilter
-    lookup_value_regex = '[a-fA-F0-9:.]+(?:\/\d+)?'
+    lookup_value_regex = '[a-fA-F0-9:./]+'
     natural_key = 'cidr'
-
-    def get_serializer_class(self):
-        if self.request.method == 'POST':
-            return serializers.NetworkCreateSerializer
-        if self.request.method == 'PUT':
-            return serializers.NetworkUpdateSerializer
-        if self.request.method == 'PATCH':
-            return serializers.NetworkPartialUpdateSerializer
-
-        return self.serializer_class
+    serializer_classes = {
+        'post': serializers.NetworkCreateSerializer,
+        'put': serializers.NetworkUpdateSerializer,
+        'patch': serializers.NetworkPartialUpdateSerializer,
+    }
 
     def get_natural_key_kwargs(self, filter_value):
         """Return a dict of kwargs for natural_key lookup."""
@@ -637,9 +637,15 @@ class InterfaceViewSet(ResourceViewSet):
     serializer_class = serializers.InterfaceSerializer
     filter_class = filters.InterfaceFilter
     # Match on device_hostname:name or pk id
-    # Being pretty vague here, so as to be minimally prescriptive
-    lookup_value_regex = '[^:]+:([^/]+|.+[0-9])|[0-9]+'
+    # This pattern will match anything PK or words that end in a single digit.
+    lookup_value_regex = '[a-zA-Z0-9:./-]*[0-9]'
+
     natural_key = 'name_slug'
+    serializer_classes = {
+        'post': serializers.InterfaceCreateSerializer,
+        'put': serializers.InterfaceUpdateSerializer,
+        'patch': serializers.InterfacePartialUpdateSerializer,
+    }
 
     @cache_response(cache_errors=False, key_func=cache.list_key_func)
     def list(self, *args, **kwargs):
@@ -650,15 +656,6 @@ class InterfaceViewSet(ResourceViewSet):
     def retrieve(self, *args, **kwargs):
         """Override default retrieve so we can cache results."""
         return super(InterfaceViewSet, self).retrieve(*args, **kwargs)
-
-    def get_serializer_class(self):
-        if self.request.method == 'POST':
-            return serializers.InterfaceCreateSerializer
-        if self.request.method == 'PUT':
-            return serializers.InterfaceUpdateSerializer
-        if self.request.method == 'PATCH':
-            return serializers.InterfacePartialUpdateSerializer
-        return self.serializer_class
 
     @detail_route(methods=['get'])
     def addresses(self, request, pk=None, site_pk=None, *args, **kwargs):
@@ -748,6 +745,11 @@ class CircuitViewSet(ResourceViewSet):
     serializer_class = serializers.CircuitSerializer
     filter_class = filters.CircuitFilter
     natural_key = 'name_slug'
+    serializer_classes = {
+        'post': serializers.CircuitCreateSerializer,
+        'put': serializers.CircuitUpdateSerializer,
+        'patch': serializers.CircuitPartialUpdateSerializer,
+    }
 
     # TODO(jathan): Revisit this if and when we upgrade or replace
     # django-rest-framework-bulk==0.2.1
@@ -806,16 +808,6 @@ class CircuitViewSet(ResourceViewSet):
     def retrieve(self, *args, **kwargs):
         """Override default retrieve so we can cache results."""
         return super(CircuitViewSet, self).retrieve(*args, **kwargs)
-
-    def get_serializer_class(self):
-        if self.request.method == 'POST':
-            return serializers.CircuitCreateSerializer
-        if self.request.method == 'PUT':
-            return serializers.CircuitUpdateSerializer
-        if self.request.method == 'PATCH':
-            return serializers.CircuitPartialUpdateSerializer
-
-        return self.serializer_class
 
     @detail_route(methods=['get'])
     def addresses(self, request, pk=None, site_pk=None, *args, **kwargs):
@@ -902,6 +894,7 @@ class UserViewSet(BaseNsotViewSet, mixins.CreateModelMixin):
 
 class NotFoundViewSet(viewsets.GenericViewSet):
     """Catchall for bad API endpoints."""
+    exclude_from_schema = True
     permission_classes = (permissions.IsAuthenticated,)
 
     def get_queryset(self):

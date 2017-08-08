@@ -4,7 +4,7 @@ import logging
 from django.db.models import Q
 import django_filters
 
-from .. import fields, models
+from .. import fields as api_fields, models
 from ..util import qpbool
 
 
@@ -13,9 +13,9 @@ log = logging.getLogger(__name__)
 
 class ResourceFilter(django_filters.rest_framework.FilterSet):
     """Attribute-aware filtering for Resource objects."""
-    attributes = django_filters.MethodFilter()
+    attributes = django_filters.CharFilter(method='filter_attributes')
 
-    def filter_attributes(self, queryset, value):
+    def filter_attributes(self, queryset, name, value):
         """
         Reads 'attributes' from query params and joins them together as an
         intersection set query.
@@ -50,17 +50,13 @@ class DeviceFilter(ResourceFilter):
 
 class NetworkFilter(ResourceFilter):
     """Filter for Network objects."""
-    include_networks = django_filters.MethodFilter()
-    include_ips = django_filters.MethodFilter()
-    cidr = django_filters.MethodFilter()
-    root_only = django_filters.MethodFilter()
-
-    # Field override for the `network_address` field.
-    filter_overrides = {
-        fields.BinaryIPAddressField: {
-            'filter_class': django_filters.CharFilter,
-        },
-    }
+    include_networks = django_filters.BooleanFilter(
+        method='filter_include_networks'
+    )
+    include_ips = django_filters.BooleanFilter(method='filter_include_ips')
+    cidr = django_filters.CharFilter(method='filter_cidr')
+    root_only = django_filters.BooleanFilter(method='filter_root_only')
+    network_address = django_filters.CharFilter()  # Override type
 
     class Meta:
         model = models.Network
@@ -70,7 +66,7 @@ class NetworkFilter(ResourceFilter):
             'attributes'
         ]
 
-    def filter_include_networks(self, queryset, value):
+    def filter_include_networks(self, queryset, name, value):
         """Converts ``include_networks`` to queryset filters."""
         include_ips = qpbool(self.form.cleaned_data['include_ips'])
         include_networks = qpbool(value)
@@ -83,7 +79,7 @@ class NetworkFilter(ResourceFilter):
 
         return queryset
 
-    def filter_include_ips(self, queryset, value):
+    def filter_include_ips(self, queryset, name, value):
         """Converts ``include_ips`` to queryset filters."""
         include_ips = qpbool(value)
         include_networks = qpbool(self.form.cleaned_data['include_networks'])
@@ -96,7 +92,7 @@ class NetworkFilter(ResourceFilter):
 
         return queryset
 
-    def filter_cidr(self, queryset, value):
+    def filter_cidr(self, queryset, name, value):
         """Converts ``cidr`` to network/prefix filter."""
         if value:
             network_address, _, prefix_length = value.partition('/')
@@ -108,7 +104,7 @@ class NetworkFilter(ResourceFilter):
             prefix_length=prefix_length
         )
 
-    def filter_root_only(self, queryset, value):
+    def filter_root_only(self, queryset, name, value):
         """Converts ``root_only`` to null parent filter."""
         if qpbool(value):
             return queryset.filter(parent=None)
@@ -122,13 +118,7 @@ class InterfaceFilter(ResourceFilter):
     Includes a custom override for filtering on mac_address because this is not
     a Django built-in field.
     """
-
-    # Field override for the `mac_address` field.
-    filter_overrides = {
-        fields.MACAddressField: {
-            'filter_class': django_filters.MethodFilter,
-        },
-    }
+    mac_address = django_filters.CharFilter(method='filter_mac_address')
 
     class Meta:
         model = models.Interface
@@ -140,7 +130,7 @@ class InterfaceFilter(ResourceFilter):
             'device_hostname'
         ]
 
-    def filter_mac_address(self, queryset, value):
+    def filter_mac_address(self, queryset, name, value):
         """
         Overloads queryset filtering to use built-in.
 

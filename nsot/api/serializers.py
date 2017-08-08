@@ -1,137 +1,17 @@
 from __future__ import unicode_literals
-import ast
 from collections import OrderedDict
-import json
 import logging
 
 from django.contrib.auth import get_user_model
-from rest_framework import fields, serializers
+from rest_framework import serializers
 from rest_framework_bulk import BulkSerializerMixin, BulkListSerializer
 
-from . import auth
-from .. import exc, models, validators
+from . import auth, fields
+from .. import exc, models
 from ..util import get_field_attr
 
 
 log = logging.getLogger(__name__)
-
-
-###############
-# Custom Fields
-###############
-class JSONDataField(fields.Field):
-    """
-    Base field used to represent attributes as JSON <-> ``field_type``.
-
-    It is an error if ``field_type`` is not defined in a subclass.
-    """
-    field_type = None
-
-    def to_representation(self, value):
-        return value
-
-    def to_internal_value(self, data):
-        log.debug('JSONDictField.to_internal_value() data = %r', data)
-        if self.field_type is None:
-            raise NotImplementedError(
-                'You must subclass JSONDataField and define field_type'
-            )
-
-        if not data:
-            data = self.field_type()
-
-        if isinstance(data, self.field_type):
-            return data
-
-        # Try it as a regular JSON object
-        try:
-            return json.loads(data)
-        except ValueError:
-            # Or try it as a Python object
-            try:
-                return ast.literal_eval(data)
-            except (SyntaxError, ValueError) as err:
-                raise exc.ValidationError(err)
-        except Exception as err:
-            raise exc.ValidationError(err)
-        return data
-
-
-class JSONDictField(JSONDataField):
-    """Field used to represent attributes as JSON <-> Dict."""
-    field_type = dict
-
-
-class JSONListField(JSONDataField):
-    """Field used to represent attributes as JSON <-> List."""
-    field_type = list
-
-
-class MACAddressField(fields.Field):
-    """Field used to validate MAC address objects as integer or string."""
-    def to_representation(self, value):
-        return value
-
-    def to_internal_value(self, value):
-        return validators.validate_mac_address(value)
-
-
-class NaturalKeyRelatedField(serializers.SlugRelatedField):
-    """Field that takes either a primary key or a natural key."""
-    def to_representation(self, value):
-        return value
-
-    def to_internal_value(self, value):
-        """Try PK followed by slug (natural key) value."""
-        # Cast integers to strings, bruh
-        if isinstance(value, int):
-            value = str(value)
-
-        # Is digit? Is PK.
-        if value.isdigit():
-            field = serializers.PrimaryKeyRelatedField(
-                queryset=self.get_queryset()
-            )
-            log.debug(
-                'NaturalKeyRelatedField: %s using PK field for value %s',
-                self.field_name, value
-            )
-        # Or it's natural key. Brute force!!
-        else:
-            field = serializers.SlugRelatedField(
-                slug_field=self.slug_field,
-                queryset=self.get_queryset(),
-            )
-            log.debug(
-                'NaturalKeyRelatedField: %s using SLUG field for value %s',
-                self.field_name, value
-            )
-
-        value = field.to_internal_value(value)
-
-        return value
-
-    def get_queryset(self):
-        """Filter eligible related objects to the current site."""
-        queryset = super(NaturalKeyRelatedField, self).get_queryset()
-        request = self.context.get('request')
-
-        if request is None:
-            data = {}
-        else:
-            is_bulk = isinstance(request.data, list)
-            if is_bulk:
-                data = request.data[0]
-            else:
-                data = request.data
-
-        site_id = data.get('site_id')
-
-        if site_id is not None:
-            log.debug('Filtering queryset to site_id=%s', site_id)
-            queryset = queryset.filter(site_id=site_id)
-
-        return queryset
 
 
 ###################
@@ -181,7 +61,7 @@ class UserSerializer(serializers.ModelSerializer):
         if self.with_secret_key is None:
             self.fields.pop('secret_key')
 
-    permissions = fields.ReadOnlyField(source='get_permissions')
+    permissions = serializers.ReadOnlyField(source='get_permissions')
 
     class Meta:
         model = get_user_model()
@@ -192,6 +72,7 @@ class UserSerializer(serializers.ModelSerializer):
 # Site
 ######
 class SiteSerializer(serializers.ModelSerializer):
+    """Used for all Site operations."""
     class Meta:
         model = models.Site
         fields = '__all__'
@@ -219,12 +100,12 @@ class AttributeSerializer(NsotSerializer):
 
 class AttributeCreateSerializer(AttributeSerializer):
     """Used for POST on Attributes."""
-    constraints = JSONDictField(
+    constraints = fields.JSONDictField(
         required=False,
         label=get_field_attr(models.Attribute, 'constraints', 'verbose_name'),
         help_text=get_field_attr(models.Attribute, 'constraints', 'help_text')
     )
-    site_id = fields.IntegerField(
+    site_id = serializers.IntegerField(
         label=get_field_attr(models.Attribute, 'site', 'verbose_name'),
         help_text=get_field_attr(models.Attribute, 'site', 'help_text')
     )
@@ -273,7 +154,10 @@ class ValueCreateSerializer(ValueSerializer):
 ###########
 class ResourceSerializer(NsotSerializer):
     """For any object that can have attributes."""
-    attributes = JSONDictField(
+    # attributes = fields.JSONDictField(
+    #     required=False,
+    attributes = serializers.JSONField(
+        binary=False,
         required=False,
         help_text='Dictionary of attributes to set.'
     )
@@ -378,7 +262,7 @@ class NetworkSerializer(ResourceSerializer):
 
 class NetworkCreateSerializer(NetworkSerializer):
     """Used for POST on Networks."""
-    cidr = fields.CharField(
+    cidr = serializers.CharField(
         write_only=True, required=False, label='CIDR',
         help_text=(
             'IPv4/IPv6 CIDR address. If provided, this overrides the value of '
@@ -414,28 +298,43 @@ class NetworkUpdateSerializer(NetworkPartialUpdateSerializer):
         extra_kwargs = {'attributes': {'required': True}}
 
 
+class AddressSerializer(serializers.Serializer):
+    address = serializers.CharField()
+
+    def validate_address(self, value):
+        from nsot import validators
+        return validators.validate_host_address(value)
+
+    def to_representation(self, value):
+        if value:
+            return value['address']
+        return value
+
+
 ###########
 # Interface
 ###########
 class InterfaceSerializer(ResourceSerializer):
     """Used for GET, DELETE on Interfaces."""
-    parent_id = NaturalKeyRelatedField(
+    parent_id = fields.NaturalKeyRelatedField(
         required=False, allow_null=True,
         slug_field='name_slug',
         queryset=models.Interface.objects.all(),
         label=get_field_attr(models.Interface, 'parent', 'verbose_name'),
         help_text=get_field_attr(models.Interface, 'parent', 'help_text'),
     )
-    device = NaturalKeyRelatedField(
+    device = fields.NaturalKeyRelatedField(
         slug_field='hostname',
         queryset=models.Device.objects.all(),
         label=get_field_attr(models.Interface, 'device', 'verbose_name'),
         help_text=get_field_attr(models.Interface, 'device', 'help_text'),
     )
-    addresses = JSONListField(
+    # addresses = fields.JSONListField(
+    addresses = serializers.ListField(
+        child=serializers.CharField(),
         required=False, help_text='List of host addresses to assign.'
     )
-    mac_address = MACAddressField(
+    mac_address = fields.MACAddressField(
         required=False, allow_null=True,
         label=get_field_attr(models.Interface, 'mac_address', 'verbose_name'),
         help_text=get_field_attr(models.Interface, 'mac_address', 'help_text'),
@@ -536,13 +435,13 @@ class InterfaceUpdateSerializer(InterfacePartialUpdateSerializer):
 #########
 class CircuitSerializer(ResourceSerializer):
     """Used for GET, DELETE on Circuits"""
-    endpoint_a = NaturalKeyRelatedField(
+    endpoint_a = fields.NaturalKeyRelatedField(
         slug_field='name_slug',
         queryset=models.Interface.objects.all(),
         label=get_field_attr(models.Circuit, 'endpoint_a', 'verbose_name'),
         help_text=get_field_attr(models.Circuit, 'endpoint_a', 'help_text'),
     )
-    endpoint_z = NaturalKeyRelatedField(
+    endpoint_z = fields.NaturalKeyRelatedField(
         slug_field='name_slug',
         required=False, allow_null=True,
         queryset=models.Interface.objects.all(),
