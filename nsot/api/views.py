@@ -426,6 +426,34 @@ class NetworkViewSet(ResourceViewSet):
     lookup_value_regex = '[a-fA-F0-9:.]+(?:\/\d+)?'
     natural_key = 'cidr'
 
+    def perform_destroy(self, instance):
+        """
+        Overload default NsotViewSet.perform_destroy() to support forceful
+        parent delete.
+
+        :param instance:
+            Model instance to delete
+        """
+        log.debug('NetworkViewSet.perform_destroy() obj = %r', instance)
+        change = models.Change.objects.create(
+            obj=instance, user=self.request.user, event='Delete'
+        )
+
+        force_delete = qpbool(
+            self.request.query_params.get('force_delete', False)
+        )
+
+        try:
+            instance.delete()
+        except exc.ProtectedError as err:
+            if force_delete:
+                new_parent = instance.parent
+                err.protected_objects.update(parent=new_parent)
+                models.Network.objects.filter(pk=instance.pk).delete()
+            else:
+                change.delete()
+                raise exc.Conflict(err.args[0])
+
     def allocate_networks(self, networks, site_pk, state='allocated'):
         site = models.Site.objects.get(pk=site_pk)
         for n in networks:
