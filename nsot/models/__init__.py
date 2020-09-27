@@ -13,7 +13,6 @@ from .protocol import Protocol
 from .protocol_type import ProtocolType
 from .resource import Resource
 from .site import Site
-from .user import User
 from .value import Value
 
 
@@ -28,7 +27,6 @@ __all__ = [
     "Protocol",
     "ProtocolType",
     "Site",
-    "User",
     "Value",
 ]
 

@@ -20,7 +20,6 @@ router.register(r"interfaces", views.InterfaceViewSet)
 router.register(r"networks", views.NetworkViewSet)
 router.register(r"protocols", views.ProtocolViewSet)
 router.register(r"protocol_types", views.ProtocolTypeViewSet)
-router.register(r"users", views.UserViewSet)
 router.register(r"values", views.ValueViewSet)
 
 # Nested router for resources under /sites

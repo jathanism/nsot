@@ -46,13 +46,8 @@ INSTALLED_APPS = (
     "django_filters",
     "guardian",
     "rest_framework",
-    "custom_user",
     "nsot",
 )
-
-# The model to use to represent a User.
-AUTH_USER_MODEL = "nsot.User"
-ANONYMOUS_USER_NAME = "anonymous@service.local"
 
 # A tuple of authentication backend classes (as strings) to use when attempting
 # to authenticate a user.

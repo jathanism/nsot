@@ -5,7 +5,6 @@ import logging
 import six
 
 from django.conf import settings
-from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from rest_framework import (
     mixins,
@@ -887,65 +886,6 @@ class ProtocolViewSet(ResourceViewSet):
             return serializers.ProtocolPartialUpdateSerializer
 
         return self.serializer_class
-
-
-#: Namedtuple for retrieving pk and user object of current user.
-UserPkInfo = namedtuple("UserPkInfo", "user pk")
-
-
-class UserViewSet(BaseNsotViewSet, mixins.CreateModelMixin):
-    """
-    This viewset automatically provides `list` and `detail` actins.
-    """
-
-    queryset = get_user_model().objects.all()
-    serializer_class = serializers.UserSerializer
-    filterset_fields = ("email",)
-
-    def get_user_and_pk(self, request, pk=None, site_pk=None):
-        # If pk is 0, return the current user.
-        if int(pk) == 0:
-            pk = request.user.pk  # Authenticated user
-
-        # Try to get the requested user
-        try:
-            user = self.queryset.get(pk=pk)
-        except exc.ObjectDoesNotExist:
-            self.not_found(pk, site_pk)
-
-        return UserPkInfo(user, pk)
-
-    def retrieve(self, request, pk=None, site_pk=None, *args, **kwargs):
-        """Retreive a single user."""
-        user, pk = self.get_user_and_pk(request, pk, site_pk)
-
-        params = request.query_params
-        with_secret_key = params.get("with_secret_key", None)
-
-        # If with_secret_key is set, confirm that the requested user object
-        # matches the current user.
-        if with_secret_key is not None:
-            if user != request.user:
-                raise exc.Forbidden(
-                    "Can't access secret_key of user that isn't you."
-                )
-            kwargs["with_secret_key"] = qpbool(with_secret_key)
-
-        return super(UserViewSet, self).retrieve(
-            request, pk, site_pk, *args, **kwargs
-        )
-
-    @action(methods=["post"], detail=True)
-    def rotate_secret_key(self, request, pk=None, *args, **kwargs):
-        user, pk = self.get_user_and_pk(request, pk)
-
-        if user != request.user:
-            raise exc.Forbidden(
-                "Can't access secret_key of user that isn't you."
-            )
-
-        user.rotate_secret_key()
-        return self.success(user.secret_key)
 
 
 class NotFoundViewSet(viewsets.GenericViewSet):

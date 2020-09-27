@@ -1,41 +1,11 @@
 from __future__ import unicode_literals
 
 from __future__ import absolute_import
-from custom_user.admin import EmailUserAdmin
-from django.contrib.auth import get_user_model
 from django.contrib import admin
 from django.utils.translation import ugettext_lazy as _
 from guardian.admin import GuardedModelAdmin
 
 from . import models
-
-
-# Register our custom User model
-class UserAdmin(EmailUserAdmin):
-    fieldsets = (
-        (
-            None,
-            {
-                "fields": ("email", "secret_key", "password"),
-            },
-        ),
-        (
-            _("Permissions"),
-            {
-                "fields": (
-                    "is_active",
-                    "is_staff",
-                    "is_superuser",
-                    "groups",
-                    "user_permissions",
-                ),
-            },
-        ),
-        (_("Important dates"), {"fields": ("last_login", "date_joined")}),
-    )
-
-
-admin.site.register(get_user_model(), UserAdmin)
 
 
 class SiteAdmin(GuardedModelAdmin):

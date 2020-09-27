@@ -5,7 +5,6 @@ from collections import OrderedDict
 import json
 import logging
 
-from django.contrib.auth import get_user_model
 from rest_framework import fields, serializers
 from rest_framework import validators as drf_validators
 from rest_framework_bulk import BulkSerializerMixin, BulkListSerializer
@@ -178,32 +177,6 @@ class NsotSerializer(serializers.ModelSerializer):
             return obj
 
         return obj.to_dict()
-
-
-######
-# User
-######
-class UserSerializer(serializers.ModelSerializer):
-    """
-    UserProxy model serializer that takes optional `with_secret_key` argument
-    that controls whether the secret_key for the user should be displayed.
-    """
-
-    def __init__(self, *args, **kwargs):
-        # Don't pass `with_secret_key` up to the superclass
-        self.with_secret_key = kwargs.pop("with_secret_key", None)
-        super(UserSerializer, self).__init__(*args, **kwargs)
-
-        # If we haven't passed `with_secret_key`, don't show the secret_key
-        # field.
-        if self.with_secret_key is None:
-            self.fields.pop("secret_key")
-
-    permissions = fields.ReadOnlyField(source="get_permissions")
-
-    class Meta:
-        model = get_user_model()
-        fields = ("id", "email", "permissions", "secret_key")
 
 
 ######
