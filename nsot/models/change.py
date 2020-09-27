@@ -27,7 +27,7 @@ class Change(models.Model):
     )
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        related_name="changes",
+        related_name="nsot_changes",
         db_index=True,
         on_delete=models.CASCADE,
         help_text="The User that initiated this Change.",
