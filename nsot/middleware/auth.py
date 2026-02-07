@@ -53,10 +53,11 @@ class EmailHeaderBackend(backends.RemoteUserBackend):
         In Django 5.x this is called for all users (new and existing)
         with a ``created`` flag.  Only grant superuser on first creation.
         """
-        if created and settings.NSOT_NEW_USERS_AS_SUPERUSER:
-            user.is_superuser = True
-            user.is_staff = True
-            user.save()
+        if created:
+            if settings.NSOT_NEW_USERS_AS_SUPERUSER:
+                user.is_superuser = True
+                user.is_staff = True
+                user.save()
             log.debug("Created new user: %s", user)
         return user
 
