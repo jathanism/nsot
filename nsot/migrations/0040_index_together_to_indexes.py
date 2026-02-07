@@ -51,7 +51,14 @@ class Migration(migrations.Migration):
             database_operations=[],
         ),
         # Create named indexes for standalone index_together entries.
-        # Interface: device_hostname + name
+        # Drop any existing indexes first to avoid duplicates on PostgreSQL/MySQL.
+        # On SQLite, these may not exist due to table rebuilds, hence IF EXISTS.
+        #
+        # Interface: device_hostname + name (from 0027)
+        migrations.RunSQL(
+            sql="DROP INDEX IF EXISTS nsot_interface_device_hostname_name",
+            reverse_sql=migrations.RunSQL.noop,
+        ),
         migrations.AddIndex(
             model_name="interface",
             index=models.Index(
@@ -59,13 +66,22 @@ class Migration(migrations.Migration):
                 name="nsot_interf_device__f01451_idx",
             ),
         ),
-        # Value: (name, value, resource_name) and (resource_name, resource_id)
+        # Value: (name, value, resource_name) - explicitly named in 0021
+        migrations.RunSQL(
+            sql="DROP INDEX IF EXISTS nsot_val_name_val_rn",
+            reverse_sql=migrations.RunSQL.noop,
+        ),
         migrations.AddIndex(
             model_name="value",
             index=models.Index(
                 fields=["name", "value", "resource_name"],
                 name="nsot_value_name_0c66ac_idx",
             ),
+        ),
+        # Value: (resource_name, resource_id) - from 0023
+        migrations.RunSQL(
+            sql="DROP INDEX IF EXISTS nsot_value_resource_name_resource_id",
+            reverse_sql=migrations.RunSQL.noop,
         ),
         migrations.AddIndex(
             model_name="value",
@@ -74,13 +90,21 @@ class Migration(migrations.Migration):
                 name="nsot_value_resourc_62e5c1_idx",
             ),
         ),
-        # Change: (resource_name, resource_id) and (resource_name, event)
+        # Change: (resource_name, resource_id) and (resource_name, event) - from 0032
+        migrations.RunSQL(
+            sql="DROP INDEX IF EXISTS nsot_change_resource_name_resource_id",
+            reverse_sql=migrations.RunSQL.noop,
+        ),
         migrations.AddIndex(
             model_name="change",
             index=models.Index(
                 fields=["resource_name", "resource_id"],
                 name="nsot_change_resourc_fa9b1d_idx",
             ),
+        ),
+        migrations.RunSQL(
+            sql="DROP INDEX IF EXISTS nsot_change_resource_name_event",
+            reverse_sql=migrations.RunSQL.noop,
         ),
         migrations.AddIndex(
             model_name="change",

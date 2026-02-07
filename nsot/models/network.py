@@ -555,13 +555,9 @@ class Network(Resource):
             raise exc.ValidationError(msg)
 
         # Determine network properties
-        network = cidr  # In-case we're not a unicode string.
+        network = cidr  # In-case we're not a string.
 
-        # Convert to unicode in case it's bytes.
-        if isinstance(cidr, str):
-            cidr = str(cidr)
-
-        # Convert a unicode string to an IPNetwork.
+        # Convert a string to an IPNetwork.
         if isinstance(cidr, str):
             try:
                 network = ipaddress.ip_network(cidr)
