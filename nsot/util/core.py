@@ -8,7 +8,6 @@ import shlex
 
 from cryptography.fernet import Fernet
 from django.core.exceptions import FieldDoesNotExist
-from logan.runner import run_app
 
 log = logging.getLogger(__name__)
 
@@ -330,6 +329,8 @@ def initialize_app(config):
 
 def main():
     """CLI application used to manage NSoT."""
+    from logan.runner import run_app
+
     run_app(
         project="nsot",
         default_config_path="~/.nsot/nsot.conf.py",
