@@ -4,6 +4,7 @@ from .. import exc
 from .attribute import Attribute
 from .resource import Resource
 
+
 class Protocol(Resource):
     """
     Representation of a routing protocol
@@ -105,7 +106,7 @@ class Protocol(Resource):
         return value
 
     def clean_circuit(self, value):
-        """ Ensure at least one endpoint on the circuit is on this device """
+        """Ensure at least one endpoint on the circuit is on this device"""
         if value and value.interface_for(self.device) is None:
             raise exc.ValidationError(
                 {

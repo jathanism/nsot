@@ -65,9 +65,7 @@ class EmailUserManager(BaseUserManager):
 
     def create_superuser(self, email, password, **extra_fields):
         """Create and save a superuser with the given email and password."""
-        return self._create_user(
-            email, password, True, True, **extra_fields
-        )
+        return self._create_user(email, password, True, True, **extra_fields)
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -101,9 +99,7 @@ class User(AbstractBaseUser, PermissionsMixin):
             "active. Unselect this instead of deleting accounts."
         ),
     )
-    date_joined = models.DateTimeField(
-        _("date joined"), default=timezone.now
-    )
+    date_joined = models.DateTimeField(_("date joined"), default=timezone.now)
     secret_key = models.CharField(
         max_length=44,
         default=util.generate_secret_key,

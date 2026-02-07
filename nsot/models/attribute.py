@@ -6,6 +6,7 @@ from django.db import models
 from .. import exc, fields, validators
 from . import constants
 
+
 class Attribute(models.Model):
     """Represents a flexible attribute for Resource objects."""
 

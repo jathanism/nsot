@@ -1,5 +1,6 @@
 from rest_framework.renderers import BrowsableAPIRenderer
 
+
 class FilterlessBrowsableAPIRenderer(BrowsableAPIRenderer):
     """Custom browsable API renderer that doesn't show filter forms."""
 

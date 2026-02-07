@@ -2,6 +2,7 @@ from django.db import models
 
 from .. import exc, validators
 
+
 class Assignment(models.Model):
     """
     DB object for assignment of addresses to interfaces (on devices).

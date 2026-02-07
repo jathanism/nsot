@@ -2,6 +2,7 @@ from django.db import models
 
 from .. import validators
 
+
 class Site(models.Model):
     """A namespace for attribtues, devices, and networks."""
 

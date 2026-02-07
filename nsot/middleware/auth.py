@@ -15,8 +15,10 @@ from ..util import normalize_auth_header
 
 log = logging.getLogger("nsot_server")
 
+
 class EmailHeaderMiddleware(middleware.RemoteUserMiddleware):
     header = normalize_auth_header(settings.USER_AUTH_HEADER)
+
 
 class EmailHeaderBackend(backends.RemoteUserBackend):
     """Custom backend that validates username is an email."""
@@ -57,6 +59,7 @@ class EmailHeaderBackend(backends.RemoteUserBackend):
             user.save()
             log.debug("Created new user: %s", user)
         return user
+
 
 class NsotObjectPermissionsBackend(ObjectPermissionBackend):
     """Custom backend that overloads django-guardian's has_perm method."""

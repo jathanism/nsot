@@ -28,6 +28,7 @@ __all__ = (
     "slugify_interface",
 )
 
+
 def qpbool(arg):
     """
     Convert "truthy" strings into Booleans.
@@ -39,6 +40,7 @@ def qpbool(arg):
         Truthy string
     """
     return str(arg).lower() in _TRUTHY
+
 
 def normalize_auth_header(header):
     """
@@ -52,6 +54,7 @@ def normalize_auth_header(header):
     """
     return "HTTP_" + header.upper().replace("-", "_")
 
+
 def generate_secret_key():
     """
     Return a secret key suitable for use w/ Fernet.
@@ -61,6 +64,7 @@ def generate_secret_key():
     """
     key = Fernet.generate_key()
     return str(key.decode("utf-8"))
+
 
 def get_field_attr(model, field_name, attr_name):
     """
@@ -91,6 +95,7 @@ def get_field_attr(model, field_name, attr_name):
     else:
         return getattr(field, attr_name, "")
 
+
 def cidr_to_dict(cidr):
     """
     Take a cidr and return it as a dictionary.
@@ -108,6 +113,7 @@ def cidr_to_dict(cidr):
         "network_address": cidr.network_address,
         "prefix_length": cidr.prefixlen,
     }
+
 
 def slugify(s):
     """
@@ -133,6 +139,7 @@ def slugify(s):
         s = s.replace(char, replacement)
 
     return s
+
 
 def slugify_interface(
     interface=None, device_hostname=None, name=None, **kwargs
@@ -163,8 +170,10 @@ def slugify_interface(
     slug = "{device_hostname}:{name}".format(**interface)
     return slug
 
+
 #: Namedtuple for resultant items from ``parse_set_query()``
 SetQuery = collections.namedtuple("SetQuery", "action name value")
+
 
 def parse_set_query(query):
     """
@@ -214,6 +223,7 @@ def parse_set_query(query):
 
     log.debug("Outgoing attributes = %r" % (attributes,))
     return attributes
+
 
 #: Configuration template emitted when a user runs ``nsot-server init``.
 CONFIG_TEMPLATE = '''
@@ -304,6 +314,7 @@ AUTH_TOKEN_EXPIRY = 600  # 10 minutes
 ALLOWED_HOSTS = ['*']
 '''
 
+
 def generate_settings(config_template=None):
     """
     Used to emit a generated configuration from ``config_template``.
@@ -317,6 +328,7 @@ def generate_settings(config_template=None):
     secret_key = generate_secret_key()
     return config_template % dict(secret_key=secret_key)
 
+
 def initialize_app(config):
     """
     Actions to be performed prior to creating the Application object.
@@ -326,6 +338,7 @@ def initialize_app(config):
     """
     # This currently does nothing but it's here in case we need it.
     pass
+
 
 def main():
     """CLI application used to manage NSoT."""
@@ -339,6 +352,7 @@ def main():
         settings_envvar="NSOT_CONF",
         initializer=initialize_app,
     )
+
 
 if __name__ == "__main__":
     main()

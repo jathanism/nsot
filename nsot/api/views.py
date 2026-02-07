@@ -21,6 +21,7 @@ from ..util import qpbool, cidr_to_dict
 
 log = logging.getLogger(__name__)
 
+
 class BaseNsotViewSet(viewsets.ReadOnlyModelViewSet):
     """
     Default viewset for Nsot objects with the following defaults:
@@ -179,6 +180,7 @@ class BaseNsotViewSet(viewsets.ReadOnlyModelViewSet):
 
         return obj
 
+
 class ChangeViewSet(BaseNsotViewSet):
     """
     Read-only API endpoint that allows Changes to be viewed.
@@ -196,6 +198,7 @@ class ChangeViewSet(BaseNsotViewSet):
     @action(methods=["get"], detail=True)
     def diff(self, request, *args, **kwargs):
         return self.success(self.get_object().diff)
+
 
 class NsotViewSet(BaseNsotViewSet, viewsets.ModelViewSet):
     """
@@ -290,6 +293,7 @@ class NsotViewSet(BaseNsotViewSet, viewsets.ModelViewSet):
             change.delete()
             raise exc.Conflict(err.args[0])
 
+
 class SiteViewSet(NsotViewSet):
     """
     API endpoint that allows Sites to be viewed or edited.
@@ -298,6 +302,7 @@ class SiteViewSet(NsotViewSet):
     queryset = models.Site.objects.all()
     serializer_class = serializers.SiteSerializer
     filterset_fields = ("name",)
+
 
 class ValueViewSet(NsotViewSet):
     """
@@ -313,6 +318,7 @@ class ValueViewSet(NsotViewSet):
             return serializers.ValueCreateSerializer
         return self.serializer_class
 
+
 class NsotBulkUpdateModelMixin(bulk_mixins.BulkUpdateModelMixin):
     """
     The default mixin isn't using super() so multiple-inheritance breaks. This
@@ -323,6 +329,7 @@ class NsotBulkUpdateModelMixin(bulk_mixins.BulkUpdateModelMixin):
         super(bulk_mixins.BulkUpdateModelMixin, self).perform_update(
             serializer
         )
+
 
 class ResourceViewSet(
     NsotBulkUpdateModelMixin, NsotViewSet, bulk_mixins.BulkCreateModelMixin
@@ -358,6 +365,7 @@ class ResourceViewSet(
 
         return obj
 
+
 class AttributeViewSet(ResourceViewSet):
     """
     API endpoint that allows Attributes to be viewed or edited.
@@ -373,6 +381,7 @@ class AttributeViewSet(ResourceViewSet):
         if self.request.method in ("PUT", "PATCH"):
             return serializers.AttributeUpdateSerializer
         return self.serializer_class
+
 
 class DeviceViewSet(ResourceViewSet):
     """
@@ -409,6 +418,7 @@ class DeviceViewSet(ResourceViewSet):
         circuits = device.circuits
 
         return self.list(request, queryset=circuits, *args, **kwargs)
+
 
 class NetworkViewSet(ResourceViewSet):
     """
@@ -642,6 +652,7 @@ class NetworkViewSet(ResourceViewSet):
             change.delete()
             raise exc.Conflict(err.args[0])
 
+
 class InterfaceViewSet(ResourceViewSet):
     """
     API endpoint that allows Interfaces to be viewed or edited.
@@ -747,6 +758,7 @@ class InterfaceViewSet(ResourceViewSet):
             msg = msg.format(site_pk, pk)
             self.not_found(pk, msg=msg)
 
+
 class CircuitViewSet(ResourceViewSet):
     """
     API endpoint that allows Circuits to be viewed or edited.
@@ -841,6 +853,7 @@ class CircuitViewSet(ResourceViewSet):
 
         return self.list(request, queryset=interfaces, *args, **kwargs)
 
+
 class ProtocolTypeViewSet(NsotViewSet):
     """
     API endpoint that allows ProtocolTypes to be viewed or edited.
@@ -850,6 +863,7 @@ class ProtocolTypeViewSet(NsotViewSet):
     serializer_class = serializers.ProtocolTypeSerializer
     filterset_class = filters.ProtocolTypeFilter
     natural_key = "name"
+
 
 class ProtocolViewSet(ResourceViewSet):
     """
@@ -870,8 +884,10 @@ class ProtocolViewSet(ResourceViewSet):
 
         return self.serializer_class
 
+
 #: Namedtuple for retrieving pk and user object of current user.
 UserPkInfo = namedtuple("UserPkInfo", "user pk")
+
 
 class UserViewSet(BaseNsotViewSet, mixins.CreateModelMixin):
     """
@@ -927,6 +943,7 @@ class UserViewSet(BaseNsotViewSet, mixins.CreateModelMixin):
         user.rotate_secret_key()
         return self.success(user.secret_key)
 
+
 class NotFoundViewSet(viewsets.GenericViewSet):
     """Catchall for bad API endpoints."""
 
@@ -944,6 +961,7 @@ class NotFoundViewSet(viewsets.GenericViewSet):
 
     def get_serializer_class(self):
         return None
+
 
 class AuthTokenLoginView(APIView):
     permission_classes = ()
@@ -967,6 +985,7 @@ class AuthTokenLoginView(APIView):
                 )
             )
         raise exc.Unauthorized(serializer.errors)
+
 
 class AuthTokenVerifyView(APIView):
     authentication_classes = (auth.AuthTokenAuthentication,)

@@ -9,6 +9,7 @@ import sys
 from nsot.services import http
 from nsot.util.commands import NsotCommand, CommandError
 
+
 class Command(NsotCommand):
     help = "Start the NSoT server process."
 

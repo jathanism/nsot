@@ -14,6 +14,7 @@ __all__ = ("BinaryIPAddressField", "JSONField", "MACAddressField")
 
 log = logging.getLogger(__name__)
 
+
 class BinaryIPAddressField(models.Field):
     """IP Address field that stores values as varbinary."""
 
@@ -75,6 +76,7 @@ class BinaryIPAddressField(models.Field):
 
         # Or packed binary for everyone else.
         return ipaddress.ip_address(value).packed
+
 
 class MACAddressField(BaseMACAddressField):
     """

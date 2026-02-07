@@ -1,5 +1,5 @@
-__version__ = '0.2.1'
-__author__ = 'Miroslav Shubernetskiy'
+__version__ = "0.2.1"
+__author__ = "Miroslav Shubernetskiy"
 
 try:
     from .generics import *  # noqa

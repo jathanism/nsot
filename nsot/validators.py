@@ -9,6 +9,7 @@ import netaddr
 
 from . import exc
 
+
 def validate_mac_address(value):
     """Validate whether ``value`` is a valid MAC address."""
     if value is None:
@@ -28,11 +29,13 @@ def validate_mac_address(value):
 
     return value
 
+
 def validate_name(value):
     """Validate whether ``value`` is a valid name."""
     if not value:
         raise exc.ValidationError({"name": "This is a required field."})
     return value
+
 
 def validate_cidr(value):
     """Validate whether ``value`` is a validr IPv4/IPv6 CIDR."""
@@ -48,6 +51,7 @@ def validate_cidr(value):
     else:
         return cidr
 
+
 def validate_host_address(value):
     """Validate whether ``value`` is a host IP address."""
     cidr = validate_cidr(value)
@@ -56,6 +60,7 @@ def validate_host_address(value):
             {"address": "%r is not a valid host address!" % value}
         )
     return value
+
 
 def validate_email(value):
     """Validate whether ``value`` is an email address."""

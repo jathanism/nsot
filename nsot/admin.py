@@ -6,6 +6,7 @@ from guardian.admin import GuardedModelAdmin
 
 from . import models
 
+
 # Register our custom User model
 class UserAdmin(DjangoUserAdmin):
     fieldsets = (
@@ -47,13 +48,17 @@ class UserAdmin(DjangoUserAdmin):
         "user_permissions",
     )
 
+
 admin.site.register(get_user_model(), UserAdmin)
+
 
 class SiteAdmin(GuardedModelAdmin):
     list_display = ("name", "description")
     list_filter = ("name",)
 
+
 admin.site.register(models.Site, SiteAdmin)
+
 
 class AttributeAdmin(GuardedModelAdmin):
     list_display = (
@@ -67,13 +72,17 @@ class AttributeAdmin(GuardedModelAdmin):
     )
     list_filter = ("name", "resource_name", "required", "multi", "site")
 
+
 admin.site.register(models.Attribute, AttributeAdmin)
+
 
 class ValueAdmin(GuardedModelAdmin):
     list_display = ("name", "value", "resource_name", "resource_id")
     list_filter = ("name", "value", "resource_name")
 
+
 admin.site.register(models.Value, ValueAdmin)
+
 
 class ChangeAdmin(admin.ModelAdmin):
     list_display = (
@@ -88,7 +97,9 @@ class ChangeAdmin(admin.ModelAdmin):
     )
     list_filter = ("event", "site")
 
+
 admin.site.register(models.Change, ChangeAdmin)
+
 
 class DeviceAdmin(GuardedModelAdmin):
     list_display = ("hostname", "site")
@@ -96,7 +107,9 @@ class DeviceAdmin(GuardedModelAdmin):
 
     fields = list_display
 
+
 admin.site.register(models.Device, DeviceAdmin)
+
 
 class NetworkAdmin(GuardedModelAdmin):
     mptt_level_indent = 10
@@ -124,7 +137,9 @@ class NetworkAdmin(GuardedModelAdmin):
         "site",
     )
 
+
 admin.site.register(models.Network, NetworkAdmin)
+
 
 class InterfaceAdmin(GuardedModelAdmin):
     list_display = ("name", "device", "parent", "mac_address", "type", "speed")
@@ -132,13 +147,17 @@ class InterfaceAdmin(GuardedModelAdmin):
 
     fields = list_display
 
+
 admin.site.register(models.Interface, InterfaceAdmin)
+
 
 class ProtocolTypeAdmin(GuardedModelAdmin):
     list_display = ("name", "description", "site")
     list_filter = ("name", "site")
 
+
 admin.site.register(models.ProtocolType, ProtocolTypeAdmin)
+
 
 class ProtocolAdmin(GuardedModelAdmin):
     list_display = ("type", "description", "device", "interface", "circuit")
@@ -153,5 +172,6 @@ class ProtocolAdmin(GuardedModelAdmin):
         "description",
         "site",
     )
+
 
 admin.site.register(models.Protocol, ProtocolAdmin)

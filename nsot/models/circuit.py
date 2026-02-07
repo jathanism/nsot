@@ -3,6 +3,7 @@ from django.db import models
 from .. import exc, util
 from .resource import Resource
 
+
 class Circuit(Resource):
     """Represents two network Interfaces that are connected"""
 
@@ -84,8 +85,10 @@ class Circuit(Resource):
 
     @property
     def addresses(self):
-        """Return addresses associated with this circuit. This includes addresses
-        associated with child interfaces."""
+        """Return addresses associated with this circuit.
+
+        This includes addresses associated with child interfaces.
+        """
         addresses = []
         for interface in self.interfaces:
             addresses.extend(interface.addresses.all())

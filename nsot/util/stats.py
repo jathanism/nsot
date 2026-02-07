@@ -6,6 +6,7 @@ from netaddr import IPNetwork, IPSet
 
 __all__ = ("calculate_network_utilization", "get_network_utilization")
 
+
 def calculate_network_utilization(parent, hosts, as_string=False):
     """
     Calculate utilization for a network and its descendants.
@@ -41,6 +42,7 @@ def calculate_network_utilization(parent, hosts, as_string=False):
         )
 
     return stats
+
 
 def get_network_utilization(network, as_string=False):
     """

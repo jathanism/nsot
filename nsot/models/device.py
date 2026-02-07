@@ -5,6 +5,7 @@ from .. import exc
 from .circuit import Circuit
 from .resource import Resource
 
+
 class Device(Resource):
     """Represents a network device."""
 

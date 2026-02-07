@@ -1,6 +1,6 @@
 __all__ = [
-    'BulkListSerializer',
-    'BulkSerializerMixin',
+    "BulkListSerializer",
+    "BulkSerializerMixin",
 ]
 
 

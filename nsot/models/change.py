@@ -10,6 +10,7 @@ from .. import exc, fields
 from . import constants
 from .site import Site
 
+
 class Change(models.Model):
     """Record of all changes in NSoT."""
 

@@ -9,6 +9,7 @@ from django.core.management.base import BaseCommand, CommandError
 
 __all__ = ("NsotCommand", "CommandError")
 
+
 class NsotCommand(BaseCommand):
     """Base management command for NSoT that implements a custom logger."""
 

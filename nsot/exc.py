@@ -30,6 +30,7 @@ __all__ = (
     "MultipleObjectsReturned",
 )
 
+
 def custom_exception_handler(exc, context):
     """Always handle errors all pretty-like."""
     # Call REST framework's default exception handler first to get the standard
@@ -79,37 +80,45 @@ def custom_exception_handler(exc, context):
 
     return response
 
+
 class Error(APIException):
-    """ Baseclass for NSoT Exceptions."""
+    """Baseclass for NSoT Exceptions."""
+
 
 class ModelError(Error):
     """Base class for NSoT Model Exceptions."""
+
 
 class BaseHttpError(Error):
     """Base HTTP error."""
 
     pass
 
+
 class BadRequest(BaseHttpError):
     """HTTP 400 error."""
 
     status_code = 400
+
 
 class Unauthorized(BaseHttpError):
     """HTTP 401 error."""
 
     status_code = 401
 
+
 class Forbidden(BaseHttpError):
     """HTTP 403 error."""
 
     status_code = 403
+
 
 class NotFound(BaseHttpError):
     """HTTP 404 error."""
 
     status_code = 404
     default_detail = "Endpoint not found."
+
 
 class Conflict(BaseHttpError, IntegrityError):
     """HTTP 409 error."""

@@ -4,6 +4,7 @@ from .. import exc
 from . import constants
 from .attribute import Attribute
 
+
 class Value(models.Model):
     """Represents a value for an attribute attached to a Resource."""
 

@@ -11,6 +11,7 @@ import socket
 
 from nsot.util.commands import NsotCommand, CommandError
 
+
 class Command(NsotCommand):
     help = "Start an authenticating reverse proxy for use in development."
 

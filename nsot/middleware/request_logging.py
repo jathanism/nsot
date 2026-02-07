@@ -9,6 +9,7 @@ from django.utils.deprecation import MiddlewareMixin
 
 logger = logging.getLogger("nsot_server")
 
+
 class LoggingMiddleware(MiddlewareMixin):
     def process_request(self, request):
         request.timer = time()

@@ -13,6 +13,7 @@ from .resource import Resource, ResourceManager
 
 log = logging.getLogger(__name__)
 
+
 class NetworkManager(ResourceManager):
     """Manager for NetworkInterface objects."""
 
@@ -99,6 +100,7 @@ class NetworkManager(ResourceManager):
 
     def reserved(self):
         return Network.objects.filter(state=Network.RESERVED)
+
 
 class Network(Resource):
     """Represents a subnet or IP address."""
@@ -646,6 +648,7 @@ class Network(Resource):
             "attributes": self.get_attributes(),
         }
 
+
 # Signals
 def refresh_assignment_interface_networks(sender, instance, **kwargs):
     """This signal fires each time a Network object is saved. Upon save,
@@ -661,6 +664,7 @@ def refresh_assignment_interface_networks(sender, instance, **kwargs):
         for assignment in child.assignments.all():
             assignment.interface.clean_addresses()
             assignment.interface.save()
+
 
 models.signals.post_save.connect(
     refresh_assignment_interface_networks,

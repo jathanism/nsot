@@ -30,10 +30,12 @@ __all__ = [
     "Value",
 ]
 
+
 # Global signals
 def delete_resource_values(sender, instance, **kwargs):
     """Delete values when a Resource object is deleted."""
     instance.attributes.delete()  # These are instances of Value
+
 
 resource_subclasses = Resource.__subclasses__()
 for model_class in resource_subclasses:

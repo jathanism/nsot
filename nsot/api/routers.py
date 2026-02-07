@@ -12,6 +12,7 @@ BULK_OPERATIONS_MAP = {
     "delete": "bulk_destroy",
 }
 
+
 class BulkNestedRouter(NestedSimpleRouter):
     """
     Bulk-enabled nested router.

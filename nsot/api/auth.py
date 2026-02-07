@@ -9,6 +9,7 @@ from ..util import normalize_auth_header
 
 log = logging.getLogger(__name__)
 
+
 class AuthTokenAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
         log.debug("Fetching AuthToken header.")
@@ -53,6 +54,7 @@ class AuthTokenAuthentication(authentication.BaseAuthentication):
     def authenticate_header(self, request):
         return "AuthToken"
 
+
 class EmailHeaderAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
         user_auth_header = normalize_auth_header(settings.USER_AUTH_HEADER)
@@ -80,6 +82,7 @@ class EmailHeaderAuthentication(authentication.BaseAuthentication):
 
         # And return it.
         return (user, None)
+
 
 class SecretKeyAuthentication(authentication.BaseAuthentication):
     def authenticate_credentials(self, email, secret_key):

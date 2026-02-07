@@ -6,6 +6,7 @@ from django.core.management import call_command
 
 from nsot.util.commands import NsotCommand
 
+
 class Command(NsotCommand):
     help = "Performs any pending database migrations and upgrades"
 

@@ -3,11 +3,10 @@ from rest_framework import status
 from rest_framework.mixins import CreateModelMixin
 from rest_framework.response import Response
 
-
 __all__ = [
-    'BulkCreateModelMixin',
-    'BulkDestroyModelMixin',
-    'BulkUpdateModelMixin',
+    "BulkCreateModelMixin",
+    "BulkDestroyModelMixin",
+    "BulkUpdateModelMixin",
 ]
 
 
@@ -26,7 +25,9 @@ class BulkCreateModelMixin(CreateModelMixin):
         bulk = isinstance(request.DATA, list)
 
         if not bulk:
-            return super(BulkCreateModelMixin, self).create(request, *args, **kwargs)
+            return super(BulkCreateModelMixin, self).create(
+                request, *args, **kwargs
+            )
 
         else:
             serializer = self.get_serializer(data=request.DATA, many=True)
@@ -36,7 +37,9 @@ class BulkCreateModelMixin(CreateModelMixin):
                 self.object = serializer.save(force_insert=True)
                 for obj in self.object:
                     self.post_save(obj, created=True)
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
+                return Response(
+                    serializer.data, status=status.HTTP_201_CREATED
+                )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -50,9 +53,13 @@ class BulkUpdateModelMixin(object):
     def get_object(self, queryset=None):
         lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
 
-        if any((lookup_url_kwarg in self.kwargs,
+        if any(
+            (
+                lookup_url_kwarg in self.kwargs,
                 self.pk_url_kwarg in self.kwargs,
-                self.slug_url_kwarg in self.kwargs)):
+                self.slug_url_kwarg in self.kwargs,
+            )
+        ):
             return super(BulkUpdateModelMixin, self).get_object(queryset)
 
         # If the lookup_url_kwarg (or other deprecated variations)
@@ -66,13 +73,15 @@ class BulkUpdateModelMixin(object):
         return
 
     def bulk_update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
+        partial = kwargs.pop("partial", False)
 
         # restrict the update to the filtered queryset
-        serializer = self.get_serializer(self.filter_queryset(self.get_queryset()),
-                                         data=request.DATA,
-                                         many=True,
-                                         partial=partial)
+        serializer = self.get_serializer(
+            self.filter_queryset(self.get_queryset()),
+            data=request.DATA,
+            many=True,
+            partial=partial,
+        )
 
         if serializer.is_valid():
             try:
@@ -81,7 +90,9 @@ class BulkUpdateModelMixin(object):
             except ValidationError as err:
                 # full_clean on model instances may be called in pre_save
                 # so we have to handle eventual errors.
-                return Response(err.message_dict, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    err.message_dict, status=status.HTTP_400_BAD_REQUEST
+                )
             self.object = serializer.save(force_update=True)
             for obj in self.object:
                 self.post_save(obj, created=False)
@@ -90,7 +101,7 @@ class BulkUpdateModelMixin(object):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def partial_bulk_update(self, request, *args, **kwargs):
-        kwargs['partial'] = True
+        kwargs["partial"] = True
         return self.bulk_update(request, *args, **kwargs)
 
 

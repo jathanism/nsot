@@ -9,6 +9,7 @@ from .value import Value
 
 log = logging.getLogger(__name__)
 
+
 class ResourceSetTheoryQuerySet(models.query.QuerySet):
     """
     Set theory QuerySet for Resource objects to add ``.set_query()`` method.
@@ -137,6 +138,7 @@ class ResourceSetTheoryQuerySet(models.query.QuerySet):
 
         return query
 
+
 class ResourceManager(models.Manager):
     """
     Manager for Resource objects that adds a special resource methods:
@@ -197,6 +199,7 @@ class ResourceManager(models.Manager):
             ID of Site to filter results
         """
         return self.get_queryset().by_attribute(name, value, site_id)
+
 
 class Resource(models.Model):
     """Base for heirarchial Resource objects that may have attributes."""

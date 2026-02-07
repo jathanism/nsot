@@ -66,7 +66,7 @@ ipdb = ">=0.13"
 flake8 = ">=5.0"
 attrs = ">=22.0"
 mrproxy = "~=0.4.0"
-black = ">=22.0"
+black = ">=24.0"
 
 [tool.black]
 line-length = 79
