@@ -2,7 +2,6 @@
 Make dummy data and fixtures and stuff to use in benchmarking.
 """
 
-from __future__ import absolute_import
 import collections
 import faker
 import json
@@ -11,12 +10,9 @@ from hashlib import sha1
 import ipaddress
 import pytest
 import random
-import six
 import socket
 import struct
 import time
-from six.moves import range
-
 
 # Constants and stuff
 fake = faker.Factory.create()
@@ -32,10 +28,8 @@ ATTRIBUTE_DATA = {
 # Used to store Attribute/value pairs
 Attribute = collections.namedtuple('Attribute', 'name value')
 
-
 def rando():
     return random.choice((True, False))
-
 
 def generate_words(num_items=100, title=False, add_suffix=False):
     stuff = set()
@@ -59,7 +53,6 @@ def generate_words(num_items=100, title=False, add_suffix=False):
         # stuff.add(word)
         yield word
 
-
 def generate_hostnames(num_items=100):
     """
     Generate a random list of hostnames.
@@ -71,11 +64,9 @@ def generate_hostnames(num_items=100):
     for i in range(1, num_items + 1):
         yield 'host%s' % i
 
-
 def generate_ipv4():
     """Generate a random IPv4 address."""
     return socket.inet_ntoa(struct.pack('>I', random.randint(1, 0xffffffff)))
-
 
 def generate_ipv4list(num_items=100, include_hosts=False):
     """
@@ -111,14 +102,12 @@ def generate_ipv4list(num_items=100, include_hosts=False):
         ipset.add(ip)
     return sorted(ipset)
 
-
 def enumerate_attributes(resource_name, attributes=None):
     if attributes is None:
         attributes = ATTRIBUTE_DATA
 
     for name in attributes:
         yield {'name': name, 'resource_name': resource_name}
-
 
 def generate_attributes(attributes=None, as_dict=True):
     """
@@ -133,14 +122,13 @@ def generate_attributes(attributes=None, as_dict=True):
     if attributes is None:
         attributes = ATTRIBUTE_DATA
     attrs = []
-    for attr_name, attr_values in six.iteritems(attributes):
+    for attr_name, attr_values in attributes.items():
         if random.choice((True, False)):
             attr_value = random.choice(attr_values)
             attrs.append(Attribute(attr_name, attr_value))
     if as_dict:
         attrs = dict(attrs)
     return attrs
-
 
 def generate_devices(num_items=100, with_attributes=True):
     """
@@ -165,7 +153,6 @@ def generate_devices(num_items=100, with_attributes=True):
         # devices.append(item)
     # return devices
 
-
 def generate_networks(num_items=100, with_attributes=True, include_hosts=False):
     """
     Return a list of dicts for Network creation.
@@ -189,13 +176,11 @@ def generate_networks(num_items=100, with_attributes=True, include_hosts=False):
         networks.append(item)
     return networks
 
-
 def rando_set_action():
     return random.choice(['+', '-', ''])
-
 
 def rando_set_query():
     action = rando_set_action()
     return ' '.join(
-        action + '%s=%s' % (k, v) for k,v in six.iteritems(generate_attributes())
+        action + '%s=%s' % (k, v) for k,v in generate_attributes().items()
     )

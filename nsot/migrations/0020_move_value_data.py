@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 
-from __future__ import absolute_import
 from django.db import models, migrations
-
 
 def migrate_value_fields(apps, schema_editor):
     """
@@ -15,7 +12,6 @@ def migrate_value_fields(apps, schema_editor):
         val.new_resource_id = val.resource_id
         val.name = val.attribute.name
         val.save()
-
 
 class Migration(migrations.Migration):
 

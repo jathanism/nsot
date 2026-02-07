@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 
-from __future__ import absolute_import
 import pytest
 
 # Allow everything in there to access the DB
@@ -19,9 +17,7 @@ from .util import (
     Client, load, filter_networks, mkcidr, get_result
 )
 
-
 log = logging.getLogger(__name__)
-
 
 def test_creation(live_server, user, site):
     """Test creation of Networks."""
@@ -93,7 +89,6 @@ def test_creation(live_server, user, site):
     net2a_obj_uri = site.detail_uri('network', id=net2a['id'])
     assert_created(net2a_resp, net2a_obj_uri)
 
-
 def test_bulk_operations(site, client):
     """Test creating/updating multiple Networks at once."""
     # URIs
@@ -127,7 +122,6 @@ def test_bulk_operations(site, client):
     expected = updated_resp.json()
 
     assert updated == expected
-
 
 def test_filters(site, client):
     """Test cidr/address/prefix/attribute filters for Networks."""
@@ -237,7 +231,6 @@ def test_filters(site, client):
         expected
     )
 
-
 def test_set_queries(client, site):
     """Test set queries for Networks."""
 
@@ -321,7 +314,6 @@ def test_set_queries(client, site):
         status.HTTP_400_BAD_REQUEST
     )
 
-
 def test_update(live_server, user, site):
     """Test updating Networks by pk and natural_key."""
     admin_client = Client(live_server, 'admin')
@@ -374,7 +366,6 @@ def test_update(live_server, user, site):
         net
     )
 
-
 def test_partial_update(site, client):
     """"Test PATCH operations to partially update a Network."""
     net_uri = site.list_uri('network')
@@ -407,7 +398,6 @@ def test_partial_update(site, client):
         status.HTTP_400_BAD_REQUEST
     )
 
-
 def test_deletion(site, client):
     """Test deletion of Networks."""
     net_uri = site.list_uri('network')
@@ -436,7 +426,6 @@ def test_deletion(site, client):
     net3 = get_result(net3_resp)
     net3_natural_uri = site.detail_uri('network', id=mkcidr(net3))
     assert_deleted(client.delete(net3_natural_uri))
-
 
 def test_force_deletion(site, client):
     """Test forceful deletion of Networks and proper reparenting."""
@@ -496,7 +485,6 @@ def test_force_deletion(site, client):
 
     # Force delete /23 will fail, because it has no parent and children are leaf nodes.
     assert_error(client.destroy(net1_obj_uri, force_delete=True), status.HTTP_409_CONFLICT)
-
 
 def test_mptt_detail_routes(site, client):
     """Test detail routes for ancestor/children/descendants/root methods."""
@@ -611,7 +599,6 @@ def test_mptt_detail_routes(site, client):
     assert_success(client.retrieve(uri, include_self=True), expected)
     assert_success(client.retrieve(natural_uri, include_self=True), expected)
 
-
 def test_get_next_detail_routes(site, client):
     """Test the detail routes for getting next available networks/addresses."""
     net_uri = site.list_uri('network')
@@ -721,7 +708,6 @@ def test_get_next_detail_routes(site, client):
         status.HTTP_400_BAD_REQUEST
     )
 
-
 def test_next_network_allocation(site, client):
     net_uri = site.list_uri('network')
 
@@ -740,7 +726,6 @@ def test_next_network_allocation(site, client):
 
     uri = reverse('network-reserved', args=(site.id,))
     assert get_result(client.retrieve(uri))[0]['network_address'] == u'10.1.2.2'
-
 
 def test_next_address_allocation(site, client):
     net_uri = site.list_uri('network')
@@ -761,7 +746,6 @@ def test_next_address_allocation(site, client):
     uri = reverse('network-reserved', args=(site.id,))
     assert get_result(client.retrieve(uri))[0]['network_address'] == u'10.1.2.2'
 
-
 def test_reservation_list_route(site, client):
     """Test the list route for getting reserved networks/addresses."""
     net_uri = site.list_uri('network')
@@ -774,7 +758,6 @@ def test_reservation_list_route(site, client):
     networks = [net]
     expected = networks
     assert_success(client.retrieve(res_uri), expected)
-
 
 def test_closest_parent_detail_route(site, client):
     """

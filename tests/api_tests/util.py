@@ -2,9 +2,6 @@
 Utilities for unit-testsing of API endpoints.
 """
 
-from __future__ import print_function
-
-from __future__ import absolute_import
 from hashlib import sha1
 import json
 import os
@@ -14,8 +11,7 @@ import macaddress
 import netaddr
 from rest_framework import status
 import requests
-from six.moves.urllib.parse import urlparse
-
+from urllib.parse import urlparse
 
 '''
 __all__ = (
@@ -25,7 +21,6 @@ __all__ = (
     'filter_circuits', 'make_mac', 'mkcidr',
 )
 '''
-
 
 def _deep_sort(obj):
     """Sort the items in an object so comparisons succeed."""
@@ -45,7 +40,6 @@ def _deep_sort(obj):
 
         return sorted((_deep_sort(elem) for elem in obj), key=sort_key)
     return obj
-
 
 def get_result(response):
     """
@@ -69,12 +63,10 @@ def get_result(response):
     # Or just return the payload... (next-gen)
     return payload
 
-
 def assert_error(response, code):
     """Assert a response resulted in an error."""
     output = response.json()
     assert output['error']['code'] == code
-
 
 def assert_success(response, data=None, ignore_order=True):
     """Assert a response resulted in an success."""
@@ -89,7 +81,6 @@ def assert_success(response, data=None, ignore_order=True):
             assert _deep_sort(output) == _deep_sort(data)
         else:
             assert output == data
-
 
 def assert_created(response, location, data=None):
     """Assert 201 CREATED."""
@@ -106,7 +97,6 @@ def assert_created(response, location, data=None):
     if data is not None:
         assert output == data
 
-
 def assert_deleted(response):
     assert response.status_code == status.HTTP_204_NO_CONTENT
 
@@ -114,7 +104,6 @@ def assert_deleted(response):
     # test will have to be updated.
     # output = response.json()
     # assert output["status"] == "ok"
-
 
 class Client(object):
     def __init__(self, live_server, user="admin", api_version=None):
@@ -179,7 +168,6 @@ class Client(object):
     def destroy(self, url, **kwargs):
         return self.delete(url, params=kwargs)
 
-
 def load_json(relpath):
     """
     Load JSON files relative to this directory.
@@ -197,14 +185,12 @@ def load_json(relpath):
     with open(filepath, 'rb') as f:
         return json.load(f)
 
-
 def load(relpath):
     our_path = os.path.dirname(os.path.abspath(__file__))
     data_dir = os.path.join(our_path, 'data')
     filepath = os.path.join(data_dir, relpath)
     with open(filepath, 'rb') as f:
         return f.read()
-
 
 def filter_devices(devices, wanted):
     """
@@ -218,7 +204,6 @@ def filter_devices(devices, wanted):
     """
     return [d for d in devices if d['hostname'] in wanted]
 
-
 def filter_interfaces(interfaces, wanted):
     """
     Return a list of desired Interface objects.
@@ -231,7 +216,6 @@ def filter_interfaces(interfaces, wanted):
     """
     return [i for i in interfaces if i in wanted]
 
-
 def filter_circuits(circuits, wanted):
     """
     Return a list of desired Circuit objects.
@@ -243,7 +227,6 @@ def filter_circuits(circuits, wanted):
         list of Circuit objects you want
     """
     return [c for c in circuits if c in wanted]
-
 
 def filter_networks(networks, wanted):
     """
@@ -260,7 +243,6 @@ def filter_networks(networks, wanted):
             n['network_address'], n['prefix_length']
         ) in wanted
     ]
-
 
 def filter_values(values, **wanted):
     """
@@ -279,7 +261,6 @@ def filter_values(values, **wanted):
 
     return ret
 
-
 def make_mac(mac):
     """
     Return a MAC address in the default dialect.
@@ -288,7 +269,6 @@ def make_mac(mac):
         MAC address (string, integer, or EUI object)
     """
     return netaddr.EUI(mac, dialect=macaddress.default_dialect())
-
 
 class SiteHelper(object):
     """Class used to help with common API things in testing."""
@@ -336,7 +316,6 @@ class SiteHelper(object):
 
     def __repr__(self):
         return '<SiteHelper: %s (%s)>' % (self.name, self.id)
-
 
 def mkcidr(obj):
     """

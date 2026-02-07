@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 
-from __future__ import absolute_import
 import pytest
 
 # Allow everything in there to access the DB
@@ -19,9 +17,7 @@ from .util import (
     Client, load, filter_circuits, get_result
 )
 
-
 log = logging.getLogger(__name__)
-
 
 def test_creation(site, client):
     """Test basic creation of a Circuit."""
@@ -114,7 +110,6 @@ def test_creation(site, client):
     expected = circuits
     assert_success(client.get(cir_uri), expected)
 
-
 def test_bulk_operations(site, client):
     """Test creating/updating multiple Circuits at once."""
     cir_uri = site.list_uri('circuit')
@@ -165,7 +160,6 @@ def test_bulk_operations(site, client):
     expected = updated_resp.json()
 
     assert updated == expected
-
 
 def test_update(site, client):
     """Test update of an existing interface w/ an address."""
@@ -272,7 +266,6 @@ def test_update(site, client):
         status.HTTP_400_BAD_REQUEST
     )
 
-
 def test_partial_update(site, client):
     """Test PATCH operations to partially update a Circuit."""
     attr_uri = site.list_uri('attribute')
@@ -335,7 +328,6 @@ def test_partial_update(site, client):
         client.partial_update(cir_obj_uri, **params),
         payload
     )
-
 
 def test_filters(site, client):
     """Test field filters for Interfaces."""
@@ -431,7 +423,6 @@ def test_filters(site, client):
         client.retrieve(cir_uri, attributes=['vendor=acme']),
         expected
     )
-
 
 def test_set_queries(client, site):
     """Test set queries for Interfaces."""
@@ -553,7 +544,6 @@ def test_set_queries(client, site):
         status.HTTP_400_BAD_REQUEST
     )
 
-
 def test_deletion(site, client):
     """Test deletion of Circuits."""
     cir_uri = site.list_uri('circuit')
@@ -599,7 +589,6 @@ def test_deletion(site, client):
     cir2 = get_result(cir2_resp)
     cir2_natural_uri = site.detail_uri('circuit', id=cir2['name'])
     assert_deleted(client.delete(cir2_natural_uri))
-
 
 def test_detail_routes(site, client):
     """Test detail routes for Circuit objects."""

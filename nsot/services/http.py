@@ -1,9 +1,6 @@
-from __future__ import absolute_import, print_function
-
 from gunicorn.app.base import Application
 
 from nsot.services.base import Service
-
 
 class NsotGunicornCommand(Application):
     """Gunicorn WSGI service."""
@@ -29,7 +26,6 @@ class NsotGunicornCommand(Application):
         import nsot.wsgi
 
         return nsot.wsgi.application
-
 
 class NsotHTTPServer(Service):
     """HTTP service options."""

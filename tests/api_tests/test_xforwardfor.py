@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-from __future__ import absolute_import
 import logging
 
 import pytest
@@ -18,9 +16,7 @@ from .util import (
     assert_created, assert_deleted, assert_error, assert_success, SiteHelper
 )
 
-
 log = logging.getLogger(__name__)
-
 
 def test_request_xforwardfor(live_server):
     """Test processing of X-Forwarded-For header."""

@@ -1,8 +1,6 @@
-from __future__ import absolute_import
 from django.db import models
 
 from .. import exc
-
 
 class ProtocolType(models.Model):
     """
@@ -61,7 +59,6 @@ class ProtocolType(models.Model):
             "site": self.site_id,
         }
 
-
 # Signals
 def required_attributes_changed(
     sender, instance, action, reverse, model, pk_set, **kwargs
@@ -90,7 +87,6 @@ def required_attributes_changed(
                     )
                 }
             )
-
 
 # Register required_attributes_changed -> ProtocolType.required_attributes
 models.signals.m2m_changed.connect(

@@ -11,10 +11,6 @@ Put me in ``settings.py`` like so::
 Credit: http://stackoverflow.com/a/4256485/194311
 """
 
-
-from __future__ import absolute_import
-
-
 def app_version(request):
     """A template variable to display current version."""
     from nsot import __version__

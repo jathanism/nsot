@@ -2,15 +2,12 @@
 Middleware to log HTTP requests.
 """
 
-from __future__ import absolute_import
 import logging
 from time import time
 
 from django.utils.deprecation import MiddlewareMixin
 
-
 logger = logging.getLogger("nsot_server")
-
 
 class LoggingMiddleware(MiddlewareMixin):
     def process_request(self, request):

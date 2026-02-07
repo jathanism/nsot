@@ -1,6 +1,3 @@
-from __future__ import unicode_literals
-
-from __future__ import absolute_import
 import logging
 
 from django.conf import settings
@@ -17,9 +14,7 @@ from .resource import Resource
 from .. import exc, fields, util, validators
 from . import constants
 
-
 log = logging.getLogger(__name__)
-
 
 class Interface(Resource):
     """A network interface."""
@@ -477,12 +472,10 @@ class Interface(Resource):
             "attributes": self.get_attributes(),
         }
 
-
 # Signals
 def change_api_updated_at(sender=None, instance=None, *args, **kwargs):
     """Anytime the API is updated, invalidate the cache."""
     djcache.set("api_updated_at_timestamp", timezone.now())
-
 
 def update_device_interfaces(sender, instance, **kwargs):
     """Anytime a device is saved, update device_hostname on its interfaces"""
@@ -491,7 +484,6 @@ def update_device_interfaces(sender, instance, **kwargs):
         interface.device_hostname = instance.hostname
         interface.name_slug = None  # null so model validation resets name_slug
         interface.save()
-
 
 models.signals.post_save.connect(
     change_api_updated_at,

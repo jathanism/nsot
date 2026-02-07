@@ -1,6 +1,3 @@
-from __future__ import print_function
-
-from __future__ import absolute_import
 from django.db import transaction
 import ipaddress
 import pytest
@@ -9,7 +6,6 @@ import time
 from nsot import exc, models
 
 from .model_tests.fixtures import site
-
 
 @pytest.mark.django_db
 def test_create_1024(site):

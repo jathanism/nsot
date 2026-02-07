@@ -1,6 +1,3 @@
-from __future__ import unicode_literals
-
-from __future__ import absolute_import
 from calendar import timegm
 import difflib
 import json
@@ -12,7 +9,6 @@ from django.db import models
 from .. import exc, fields
 from . import constants
 from .site import Site
-
 
 class Change(models.Model):
     """Record of all changes in NSoT."""

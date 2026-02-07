@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 
-from __future__ import absolute_import
 from django.db import models, migrations
 import django_extensions.db.fields.json
-
 
 def migrate_network_fields(apps, schema_editor):
     """
@@ -24,7 +21,6 @@ def migrate_network_fields(apps, schema_editor):
             _attributes_cache=net._attributes,
             site=net.site,
         )
-
 
 class Migration(migrations.Migration):
 

@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 
-from __future__ import absolute_import
 import pytest
 
 # Allow everything in there to access the DB
@@ -13,16 +11,13 @@ import json
 import logging
 from rest_framework import status
 
-
 from .fixtures import live_server, client, user, site
 from .util import (
     assert_created, assert_error, assert_success, assert_deleted, load_json,
     Client, load, get_result
 )
 
-
 log = logging.getLogger(__name__)
-
 
 def test_creation(client, site):
     """Test creation of Attributes."""
@@ -51,7 +46,6 @@ def test_creation(client, site):
 
     # Successfully get a single Network Attribute
     assert_success(client.get(attr_obj_uri), payload)
-
 
 def test_bulk_operations(client, site):
     """Test creating/updating multiple Attributes at once."""
@@ -89,7 +83,6 @@ def test_bulk_operations(client, site):
 
     assert updated == expected
 
-
 def test_update(client, site):
     """Test updating Attributes w/ PUT."""
 
@@ -126,7 +119,6 @@ def test_update(client, site):
         attr
     )
 
-
 def test_partial_update(site, client):
     """Test PATCH operations to partially update an Attribute."""
     attr_uri = site.list_uri('attribute')
@@ -156,7 +148,6 @@ def test_partial_update(site, client):
         client.partial_update(attr_pk_uri, **params),
         payload
     )
-
 
 def test_deletion(client, site):
     """Test DELETE operations for Attributes."""

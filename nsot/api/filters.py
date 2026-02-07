@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-from __future__ import absolute_import
 import logging
 
 from django.db.models import Q
@@ -8,9 +6,7 @@ import django_filters
 from .. import models
 from ..util import qpbool
 
-
 log = logging.getLogger(__name__)
-
 
 class AttributeFilter(django_filters.rest_framework.FilterSet):
     required = django_filters.BooleanFilter()
@@ -20,7 +16,6 @@ class AttributeFilter(django_filters.rest_framework.FilterSet):
     class Meta:
         model = models.Attribute
         fields = ["name", "resource_name", "required", "display", "multi"]
-
 
 class ResourceFilter(django_filters.rest_framework.FilterSet):
     """Attribute-aware filtering for Resource objects."""
@@ -52,14 +47,12 @@ class ResourceFilter(django_filters.rest_framework.FilterSet):
 
         return queryset
 
-
 class DeviceFilter(ResourceFilter):
     """Filter for Device objects."""
 
     class Meta:
         model = models.Device
         fields = ["hostname", "attributes"]
-
 
 class NetworkFilter(ResourceFilter):
     """Filter for Network objects."""
@@ -129,7 +122,6 @@ class NetworkFilter(ResourceFilter):
             return queryset.filter(parent=None)
         return queryset
 
-
 class InterfaceFilter(ResourceFilter):
     """
     Filter for Interface objects.
@@ -166,7 +158,6 @@ class InterfaceFilter(ResourceFilter):
         """
         return queryset.filter(mac_address=value)
 
-
 class CircuitFilter(ResourceFilter):
     """Filter for Circuit objects."""
 
@@ -199,14 +190,12 @@ class CircuitFilter(ResourceFilter):
         else:
             return queryset.filter(endpoint_z__name_slug=value)
 
-
 class ProtocolTypeFilter(django_filters.rest_framework.FilterSet):
     """Filter for ProtocolType (non-resource) objects."""
 
     class Meta:
         model = models.ProtocolType
         fields = ["name", "description"]
-
 
 class ProtocolFilter(ResourceFilter):
     """Filter for Protocol objects."""

@@ -2,13 +2,10 @@
 General purpose utilities for unit-testing.
 """
 
-from __future__ import absolute_import
 import json
 import os
 
-
 __all__ = ('load_json',)
-
 
 def load_json(relpath):
     """

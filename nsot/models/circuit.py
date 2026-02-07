@@ -1,12 +1,7 @@
-from __future__ import unicode_literals
-
-from __future__ import absolute_import
-
 from django.db import models
 
 from .. import exc, util
 from .resource import Resource
-
 
 class Circuit(Resource):
     """Represents two network Interfaces that are connected"""

@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 
-from __future__ import absolute_import
 import pytest
 # Allow everything in there to access the DB
 pytestmark = pytest.mark.django_db
@@ -15,9 +13,7 @@ from nsot import exc, models
 
 from .fixtures import user, transactional_db
 
-
 log = logging.getLogger(__name__)
-
 
 def test_site_creation():
     site = models.Site.objects.create(
@@ -30,7 +26,6 @@ def test_site_creation():
     assert sites[0].id == site.id
     assert sites[0].name == site.name
     assert sites[0].description == site.description
-
 
 def test_site_conflict(transactional_db):
     models.Site.objects.create(
@@ -48,7 +43,6 @@ def test_site_conflict(transactional_db):
         name='Test Site 2',
         description='This is a Test Site.'
     )
-
 
 def test_site_validation(transactional_db):
     with pytest.raises(exc.ValidationError):

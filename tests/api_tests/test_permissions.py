@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 
-from __future__ import absolute_import
 import pytest
 
 # Allow everything in there to access the DB
@@ -19,9 +17,7 @@ from .util import (
     Client, load, get_result
 )
 
-
 log = logging.getLogger(__name__)
-
 
 def test_permissions(client, user_client, user, site):
     # URIs

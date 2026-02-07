@@ -1,6 +1,4 @@
-from __future__ import absolute_import
 import os
-
 
 def pytest_report_header(config):
     """Customize the report header to display API version."""

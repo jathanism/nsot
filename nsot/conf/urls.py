@@ -1,5 +1,3 @@
-from __future__ import absolute_import, unicode_literals
-
 from django.conf import settings
 from django.urls import include, path, re_path
 from django.contrib import admin
@@ -9,7 +7,6 @@ from rest_framework.renderers import JSONOpenAPIRenderer
 
 from ..api.views import NotFoundViewSet
 from ..ui.views import FeView
-
 
 # Custom error-handling views.
 handler400 = "nsot.ui.views.handle400"

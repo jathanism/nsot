@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-from __future__ import absolute_import
 from collections import OrderedDict
 import logging
 
@@ -14,9 +12,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.exceptions import APIException
 from rest_framework.views import exception_handler
 
-
 log = logging.getLogger(__name__)
-
 
 __all__ = (
     "Error",
@@ -33,7 +29,6 @@ __all__ = (
     "ValidationError",
     "MultipleObjectsReturned",
 )
-
 
 def custom_exception_handler(exc, context):
     """Always handle errors all pretty-like."""
@@ -84,45 +79,37 @@ def custom_exception_handler(exc, context):
 
     return response
 
-
 class Error(APIException):
     """ Baseclass for NSoT Exceptions."""
 
-
 class ModelError(Error):
     """Base class for NSoT Model Exceptions."""
-
 
 class BaseHttpError(Error):
     """Base HTTP error."""
 
     pass
 
-
 class BadRequest(BaseHttpError):
     """HTTP 400 error."""
 
     status_code = 400
-
 
 class Unauthorized(BaseHttpError):
     """HTTP 401 error."""
 
     status_code = 401
 
-
 class Forbidden(BaseHttpError):
     """HTTP 403 error."""
 
     status_code = 403
-
 
 class NotFound(BaseHttpError):
     """HTTP 404 error."""
 
     status_code = 404
     default_detail = "Endpoint not found."
-
 
 class Conflict(BaseHttpError, IntegrityError):
     """HTTP 409 error."""

@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 
-from __future__ import absolute_import
 import pytest
 
 # Allow everything in there to access the DB
@@ -14,23 +12,19 @@ import logging
 from rest_framework import status
 import requests
 
-
 from .fixtures import live_server, client, user, site, nosuperuser_settings
 from .util import (
     assert_created, assert_error, assert_success, assert_deleted, load_json,
     Client, load, get_result
 )
 
-
 log = logging.getLogger(__name__)
-
 
 def test_no_user(live_server, site):
     site_uri = site.list_uri()
     url = '{}{}'.format(live_server.url, site_uri)
 
     assert_error(requests.get(url), status.HTTP_401_UNAUTHORIZED)
-
 
 def test_valid_user(live_server):
     """Test that a valid user gets through..."""
@@ -43,7 +37,6 @@ def test_valid_user(live_server):
         expected
     )
 
-
 def test_invalid_user(live_server):
     """Test that an invalid user DOES NOT get through..."""
     url = '{}/api/sites/'.format(live_server.url)
@@ -53,7 +46,6 @@ def test_invalid_user(live_server):
         requests.get(url, headers=headers),
         status.HTTP_400_BAD_REQUEST
     )
-
 
 def test_get_auth_token_valid(live_server, user):
     """Test that an auth_token can be generated."""
@@ -71,7 +63,6 @@ def test_get_auth_token_valid(live_server, user):
     # itself. Of course it will pass! How though? I mean... Yeah.
     assert_success(resp, expected)
 
-
 def test_get_auth_token_invalid(live_server, user):
     """Test that an auth_token fails w/ a bad secret key."""
     auth_uri = reverse('authenticate')
@@ -86,7 +77,6 @@ def test_get_auth_token_invalid(live_server, user):
         status.HTTP_401_UNAUTHORIZED
     )
 
-
 def test_get_auth_token_missing(live_server, user):
     """Test that missing payload results in a 401."""
     auth_uri = reverse('authenticate')
@@ -97,7 +87,6 @@ def test_get_auth_token_missing(live_server, user):
         requests.post(url, headers=headers, data=''),
         status.HTTP_401_UNAUTHORIZED
     )
-
 
 def test_verify_auth_token_invalid(live_server, user):
     """Test that an auth_token is NOT valid."""
@@ -112,7 +101,6 @@ def test_verify_auth_token_invalid(live_server, user):
         requests.post(verify_url, headers=headers),
         status.HTTP_400_BAD_REQUEST
     )
-
 
 def test_verify_auth_token_valid(live_server, site, user):
     """Test that an auth_token is valid."""
@@ -131,7 +119,6 @@ def test_verify_auth_token_valid(live_server, site, user):
     })
 
     assert_success(requests.post(verify_url, headers=headers), True)
-
 
 def test_valid_auth_token(live_server, user):
     """Test that a GET can be performed to a resource using auth_token."""
@@ -160,7 +147,6 @@ def test_valid_auth_token(live_server, user):
         requests.get(site_url, headers=headers),
         expected
     )
-
 
 def test_new_users_as_superuser(nosuperuser_settings, live_server, user):
     """Test that settings.NSOT_NEW_USERS_AS_SUPERUSER works."""

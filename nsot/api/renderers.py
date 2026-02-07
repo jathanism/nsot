@@ -1,7 +1,4 @@
-from __future__ import unicode_literals
-from __future__ import absolute_import
 from rest_framework.renderers import BrowsableAPIRenderer
-
 
 class FilterlessBrowsableAPIRenderer(BrowsableAPIRenderer):
     """Custom browsable API renderer that doesn't show filter forms."""

@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 
-from __future__ import absolute_import
 import pytest
 # Allow everything in there to access the DB
 pytestmark = pytest.mark.django_db
@@ -15,7 +13,6 @@ import logging
 from nsot import exc, models
 
 from .fixtures import admin_user, user, site, transactional_db
-
 
 def test_networks_creation_reparenting(site):
     net_8  = models.Network.objects.create(site=site, cidr=u'10.0.0.0/8')
@@ -51,7 +48,6 @@ def test_networks_creation_reparenting(site):
     ) == [net_0, net_8, net_16]
     assert list(net_24.subnets()) == []
 
-
 def test_seqential_creation(site):
     net_8 = models.Network.objects.create(site=site, cidr=u'10.0.0.0/8')
     net_22_1 = models.Network.objects.create(site=site, cidr=u'10.0.0.0/22')
@@ -67,11 +63,9 @@ def test_seqential_creation(site):
     assert net_8.id == net_22_2.parent_id
     assert net_8.id == net_22_3.parent_id
 
-
 def test_network_create_hostbits_set(site):
     with pytest.raises(exc.ValidationError):
         models.Network.objects.create(site=site, cidr=u'10.0.0.0/0')
-
 
 def test_network_attributes(site):
     models.Attribute.objects.create(
@@ -101,14 +95,12 @@ def test_network_attributes(site):
     with pytest.raises(exc.ValidationError):
         network.set_attributes({'made_up': 'value'})
 
-
 def test_ip_address_no_network(site):
     with pytest.raises(exc.ValidationError):
         models.Network.objects.create(site=site, cidr=u'10.0.0.1/32')
 
     models.Network.objects.create(site=site, cidr=u'10.0.0.0/8')
     models.Network.objects.create(site=site, cidr=u'10.0.0.1/32')
-
 
 def test_retrieve_networks(site):
     """Test lookup of Network objects."""
@@ -176,7 +168,6 @@ def test_retrieve_networks(site):
     with pytest.raises(exc.ValidationError):
         site.networks.get_closest_parent(u'1')
 
-
 def test_mptt_methods(site):
     """Test ancestor/children/descendants/root model methods."""
     net_8 = models.Network.objects.create(site=site, cidr=u'10.0.0.0/8')
@@ -232,7 +223,6 @@ def test_mptt_methods(site):
     assert list(net_8.get_siblings()) == [net_192_1, net_192_2]
     assert list(net_192_1.get_siblings()) == [net_8, net_192_2]
     assert list(net_192_2.get_siblings(include_self=True)) == [net_8, net_192_1, net_192_2]
-
 
 def test_get_next_methods(site):
     """Test the methods for getting next available networks/addresses."""
@@ -300,7 +290,6 @@ def test_get_next_methods(site):
     # as_objects=False
     assert net_25.get_next_address(num=3, as_objects=False) == slash32
 
-
 def test_get_next_address_interconnect(site):
     """Test that interconnects return first/last, but other networks don't."""
     net_24 = models.Network.objects.create(site=site, cidr=u'10.20.30.0/24')
@@ -333,7 +322,6 @@ def test_get_next_address_interconnect(site):
     expected = [ipaddress.ip_network(n) for n in slash127]
     assert net_127.get_next_address(num=2) == expected
 
-
 def test_reservation(site):
     """Test that a reserved Network returns no available networks or IPs."""
 
@@ -354,13 +342,11 @@ def test_reservation(site):
     addresses = [u'192.168.3.1/32', u'192.168.3.2/32', u'192.168.3.3/32']
     assert reserved.get_next_address(num=3, as_objects=False) == addresses
 
-
 def test_strict_allocation_1(site):
     parent = models.Network.objects.create(site = site, cidr = u'10.1.2.0/24')
     child = models.Network.objects.create(site = site, cidr = u'10.1.2.0/25')
     expected = [ipaddress.ip_network(u'10.1.2.128/32')]
     assert parent.get_next_network(32, strict = True) == expected
-
 
 def test_strict_allocation_2(site):
     parent = models.Network.objects.create(site = site, cidr = u'10.2.1.0/24')
@@ -371,7 +357,6 @@ def test_strict_allocation_2(site):
     expected = [u'10.2.1.160/28', u'10.2.1.176/28', u'10.2.1.192/28', u'10.2.1.208/28']
     expected = [ipaddress.ip_network(n) for n in expected]
     assert parent.get_next_network(28, num = 4, strict = True) == expected
-
 
 def test_strict_allocation_3(site):
     parent = models.Network.objects.create(site = site, cidr = u'2001:db8:abcd:0012::0/96')

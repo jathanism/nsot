@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 
-from __future__ import absolute_import
 from django.db import models, migrations
-
 
 def migrate_interface_fields(apps, schema_editor):
     """
@@ -24,7 +21,6 @@ def migrate_interface_fields(apps, schema_editor):
             site=ifc.site,
             _attributes_cache=ifc._attributes,
         )
-
 
 class Migration(migrations.Migration):
 

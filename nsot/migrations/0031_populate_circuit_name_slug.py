@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 
-from __future__ import absolute_import
 from django.db import migrations, models
 
 from nsot.util import slugify
-
 
 def add_name_slug(apps, schema_editor):
     """ Add a name_slug for every Circuit that doesn't already have one """
@@ -16,13 +13,11 @@ def add_name_slug(apps, schema_editor):
             c.name_slug = slugify(c.name)
             c.save()
 
-
 def remove_name_slug(apps, schema_editor):
     Circuit = apps.get_model("nsot", "Circuit")
     for c in Circuit.objects.all():
         c.name_slug = None
         c.save()
-
 
 class Migration(migrations.Migration):
 

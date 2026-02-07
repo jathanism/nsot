@@ -1,6 +1,3 @@
-from __future__ import unicode_literals
-
-from __future__ import absolute_import
 import time
 import logging
 from operator import attrgetter
@@ -9,15 +6,12 @@ from django.conf import settings
 from django.db import models
 import ipaddress
 import netaddr
-import six
 
 from .. import exc, fields, util, validators
 from . import constants
 from .resource import Resource, ResourceManager
 
-
 log = logging.getLogger(__name__)
-
 
 class NetworkManager(ResourceManager):
     """Manager for NetworkInterface objects."""
@@ -75,7 +69,7 @@ class NetworkManager(ResourceManager):
             supernets.reverse()
 
         # Enumerate all unique networks and prefixes
-        network_addresses = {six.text_type(s.network) for s in supernets}
+        network_addresses = {str(s.network) for s in supernets}
         prefix_lengths = {s.prefixlen for s in supernets}
         del supernets  # Free the memory because DevOps.
 
@@ -105,7 +99,6 @@ class NetworkManager(ResourceManager):
 
     def reserved(self):
         return Network.objects.filter(state=Network.RESERVED)
-
 
 class Network(Resource):
     """Represents a subnet or IP address."""
@@ -420,7 +413,7 @@ class Network(Resource):
         elapsed_time = time.time() - start_time
         log.debug(">> WANTED = %s", wanted)
         log.debug(">> ELAPSED TIME: %s" % elapsed_time)
-        return wanted if as_objects else [six.text_type(w) for w in wanted]
+        return wanted if as_objects else [str(w) for w in wanted]
 
     def get_next_address(self, num=1, strict=False, as_objects=True):
         """
@@ -564,11 +557,11 @@ class Network(Resource):
         network = cidr  # In-case we're not a unicode string.
 
         # Convert to unicode in case it's bytes.
-        if isinstance(cidr, six.string_types):
-            cidr = six.text_type(cidr)
+        if isinstance(cidr, str):
+            cidr = str(cidr)
 
         # Convert a unicode string to an IPNetwork.
-        if isinstance(cidr, six.text_type):
+        if isinstance(cidr, str):
             try:
                 network = ipaddress.ip_network(cidr)
             except ValueError as err:
@@ -578,8 +571,8 @@ class Network(Resource):
             self.is_ip = True
 
         self.ip_version = str(network.version)
-        self.network_address = six.text_type(network.network_address)
-        self.broadcast_address = six.text_type(network.broadcast_address)
+        self.network_address = str(network.network_address)
+        self.broadcast_address = str(network.broadcast_address)
         self.prefix_length = network.prefixlen
         self.state = self.clean_state(self.state)
 
@@ -660,7 +653,6 @@ class Network(Resource):
             "attributes": self.get_attributes(),
         }
 
-
 # Signals
 def refresh_assignment_interface_networks(sender, instance, **kwargs):
     """This signal fires each time a Network object is saved. Upon save,
@@ -676,7 +668,6 @@ def refresh_assignment_interface_networks(sender, instance, **kwargs):
         for assignment in child.assignments.all():
             assignment.interface.clean_addresses()
             assignment.interface.save()
-
 
 models.signals.post_save.connect(
     refresh_assignment_interface_networks,

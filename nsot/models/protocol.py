@@ -1,11 +1,8 @@
-from __future__ import absolute_import
 from django.db import models
-import six
 
 from .. import exc
 from .attribute import Attribute
 from .resource import Resource
-
 
 class Protocol(Resource):
     """
@@ -76,7 +73,7 @@ class Protocol(Resource):
     )
 
     def __str__(self):
-        description = six.text_type(self.type)
+        description = str(self.type)
 
         if self.circuit:
             description += " over %s" % self.circuit

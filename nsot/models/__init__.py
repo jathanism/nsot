@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
 from django.db import models as djmodels
 
 from .assignment import Assignment
@@ -16,7 +15,6 @@ from .site import Site
 from .user import User
 from .value import Value
 
-
 __all__ = [
     "Assignment",
     "Attribute",
@@ -32,12 +30,10 @@ __all__ = [
     "Value",
 ]
 
-
 # Global signals
 def delete_resource_values(sender, instance, **kwargs):
     """Delete values when a Resource object is deleted."""
     instance.attributes.delete()  # These are instances of Value
-
 
 resource_subclasses = Resource.__subclasses__()
 for model_class in resource_subclasses:

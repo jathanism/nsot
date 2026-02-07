@@ -1,16 +1,11 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 
-from __future__ import absolute_import
 import pytest
 from nsot import exc, models
 from .fixtures import circuit, site
-import six
-
 
 # Allow everything in there to access the DB
 pytestmark = pytest.mark.django_db
-
 
 @pytest.fixture
 def asn_attribute(site):
@@ -19,7 +14,6 @@ def asn_attribute(site):
         name='asn',
         resource_name='Protocol',
     )
-
 
 @pytest.fixture
 def bgp(asn_attribute, site):
@@ -32,7 +26,6 @@ def bgp(asn_attribute, site):
 
     return bgp
 
-
 @pytest.fixture
 def area_attribute(site):
     return models.Attribute.objects.create(
@@ -40,7 +33,6 @@ def area_attribute(site):
         name='area',
         resource_name='Protocol',
     )
-
 
 @pytest.fixture
 def ospf(area_attribute, site):
@@ -53,7 +45,6 @@ def ospf(area_attribute, site):
 
     return ospf
 
-
 class ProtocolTestCase(object):
     """Shared fixtures for Protocol(Type) tests."""
     @pytest.fixture
@@ -63,7 +54,6 @@ class ProtocolTestCase(object):
     @pytest.fixture
     def interface(self, circuit):
         return circuit.endpoint_a
-
 
 class TestProtocolType(ProtocolTestCase):
     """Test ProtocolType constraints."""
@@ -91,7 +81,6 @@ class TestProtocolType(ProtocolTestCase):
         # Adding attributes from wrong resource should fail.
         with pytest.raises(exc.ValidationError):
             bgp.required_attributes.add(bad_attr)
-
 
 class TestCreation(ProtocolTestCase):
     def test_normal_conditions(self, device, circuit, bgp):
@@ -193,7 +182,6 @@ class TestCreation(ProtocolTestCase):
         assert protocol.get_attributes()['asn'] == '1234'
         assert protocol.get_attributes()['area'] == 'threeve'
 
-
 class TestUnicode(ProtocolTestCase):
     """
     Tests for the __unicode__ method on Protocol
@@ -222,7 +210,7 @@ class TestUnicode(ProtocolTestCase):
         assert base_protocol.circuit is not None
         assert base_protocol.interface is None
 
-        assert six.text_type(base_protocol) == expected
+        assert str(base_protocol) == expected
 
     def test_interface(self, base_protocol, interface):
         """
@@ -236,7 +224,7 @@ class TestUnicode(ProtocolTestCase):
         assert base_protocol.interface is not None
         assert base_protocol.circuit is None
 
-        assert six.text_type(base_protocol) == expected
+        assert str(base_protocol) == expected
 
     def test_neither_circuit_nor_interface(self, base_protocol):
         """
@@ -247,7 +235,7 @@ class TestUnicode(ProtocolTestCase):
         assert base_protocol.circuit is None
         assert base_protocol.interface is None
 
-        assert six.text_type(base_protocol) == expected
+        assert str(base_protocol) == expected
 
     def test_both_circuit_and_interface(self, base_protocol, circuit,
                                         interface):
@@ -263,4 +251,4 @@ class TestUnicode(ProtocolTestCase):
         assert base_protocol.circuit is not None
         assert base_protocol.interface is not None
 
-        assert six.text_type(base_protocol) == expected
+        assert str(base_protocol) == expected

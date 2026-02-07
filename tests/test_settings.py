@@ -9,12 +9,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.8/ref/settings/
 """
 
-
-from __future__ import absolute_import
 SECRET_KEY = u'fMK68NKgazLCjjTXjDtthhoRUS8IV4lwD-9G7iVd2Xs='
 from nsot.conf.settings import *
 import os.path
-
 
 # Path where the config is found.
 CONF_ROOT = os.path.dirname(__file__)

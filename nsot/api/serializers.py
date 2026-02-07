@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-from __future__ import absolute_import
 import ast
 from collections import OrderedDict
 import json
@@ -8,15 +6,13 @@ import logging
 from django.contrib.auth import get_user_model
 from rest_framework import fields, serializers
 from rest_framework import validators as drf_validators
-from rest_framework_bulk import BulkSerializerMixin, BulkListSerializer
+from nsot.vendor.rest_framework_bulk import BulkSerializerMixin, BulkListSerializer
 
 from . import auth
 from .. import exc, models, validators
 from ..util import get_field_attr
 
-
 log = logging.getLogger(__name__)
-
 
 ###############
 # Custom Fields
@@ -59,18 +55,15 @@ class JSONDataField(fields.Field):
             raise exc.ValidationError(err)
         return data
 
-
 class JSONDictField(JSONDataField):
     """Field used to represent attributes as JSON <-> Dict."""
 
     field_type = dict
 
-
 class JSONListField(JSONDataField):
     """Field used to represent attributes as JSON <-> List."""
 
     field_type = list
-
 
 class MACAddressField(fields.Field):
     """Field used to validate MAC address objects as integer or string."""
@@ -80,7 +73,6 @@ class MACAddressField(fields.Field):
 
     def to_internal_value(self, value):
         return validators.validate_mac_address(value)
-
 
 class NaturalKeyRelatedField(serializers.SlugRelatedField):
     """Field that takes either a primary key or a natural key."""
@@ -138,7 +130,6 @@ class NaturalKeyRelatedField(serializers.SlugRelatedField):
 
         return queryset
 
-
 ###################
 # Base Serializer #
 ###################
@@ -179,7 +170,6 @@ class NsotSerializer(serializers.ModelSerializer):
 
         return obj.to_dict()
 
-
 ######
 # User
 ######
@@ -205,7 +195,6 @@ class UserSerializer(serializers.ModelSerializer):
         model = get_user_model()
         fields = ("id", "email", "permissions", "secret_key")
 
-
 ######
 # Site
 ######
@@ -213,7 +202,6 @@ class SiteSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Site
         fields = "__all__"
-
 
 #########
 # Changes
@@ -225,7 +213,6 @@ class ChangeSerializer(NsotSerializer):
         model = models.Change
         fields = "__all__"
 
-
 ###########
 # Attribute
 ###########
@@ -235,7 +222,6 @@ class AttributeSerializer(NsotSerializer):
     class Meta:
         model = models.Attribute
         fields = "__all__"
-
 
 class AttributeCreateSerializer(AttributeSerializer):
     """Used for POST on Attributes."""
@@ -263,7 +249,6 @@ class AttributeCreateSerializer(AttributeSerializer):
             "site_id",
         )
 
-
 class AttributeUpdateSerializer(
     BulkSerializerMixin, AttributeCreateSerializer
 ):
@@ -287,7 +272,6 @@ class AttributeUpdateSerializer(
             "constraints",
         )
 
-
 #######
 # Value
 #######
@@ -305,13 +289,11 @@ class ValueSerializer(serializers.ModelSerializer):
             "resource_id",
         )
 
-
 class ValueCreateSerializer(ValueSerializer):
     """Used for POST on Values."""
 
     class Meta(ValueSerializer.Meta):
         read_only_fields = ("id", "name", "resource_name")
-
 
 ###########
 # Resources
@@ -373,7 +355,6 @@ class ResourceSerializer(NsotSerializer):
 
         return obj
 
-
 ########
 # Device
 ########
@@ -383,7 +364,6 @@ class DeviceSerializer(ResourceSerializer):
     class Meta:
         model = models.Device
         fields = "__all__"
-
 
 class DeviceCreateSerializer(DeviceSerializer):
     """Used for POST on Devices."""
@@ -401,7 +381,6 @@ class DeviceCreateSerializer(DeviceSerializer):
             )
         ]
 
-
 class DevicePartialUpdateSerializer(
     BulkSerializerMixin, DeviceCreateSerializer
 ):
@@ -412,13 +391,11 @@ class DevicePartialUpdateSerializer(
         list_serializer_class = BulkListSerializer
         fields = ("id", "hostname", "attributes")
 
-
 class DeviceUpdateSerializer(DevicePartialUpdateSerializer):
     """Used for PUT on Devices."""
 
     class Meta(DevicePartialUpdateSerializer.Meta):
         extra_kwargs = {"attributes": {"required": True}}
-
 
 #########
 # Network
@@ -429,7 +406,6 @@ class NetworkSerializer(ResourceSerializer):
     class Meta:
         model = models.Network
         fields = "__all__"
-
 
 class NetworkCreateSerializer(NetworkSerializer):
     """Used for POST on Networks."""
@@ -460,7 +436,6 @@ class NetworkCreateSerializer(NetworkSerializer):
             "prefix_length": {"required": False},
         }
 
-
 class NetworkPartialUpdateSerializer(
     BulkSerializerMixin, NetworkCreateSerializer
 ):
@@ -471,13 +446,11 @@ class NetworkPartialUpdateSerializer(
         list_serializer_class = BulkListSerializer
         fields = ("id", "attributes", "state")
 
-
 class NetworkUpdateSerializer(NetworkPartialUpdateSerializer):
     """Used for PUT on Networks."""
 
     class Meta(NetworkPartialUpdateSerializer.Meta):
         extra_kwargs = {"attributes": {"required": True}}
-
 
 ###########
 # Interface
@@ -573,7 +546,6 @@ class InterfaceSerializer(ResourceSerializer):
 
         return obj
 
-
 class InterfaceCreateSerializer(InterfaceSerializer):
     """Used for POST on Interfaces."""
 
@@ -590,7 +562,6 @@ class InterfaceCreateSerializer(InterfaceSerializer):
             "addresses",
             "attributes",
         )
-
 
 class InterfacePartialUpdateSerializer(
     BulkSerializerMixin, InterfaceCreateSerializer
@@ -612,7 +583,6 @@ class InterfacePartialUpdateSerializer(
             "attributes",
         )
 
-
 class InterfaceUpdateSerializer(InterfacePartialUpdateSerializer):
     "Used for PUT on Interfaces." ""
 
@@ -621,7 +591,6 @@ class InterfaceUpdateSerializer(InterfacePartialUpdateSerializer):
             "addresses": {"required": True},
             "attributes": {"required": True},
         }
-
 
 #########
 # Circuit
@@ -648,7 +617,6 @@ class CircuitSerializer(ResourceSerializer):
         model = models.Circuit
         fields = "__all__"
 
-
 class CircuitCreateSerializer(CircuitSerializer):
     """Used for POST on Circuits."""
 
@@ -656,7 +624,6 @@ class CircuitCreateSerializer(CircuitSerializer):
         model = models.Circuit
         # Display name and site are auto-generated, don't include them here.
         fields = ("endpoint_a", "endpoint_z", "name", "attributes")
-
 
 class CircuitPartialUpdateSerializer(
     BulkSerializerMixin, CircuitCreateSerializer
@@ -668,13 +635,11 @@ class CircuitPartialUpdateSerializer(
         list_serializer_class = BulkListSerializer
         fields = ("id", "endpoint_a", "endpoint_z", "name", "attributes")
 
-
 class CircuitUpdateSerializer(CircuitPartialUpdateSerializer):
     """Used for PUT on Circuits."""
 
     class Meta(CircuitPartialUpdateSerializer.Meta):
         extra_kwargs = {"attributes": {"required": True}}
-
 
 ##############
 # ProtocolType
@@ -695,7 +660,6 @@ class ProtocolTypeSerializer(NsotSerializer):
     class Meta:
         model = models.ProtocolType
         fields = "__all__"
-
 
 ##########
 # Protocol
@@ -732,7 +696,6 @@ class ProtocolSerializer(ResourceSerializer):
         model = models.Protocol
         fields = "__all__"
 
-
 class ProtocolCreateSerializer(ProtocolSerializer):
     """Used for POST on Protocols."""
 
@@ -748,7 +711,6 @@ class ProtocolCreateSerializer(ProtocolSerializer):
             "circuit",
             "attributes",
         )
-
 
 class ProtocolPartialUpdateSerializer(
     BulkSerializerMixin, ProtocolCreateSerializer
@@ -770,13 +732,11 @@ class ProtocolPartialUpdateSerializer(
             "attributes",
         )
 
-
 class ProtocolUpdateSerializer(ProtocolPartialUpdateSerializer):
     """Used for PUT on Protocols."""
 
     class Meta(ProtocolPartialUpdateSerializer.Meta):
         extra_kwargs = {"attributes": {"required": True}}
-
 
 ###########
 # AuthToken

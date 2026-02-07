@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 
-from __future__ import absolute_import
 from django.db import models, migrations
-
 
 def migrate_assignment_fields(apps, schema_editor):
     """Migrate new Assignment fields."""
@@ -15,7 +12,6 @@ def migrate_assignment_fields(apps, schema_editor):
             address_id=asn.address_id,
             interface_id=asn.interface_id,
         )
-
 
 class Migration(migrations.Migration):
 

@@ -2,9 +2,7 @@
 Django settings for nsot project.
 """
 
-
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-from __future__ import absolute_import
 
 import macaddress
 from netaddr import eui
@@ -13,7 +11,6 @@ import re
 import sys
 
 from nsot.version import __version__
-
 
 # So we can emit this in the API.
 NSOT_VERSION = __version__
@@ -46,7 +43,6 @@ INSTALLED_APPS = (
     "django_filters",
     "guardian",
     "rest_framework",
-    "custom_user",
     "nsot",
 )
 

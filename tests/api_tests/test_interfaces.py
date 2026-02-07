@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 
-from __future__ import absolute_import
 import pytest
 
 # Allow everything in there to access the DB
@@ -22,9 +20,7 @@ from .util import (
     Client, load, filter_interfaces, get_result
 )
 
-
 log = logging.getLogger(__name__)
-
 
 @pytest.fixture
 def device(site, client):
@@ -33,7 +29,6 @@ def device(site, client):
     dev = get_result(dev_resp)
 
     return dev
-
 
 def test_creation(site, client):
     """Test basic creation of an Interface."""
@@ -123,7 +118,6 @@ def test_creation(site, client):
     expected = interfaces
     assert_success(client.get(ifc_uri), expected)
 
-
 def test_creation_speed(site, client, device):
     """
     Test the behavior of the ``speed`` field with creation
@@ -148,7 +142,6 @@ def test_creation_speed(site, client, device):
     )
     ifc = get_result(response)
     assert ifc['speed'] is None
-
 
 def test_tree_traversal(site, client):
     """Test basic creation of an Interface."""
@@ -271,7 +264,6 @@ def test_tree_traversal(site, client):
     uri = reverse('interface-siblings', args=(site.id, ifc6['id']))
     assert_success(client.retrieve(uri), expected)
 
-
 def test_creation_with_addresses(site, client):
     """Test creating an Interface w/ addresses."""
     ifc_uri = site.list_uri('interface')
@@ -304,7 +296,6 @@ def test_creation_with_addresses(site, client):
 
     # Verify successful get of single Interface
     assert_success(client.get(ifc_obj_uri), ifc)
-
 
 def test_bulk_operations(site, client):
     """Test creating/updating multiple Interfaces at once."""
@@ -341,7 +332,6 @@ def test_bulk_operations(site, client):
     expected = updated_resp.json()
 
     assert updated == expected
-
 
 def test_update(site, client):
     """Test update of an existing interface w/ an address."""
@@ -414,7 +404,6 @@ def test_update(site, client):
         client.update(ifc2_obj_uri, **params),
         payload
     )
-
 
 def test_partial_update(site, client):
     """Test PATCH operations to partially update an Interface."""
@@ -508,7 +497,6 @@ def test_partial_update(site, client):
         client.partial_update(ifc_pk_uri, **params),
         payload
     )
-
 
 def test_filters(site, client):
     """Test field filters for Interfaces."""
@@ -643,7 +631,6 @@ def test_filters(site, client):
     for mac in mac_tests:
         assert_success(client.retrieve(ifc_uri, mac_address=mac), expected)
 
-
 def test_set_queries(client, site):
     """Test set queries for Interfaces."""
     # URIs
@@ -747,7 +734,6 @@ def test_set_queries(client, site):
         status.HTTP_400_BAD_REQUEST
     )
 
-
 def test_deletion(site, client):
     """Test deletion of Interfaces."""
     ifc_uri = site.list_uri('interface')
@@ -782,7 +768,6 @@ def test_deletion(site, client):
     natural_key = slugify_interface(**dev1_eth2)
     dev1_eth2_natural_uri = site.detail_uri('interface', id=natural_key)
     assert_deleted(client.delete(dev1_eth2_natural_uri))
-
 
 def test_detail_routes(site, client):
     """Test detail routes for Interfaces objects."""
