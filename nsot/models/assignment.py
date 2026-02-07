@@ -31,7 +31,6 @@ class Assignment(models.Model):
 
     class Meta:
         unique_together = ("address", "interface")
-        index_together = unique_together
 
     def clean_address(self, value):
         """Enforce that new addresses can only be host addresses."""

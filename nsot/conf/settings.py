@@ -27,6 +27,7 @@ CONF_ROOT = os.path.abspath(os.path.dirname(__file__))
 DEBUG = False
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+USE_TZ = False
 
 #################
 # Core Settings #

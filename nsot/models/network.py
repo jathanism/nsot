@@ -195,7 +195,6 @@ class Network(Resource):
             "network_address",
             "prefix_length",
         )
-        index_together = unique_together
 
     def supernets(self, direct=False, discover_mode=False, for_update=False):
         query = Network.objects.all()

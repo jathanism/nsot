@@ -182,7 +182,9 @@ class Interface(Resource):
 
     class Meta:
         unique_together = ("device", "name")
-        index_together = [unique_together, ("device_hostname", "name")]
+        indexes = [
+            models.Index(fields=["device_hostname", "name"]),
+        ]
 
     @property
     def networks(self):

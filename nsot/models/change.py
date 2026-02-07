@@ -66,10 +66,10 @@ class Change(models.Model):
 
     class Meta:
         get_latest_by = "change_at"
-        index_together = (
-            ("resource_name", "resource_id"),
-            ("resource_name", "event"),
-        )
+        indexes = [
+            models.Index(fields=["resource_name", "resource_id"]),
+            models.Index(fields=["resource_name", "event"]),
+        ]
 
     def __str__(self):
         return "%s %s(%s)" % (self.event, self.resource_name, self.resource_id)

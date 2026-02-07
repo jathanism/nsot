@@ -83,7 +83,6 @@ class Attribute(models.Model):
 
     class Meta:
         unique_together = ("site", "resource_name", "name")
-        index_together = unique_together
 
     @classmethod
     def all_by_name(cls, resource_name=None, site=None):

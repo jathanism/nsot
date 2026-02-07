@@ -28,7 +28,6 @@ class Device(Resource):
 
     class Meta:
         unique_together = ("site", "hostname")
-        index_together = unique_together
 
     @property
     def circuits(self):

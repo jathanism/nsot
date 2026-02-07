@@ -45,14 +45,17 @@ class EmailHeaderBackend(backends.RemoteUserBackend):
         else:
             return username
 
-    def configure_user(self, request, user):
-        """Check whether to make new users superusers."""
-        if settings.NSOT_NEW_USERS_AS_SUPERUSER:
+    def configure_user(self, request, user, created=True):
+        """Configure newly created users.
+
+        In Django 5.x this is called for all users (new and existing)
+        with a ``created`` flag.  Only grant superuser on first creation.
+        """
+        if created and settings.NSOT_NEW_USERS_AS_SUPERUSER:
             user.is_superuser = True
             user.is_staff = True
             user.save()
-
-        log.debug("Created new user: %s", user)
+            log.debug("Created new user: %s", user)
         return user
 
 class NsotObjectPermissionsBackend(ObjectPermissionBackend):
