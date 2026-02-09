@@ -141,7 +141,12 @@ class Attribute(models.Model):
         value = validators.validate_name(value)
 
         if not settings.ATTRIBUTE_NAME.match(value):
-            raise exc.ValidationError({"name": "Invalid name: %r." % value})
+            raise exc.ValidationError(
+                {
+                    "name": "Invalid name: %r. Names must match: %s"
+                    % (value, settings.ATTRIBUTE_NAME.pattern)
+                }
+            )
 
         return value or False
 
