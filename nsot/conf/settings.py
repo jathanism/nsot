@@ -28,7 +28,8 @@ CONF_ROOT = os.path.abspath(os.path.dirname(__file__))
 DEBUG = False
 
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
-USE_TZ = False
+TIME_ZONE = "UTC"
+USE_TZ = True
 
 #################
 # Core Settings #
