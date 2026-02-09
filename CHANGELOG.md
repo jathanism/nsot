@@ -1,6 +1,30 @@
 # CHANGELOG
 
 
+## v2.0.5 (2026-02-09)
+
+### Bug Fixes
+
+- Add max_length and defaults to explicit serializer fields
+  ([`b857c7f`](https://github.com/jathanism/nsot/commit/b857c7f5c9af2db42901e530dc2ab1ed7f275faa))
+
+Add max_length=255 to the description field to restore serializer-level length validation. Add
+  default values to both fields to preserve PUT update semantics (resetting to model defaults when
+  omitted).
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+- Use model defaults for Interface type and description when null
+  ([`77fadd0`](https://github.com/jathanism/nsot/commit/77fadd080174bc6d5d9c49bb840f5f21aec30dda))
+
+When type or description are sent as null or omitted in an API POST, use model defaults (ethernet/6
+  for type, empty string for description) instead of raising a validation error.
+
+Closes #22
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
 ## v2.0.4 (2026-02-09)
 
 ### Bug Fixes
