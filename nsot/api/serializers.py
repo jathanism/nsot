@@ -3,6 +3,7 @@ import json
 import logging
 from collections import OrderedDict
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework import fields, serializers
 from rest_framework import validators as drf_validators
@@ -571,8 +572,14 @@ class InterfaceSerializer(ResourceSerializer):
 class InterfaceCreateSerializer(InterfaceSerializer):
     """Used for POST on Interfaces."""
 
-    description = serializers.CharField(required=False, allow_blank=True)
-    type = serializers.IntegerField(required=False, allow_null=True)
+    description = serializers.CharField(
+        required=False, allow_blank=True, default="", max_length=255
+    )
+    type = serializers.IntegerField(
+        required=False,
+        allow_null=True,
+        default=settings.INTERFACE_DEFAULT_TYPE,
+    )
 
     class Meta:
         model = models.Interface
