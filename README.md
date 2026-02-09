@@ -10,9 +10,8 @@ Network Source of Truth (NSoT) is a source of truth database and repository for
 tracking inventory and metadata of network entities to ease management and
 automation of network infrastructure.
 
-NSoT is an API-first application that provides a REST API and a web application
-front-end for managing IP addresses (IPAM), network devices, and network
-interfaces.
+NSoT is an API-first application that provides a REST API for managing IP
+addresses (IPAM), network devices, and network interfaces.
 
 NSoT was originally created at [Dropbox](https://github.com/dropbox/nsot) and
 is now maintained by [Jathan McCollum](https://github.com/jathanism).
@@ -49,7 +48,7 @@ nsot-server createsuperuser --email admin@localhost
 nsot-server start
 ```
 
-Then visit http://localhost:8990 in your browser.
+Then browse the API at http://localhost:8990/api/ or the admin at http://localhost:8990/admin/.
 
 ## Development
 

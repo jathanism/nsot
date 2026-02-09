@@ -4,10 +4,6 @@ staticfiles
 *.sqlite-journal
 *.sqlite3
 
-# Node
-/npm-debug.log
-/node_modules
-
 __pycache__
 
 MANIFEST

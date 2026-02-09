@@ -6,9 +6,8 @@ Network Source of Truth (NSoT) a source of truth database and repository for tra
 inventory and metadata of network entities to ease management and automation of
 network infrastructure.
 
-NSoT is an API-first application that provides a REST API and a web application
-front-end for managing IP addresses (IPAM), network devices, and network
-interfaces.
+NSoT is an API-first application that provides a REST API for managing IP
+addresses (IPAM), network devices, and network interfaces.
 
 |Build Status| |Documentation Status| |PyPI Status|
 
