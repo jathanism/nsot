@@ -108,3 +108,12 @@ Server config is managed via logan runner. User config lives at `~/.nsot/nsot.co
 - `tests/api_tests/` — Integration tests against REST API endpoints
 - `tests/model_tests/` — Unit tests for Django models
 - Both directories have their own `fixtures.py` (re-exported via `conftest.py`) and `util.py` with test helpers
+
+## Development Workflow
+
+- Use **git worktrees** for feature branches to keep the main checkout clean:
+  ```bash
+  git worktree add ~/sandbox/src/nsot-<feature> -b <feature-branch> main
+  ```
+- Use parallel sub-agents for independent tasks within a plan.
+- Always run tests and lint before committing (see Common Commands above).
