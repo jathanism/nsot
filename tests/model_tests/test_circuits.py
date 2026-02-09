@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals, print_function
 
-from __future__ import absolute_import
 import pytest
 # Allow everything in there to access the DB
 pytestmark = pytest.mark.django_db
@@ -16,7 +14,6 @@ import logging
 from nsot import exc, models
 
 from .fixtures import admin_user, circuit, device, site, user, transactional_db
-
 
 def test_creation(device):
     """Test basic Circuit creation."""
@@ -55,7 +52,6 @@ def test_creation(device):
         endpoint_a=child_iface_a, endpoint_z=child_iface_z
     )
 
-
     # Interface inherits endpoint_a's site
     assert circuit.site == iface_a.site
 
@@ -87,7 +83,6 @@ def test_creation(device):
         c2 = models.Circuit.objects.create(
             endpoint_a=iface_z, endpoint_z=iface_a
         )
-
 
 def test_attributes(circuit):
     """Test that attributes work as expected."""
@@ -123,7 +118,6 @@ def test_attributes(circuit):
 
     with pytest.raises(exc.ValidationError):
         circuit.set_attributes({'made_up': 'value'})
-
 
 class TestInterfaceFor(object):
     @pytest.fixture

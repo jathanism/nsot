@@ -2,21 +2,16 @@
 Project-wide utilities.
 """
 
-from __future__ import absolute_import
 import collections
 import logging
 import shlex
 
 from cryptography.fernet import Fernet
 from django.core.exceptions import FieldDoesNotExist
-from logan.runner import run_app
-import six
-
 
 log = logging.getLogger(__name__)
 
 _TRUTHY = set(["true", "yes", "on", "1", ""])
-
 
 __all__ = (
     "qpbool",
@@ -207,7 +202,7 @@ def parse_set_query(query):
     """
     log.debug("Incoming query = %r" % (query,))
 
-    if not isinstance(query, six.string_types):
+    if not isinstance(query, str):
         raise TypeError("Query must be a string.")
 
     queries = shlex.split(query)
@@ -347,6 +342,8 @@ def initialize_app(config):
 
 def main():
     """CLI application used to manage NSoT."""
+    from logan.runner import run_app
+
     run_app(
         project="nsot",
         default_config_path="~/.nsot/nsot.conf.py",

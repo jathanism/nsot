@@ -1,13 +1,9 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 
-from __future__ import absolute_import
-from rest_framework_bulk.routes import BulkRouter
+from nsot.vendor.rest_framework_bulk.routes import BulkRouter
 from rest_framework_nested.routers import NestedSimpleRouter
 
-
 __all__ = ("BulkRouter", "BulkNestedRouter")
-
 
 # Map of HTTP verbs to rest_framework_bulk operations.
 BULK_OPERATIONS_MAP = {

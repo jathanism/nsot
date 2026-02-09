@@ -12,7 +12,6 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-from __future__ import absolute_import
 import sys
 import os
 import sphinx_rtd_theme
@@ -110,7 +109,6 @@ pygments_style = 'sphinx'
 # If true, keep warnings as "system message" paragraphs in the built documents.
 #keep_warnings = False
 
-
 # -- Options for HTML output ----------------------------------------------
 
 html_theme = "sphinx_rtd_theme"
@@ -199,7 +197,6 @@ html_static_path = ['_static']
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'NetworkSourceofTruthdoc'
 
-
 # -- Options for LaTeX output ---------------------------------------------
 
 latex_elements = {
@@ -241,7 +238,6 @@ latex_documents = [
 # If false, no module index is generated.
 #latex_domain_indices = True
 
-
 # -- Options for manual page output ---------------------------------------
 
 # One entry per manual page. List of tuples
@@ -253,7 +249,6 @@ man_pages = [
 
 # If true, show URL addresses after external links.
 #man_show_urls = False
-
 
 # -- Options for Texinfo output -------------------------------------------
 

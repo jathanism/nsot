@@ -2,7 +2,6 @@
 Middleware for authentication.
 """
 
-from __future__ import absolute_import
 import logging
 
 from django.contrib.auth import backends, middleware
@@ -13,7 +12,6 @@ from guardian.backends import ObjectPermissionBackend
 from guardian.core import ObjectPermissionChecker
 
 from ..util import normalize_auth_header
-
 
 log = logging.getLogger("nsot_server")
 
@@ -49,14 +47,18 @@ class EmailHeaderBackend(backends.RemoteUserBackend):
         else:
             return username
 
-    def configure_user(self, request, user):
-        """Check whether to make new users superusers."""
-        if settings.NSOT_NEW_USERS_AS_SUPERUSER:
-            user.is_superuser = True
-            user.is_staff = True
-            user.save()
+    def configure_user(self, request, user, created=True):
+        """Configure newly created users.
 
-        log.debug("Created new user: %s", user)
+        In Django 5.x this is called for all users (new and existing)
+        with a ``created`` flag.  Only grant superuser on first creation.
+        """
+        if created:
+            if settings.NSOT_NEW_USERS_AS_SUPERUSER:
+                user.is_superuser = True
+                user.is_staff = True
+                user.save()
+            log.debug("Created new user: %s", user)
         return user
 
 

@@ -1,6 +1,3 @@
-from __future__ import unicode_literals
-
-from __future__ import absolute_import
 from django.db import models
 
 from .. import exc, validators
@@ -35,7 +32,6 @@ class Assignment(models.Model):
 
     class Meta:
         unique_together = ("address", "interface")
-        index_together = unique_together
 
     def clean_address(self, value):
         """Enforce that new addresses can only be host addresses."""

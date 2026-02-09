@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-from __future__ import absolute_import
 import logging
 
 from django.db.models import Q
@@ -7,7 +5,6 @@ import django_filters
 
 from .. import models
 from ..util import qpbool
-
 
 log = logging.getLogger(__name__)
 

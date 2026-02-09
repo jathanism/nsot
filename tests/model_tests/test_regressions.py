@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-from __future__ import absolute_import
 import logging
 
 import pytest
-from six.moves import range
 # Allow everything in there to access the DB
 pytestmark = pytest.mark.django_db
 
@@ -17,7 +14,6 @@ from nsot import exc, models
 
 from .fixtures import admin_user, device, user, site, transactional_db
 from ..util import load_json
-
 
 def test_reparent_bug_issues_27(site):
     """
@@ -35,7 +31,6 @@ def test_reparent_bug_issues_27(site):
     assert net_8.parent_id is None
     assert net_31.parent_id == net_8.id
     assert net_25.parent_id == net_8.id
-
 
 def test_next_network_bug_issues_216(site):
     """
@@ -57,7 +52,6 @@ def test_next_network_bug_issues_216(site):
     next_21 = parent.get_next_network(prefix_length=21)
 
     assert next_21 == expected
-
 
 def test_next_network_bug_issues_224(site):
     """
@@ -86,7 +80,6 @@ def test_next_network_bug_issues_224(site):
     next_31 = parent.get_next_network(prefix_length=31)
 
     assert next_31 == expected
-
 
 def test_next_network_bug_issues_247(site):
     """
@@ -123,7 +116,6 @@ def test_next_network_bug_issues_247(site):
     next_24 = parent.get_next_network(prefix_length=24)
 
     assert next_24 == expected_24
-
 
 def test_device_save_interface_name_slug_issues_356(site, device):
     """

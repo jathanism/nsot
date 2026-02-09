@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-from __future__ import absolute_import
 import ast
 from collections import OrderedDict
 import json
@@ -8,12 +6,14 @@ import logging
 from django.contrib.auth import get_user_model
 from rest_framework import fields, serializers
 from rest_framework import validators as drf_validators
-from rest_framework_bulk import BulkSerializerMixin, BulkListSerializer
+from nsot.vendor.rest_framework_bulk import (
+    BulkSerializerMixin,
+    BulkListSerializer,
+)
 
 from . import auth
 from .. import exc, models, validators
 from ..util import get_field_attr
-
 
 log = logging.getLogger(__name__)
 

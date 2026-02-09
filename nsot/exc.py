@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-from __future__ import absolute_import
 from collections import OrderedDict
 import logging
 
@@ -14,9 +12,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.exceptions import APIException
 from rest_framework.views import exception_handler
 
-
 log = logging.getLogger(__name__)
-
 
 __all__ = (
     "Error",
@@ -86,7 +82,7 @@ def custom_exception_handler(exc, context):
 
 
 class Error(APIException):
-    """ Baseclass for NSoT Exceptions."""
+    """Baseclass for NSoT Exceptions."""
 
 
 class ModelError(Error):

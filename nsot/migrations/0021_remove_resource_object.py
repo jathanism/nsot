@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 
-from __future__ import absolute_import
 from django.db import models, migrations
 import django.db.models.deletion
 import django_extensions.db.fields.json
-
 
 class Migration(migrations.Migration):
 
@@ -25,9 +22,24 @@ class Migration(migrations.Migration):
                 [("name", "value", "resource_name", "new_resource_id")]
             ),
         ),
-        migrations.AlterIndexTogether(
-            name="value",
-            index_together=set([("name", "value", "resource_name")]),
+        # Wrapped in SeparateDatabaseAndState because Django 5.x is strict
+        # about dropping index_together indexes that overlap with
+        # unique_together (the old index from 0001 may not exist as a
+        # separate non-unique index). We update state and only CREATE
+        # the new index.
+        migrations.SeparateDatabaseAndState(
+            state_operations=[
+                migrations.AlterIndexTogether(
+                    name="value",
+                    index_together=set([("name", "value", "resource_name")]),
+                ),
+            ],
+            database_operations=[
+                migrations.RunSQL(
+                    sql="CREATE INDEX IF NOT EXISTS nsot_val_name_val_rn ON nsot_value (name, value, resource_name)",
+                    reverse_sql="DROP INDEX IF EXISTS nsot_val_name_val_rn",
+                ),
+            ],
         ),
         # Delete the resource fk
         migrations.RemoveField(

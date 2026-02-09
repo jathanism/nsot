@@ -1,13 +1,10 @@
-from __future__ import absolute_import, print_function
-
 """
 Command for starting up an authenticating reverse proxy for use in development.
 
 Please, don't use me in production!
 """
 
-
-import six.moves.BaseHTTPServer
+import http.server
 from django.conf import settings
 import getpass
 import socket
@@ -87,7 +84,7 @@ class Command(NsotCommand):
 
         # Try to start the server
         try:
-            server = six.moves.BaseHTTPServer.HTTPServer(
+            server = http.server.HTTPServer(
                 (address, listen_port), UserProxyHandler
             )
         except socket.error as err:

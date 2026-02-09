@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
@@ -6,9 +5,7 @@ import logging
 from rest_framework import authentication
 from rest_framework import exceptions
 
-
 from ..util import normalize_auth_header
-
 
 log = logging.getLogger(__name__)
 

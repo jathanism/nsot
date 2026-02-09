@@ -2,12 +2,10 @@
 Customized base Django management command specialized for NSoT.
 """
 
-from __future__ import absolute_import, print_function
 import argparse
 import logging
 
 from django.core.management.base import BaseCommand, CommandError
-
 
 __all__ = ("NsotCommand", "CommandError")
 

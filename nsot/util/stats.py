@@ -1,12 +1,8 @@
-from __future__ import unicode_literals, print_function
-from __future__ import absolute_import
-
 """
 Gettings stats out of NSoT.
 """
 
 from netaddr import IPNetwork, IPSet
-
 
 __all__ = ("calculate_network_utilization", "get_network_utilization")
 

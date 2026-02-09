@@ -1,17 +1,14 @@
-from __future__ import unicode_literals
-
-from __future__ import absolute_import
-from custom_user.admin import EmailUserAdmin
 from django.contrib.auth import get_user_model
+from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.contrib import admin
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from guardian.admin import GuardedModelAdmin
 
 from . import models
 
 
 # Register our custom User model
-class UserAdmin(EmailUserAdmin):
+class UserAdmin(DjangoUserAdmin):
     fieldsets = (
         (
             None,
@@ -32,6 +29,23 @@ class UserAdmin(EmailUserAdmin):
             },
         ),
         (_("Important dates"), {"fields": ("last_login", "date_joined")}),
+    )
+    add_fieldsets = (
+        (
+            None,
+            {
+                "classes": ("wide",),
+                "fields": ("email", "password1", "password2"),
+            },
+        ),
+    )
+    list_display = ("email", "is_staff")
+    list_filter = ("is_staff", "is_superuser", "is_active", "groups")
+    search_fields = ("email",)
+    ordering = ("email",)
+    filter_horizontal = (
+        "groups",
+        "user_permissions",
     )
 
 

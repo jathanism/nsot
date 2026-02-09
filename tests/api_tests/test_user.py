@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 
-from __future__ import absolute_import
 import pytest
 
 # Allow everything in there to access the DB
@@ -13,16 +11,13 @@ import json
 import logging
 from rest_framework import status
 
-
 from .fixtures import live_server, client, user, site
 from .util import (
     assert_created, assert_error, assert_success, assert_deleted, load_json,
     Client, load, get_result
 )
 
-
 log = logging.getLogger(__name__)
-
 
 def test_user_with_secret_key(live_server):
     user1_client = Client(live_server, 'user1')
@@ -60,7 +55,6 @@ def test_user_with_secret_key(live_server):
     # But not user 2's secret_key.
     response = user1_client.get(user2_uri + '?with_secret_key')
     assert_error(response, status.HTTP_403_FORBIDDEN)
-
 
 def test_user_rotate_secret_key(live_server):
     user1_client = Client(live_server, 'user1')

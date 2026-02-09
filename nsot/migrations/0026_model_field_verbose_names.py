@@ -1,14 +1,11 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 
-from __future__ import absolute_import
 from django.db import migrations, models
 import nsot.fields
 import nsot.util.core
 import django.db.models.deletion
 from django.conf import settings
 import django_extensions.db.fields.json
-
 
 class Migration(migrations.Migration):
 

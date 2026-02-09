@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 
-from __future__ import absolute_import
 import pytest
 
 # Allow everything in here to access the DB
@@ -17,9 +15,7 @@ from .util import (
     get_result
 )
 
-
 log = logging.getLogger(__name__)
-
 
 def test_malformed(client):
     """Test malformed site creation failure."""
@@ -27,7 +23,6 @@ def test_malformed(client):
     response = client.post(url, data='Non-JSON')
 
     assert_error(response, status.HTTP_400_BAD_REQUEST)
-
 
 def test_creation(client):
     """Test creation of Site objects."""
@@ -66,7 +61,6 @@ def test_creation(client):
         expected
     )
 
-
 def test_update(client):
     """Test update of Site objects."""
     site_uri = reverse('site-list')
@@ -102,7 +96,6 @@ def test_update(client):
 
     # Or an empty payload
     assert_error(client.update(site_obj_uri), status.HTTP_400_BAD_REQUEST)
-
 
 def test_deletion(client):
     """Test DELETE of Site objects."""

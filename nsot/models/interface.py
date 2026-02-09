@@ -1,6 +1,3 @@
-from __future__ import unicode_literals
-
-from __future__ import absolute_import
 import logging
 
 from django.conf import settings
@@ -16,7 +13,6 @@ from .resource import Resource
 
 from .. import exc, fields, util, validators
 from . import constants
-
 
 log = logging.getLogger(__name__)
 
@@ -187,7 +183,9 @@ class Interface(Resource):
 
     class Meta:
         unique_together = ("device", "name")
-        index_together = [unique_together, ("device_hostname", "name")]
+        indexes = [
+            models.Index(fields=["device_hostname", "name"]),
+        ]
 
     @property
     def networks(self):

@@ -1,13 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import unicode_literals
-from __future__ import absolute_import
-from six.moves.http_client import responses
+from http.client import responses
 import logging
 
 from django.shortcuts import render
 from django.views.generic import TemplateView
-
 
 log = logging.getLogger(__name__)
 

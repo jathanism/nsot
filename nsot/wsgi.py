@@ -7,14 +7,12 @@ For more information on this file, see
 https://docs.djangoproject.com/en/1.8/howto/deployment/wsgi/
 """
 
-from __future__ import absolute_import
 import os
 from django.core.wsgi import get_wsgi_application
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "nsot.conf.settings")
 
 from django.conf import settings
-
 
 # If we're set to serve static files ourself (default), wrap the app w/ Cling
 # (provided by dj-static).

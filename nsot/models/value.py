@@ -1,6 +1,3 @@
-from __future__ import unicode_literals
-
-from __future__ import absolute_import
 from django.db import models
 
 from .. import exc
@@ -77,9 +74,9 @@ class Value(models.Model):
         unique_together = ("name", "value", "resource_name", "resource_id")
 
         # This is most commonly looked up
-        index_together = [
-            ("name", "value", "resource_name"),
-            ("resource_name", "resource_id"),
+        indexes = [
+            models.Index(fields=["name", "value", "resource_name"]),
+            models.Index(fields=["resource_name", "resource_id"]),
         ]
 
     def clean_resource_name(self, value):

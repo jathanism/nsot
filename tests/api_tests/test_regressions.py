@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 
-from __future__ import absolute_import
 import pytest
 
 # Allow everything in there to access the DB
@@ -14,16 +12,13 @@ import json
 import logging
 from rest_framework import status
 
-
 from .fixtures import live_server, client, user, site
 from .util import (
     assert_created, assert_error, assert_success, assert_deleted, load_json,
     Client, load, filter_networks, make_mac, SiteHelper, get_result
 )
 
-
 log = logging.getLogger(__name__)
-
 
 def test_network_bug_issues_34(client, site):
     """Test set queries for Networks."""
@@ -60,7 +55,6 @@ def test_network_bug_issues_34(client, site):
         ),
         expected
     )
-
 
 def test_mac_address_bug_issues_111(client, site):
     """Test that a MAC coming in as an integer is properly formatted."""
@@ -104,7 +98,6 @@ def test_mac_address_bug_issues_111(client, site):
     # Test that expected matches expected
     assert make_mac(expected['mac_address']) == mac_expected
 
-
 def test_options_bug_issues_126(client, site):
     """
     Test that OPTIONS query returns a 200 OK and has content.
@@ -121,7 +114,6 @@ def test_options_bug_issues_126(client, site):
     # Assert payload is a thing.
     expected = [u'actions', u'description', u'name', u'parses', u'renders']
     assert sorted(opts_resp.json()) == expected
-
 
 def test_duplicate_400_issues_142(client, site):
     """
@@ -149,7 +141,6 @@ def test_duplicate_400_issues_142(client, site):
         client.create(net_uri, cidr='10.0.0.0/8'),
         status.HTTP_400_BAD_REQUEST
     )
-
 
 def test_natural_lookup_without_site(client, site):
     """
@@ -226,7 +217,6 @@ def test_natural_lookup_without_site(client, site):
         status.HTTP_400_BAD_REQUEST
     )
 
-
 def test_attribute_lookup_list_view_issues_169(client, site):
     """
     Test that filtering by attributes in list view if multiple sites have
@@ -273,7 +263,6 @@ def test_attribute_lookup_list_view_issues_169(client, site):
         client.retrieve(site1_dev_uri, attributes='owner=jathan'),
         expected
     )
-
 
 def test_interface_assign_address_500_issues_168(client, site):
     """
@@ -345,7 +334,6 @@ def test_interface_assign_address_500_issues_168(client, site):
         expected
     )
 
-
 def test_bogus_url_raises_404(client, site):
     """Make sure that a bogus API URL always raises a 404."""
     site_uri = site.detail_uri()
@@ -355,7 +343,6 @@ def test_bogus_url_raises_404(client, site):
         client.get(bogus_url),
         status.HTTP_404_NOT_FOUND
     )
-
 
 def test_swagger_docs_work(client):
     """Make sure that Swagger endpoint returns 200."""

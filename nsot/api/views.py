@@ -1,8 +1,5 @@
-from __future__ import unicode_literals
-from __future__ import absolute_import
 from collections import namedtuple, OrderedDict
 import logging
-import six
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -16,12 +13,11 @@ from rest_framework import (
 from rest_framework.views import APIView
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework_bulk import mixins as bulk_mixins
+from nsot.vendor.rest_framework_bulk import mixins as bulk_mixins
 
 from . import auth, filters, serializers
 from .. import exc, models
 from ..util import qpbool, cidr_to_dict
-
 
 log = logging.getLogger(__name__)
 
@@ -144,7 +140,7 @@ class BaseNsotViewSet(viewsets.ReadOnlyModelViewSet):
         pk = self.kwargs.get("pk")
 
         # When coming from detail routes, pk might not be a string.
-        if isinstance(pk, six.integer_types):
+        if isinstance(pk, int):
             pk = str(pk)
 
         # Start prepping our kwargs for lookup.

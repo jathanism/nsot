@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 
-from __future__ import absolute_import
 from django.db import models, migrations
 import django.db.models.deletion
 import macaddress.fields
-
 
 class Migration(migrations.Migration):
 

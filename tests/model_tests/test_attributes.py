@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 
-from __future__ import absolute_import
 import pytest
 # Allow everything in there to access the DB
 pytestmark = pytest.mark.django_db
@@ -16,7 +14,6 @@ from nsot import exc, models
 
 from .fixtures import admin_user, user, site, transactional_db
 
-
 def test_creation(site):
     attr = models.Attribute.objects.create(
         resource_name='Network',
@@ -30,7 +27,6 @@ def test_creation(site):
     assert attributes[0].site_id == site.id
     assert attributes[0].name == attr.name
     assert attributes[0].required == attr.required
-
 
 def test_conflict(site):
     models.Attribute.objects.create(
@@ -48,7 +44,6 @@ def test_conflict(site):
         resource_name='Network',
         site=site, name='test_attribute_2'
     )
-
 
 def test_validation(site, transactional_db):
     with pytest.raises(exc.ValidationError):
@@ -79,7 +74,6 @@ def test_validation(site, transactional_db):
     attribute.name = 'test_attribute_new'
     attribute.save()
 
-
 def test_deletion(site):
     attribute = models.Attribute.objects.create(
         resource_name='Network',
@@ -95,7 +89,6 @@ def test_deletion(site):
 
     network.delete()
     attribute.delete()
-
 
 def test_required(site):
     attribute_1 = models.Attribute.objects.create(
@@ -123,7 +116,6 @@ def test_required(site):
         site=site,
     )
 
-
 def test_multi(site):
     multi = models.Attribute.objects.create(
         resource_name='Network', display=True,
@@ -147,7 +139,6 @@ def test_multi(site):
             site=site, cidr=u'10.0.0.2',
             attributes={'not_multi': ['test', 'testing', 'testtttt']}
         )
-
 
 def test_constraints(site):
     default = models.Attribute.objects.create(
@@ -202,7 +193,6 @@ def test_constraints(site):
         network.set_attributes({'valid': 'hello'})
 
     network.set_attributes({'valid': 'foo'})
-
 
 def test_set_query(site):
     """Test backend functionality of set queries."""

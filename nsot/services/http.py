@@ -1,5 +1,3 @@
-from __future__ import absolute_import, print_function
-
 from gunicorn.app.base import Application
 
 from nsot.services.base import Service

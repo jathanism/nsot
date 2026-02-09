@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 
-from __future__ import absolute_import
 import pytest
 
 # Allow everything in there to access the DB
@@ -19,9 +17,7 @@ from .util import (
     Client, load, filter_devices, get_result
 )
 
-
 log = logging.getLogger(__name__)
-
 
 def test_creation(client, user_client, user, site):
     """Test creation of Devices."""
@@ -83,7 +79,6 @@ def test_creation(client, user_client, user, site):
     dev_natural_uri = site.detail_uri('device', id=dev['hostname'])
     assert_success(client.get(dev_natural_uri), dev)
 
-
 def test_bulk_operations(site, client):
     """Test creating/updating multiple Devices at once."""
     # URIs
@@ -118,7 +113,6 @@ def test_bulk_operations(site, client):
     expected = updated_resp.json()
 
     assert updated == expected
-
 
 def test_filters(site, client):
     """Test hostname/attribute filters for Devices."""
@@ -156,7 +150,6 @@ def test_filters(site, client):
         client.retrieve(dev_uri, attributes=['foo=baz', 'cluster=lax']),
         expected
     )
-
 
 def test_set_queries(client, site):
     """Test set queries for Devices."""
@@ -231,7 +224,6 @@ def test_set_queries(client, site):
         status.HTTP_400_BAD_REQUEST
     )
 
-
 def test_update(client, user_client, user, site):
     """Test updating a device using pk."""
     # URIs
@@ -276,7 +268,6 @@ def test_update(client, user_client, user, site):
         client.update(dev_obj_uri, **params),
         device
     )
-
 
 def test_update_natural_key(client, user_client, user, site):
     """Test updating a Device using natural_key."""
@@ -325,7 +316,6 @@ def test_update_natural_key(client, user_client, user, site):
         user_client.update(final_natural_uri), status.HTTP_403_FORBIDDEN
     )
 
-
 def test_partial_update(site, client):
     """Test PATCH operations to partially update a Device."""
     dev_uri = site.list_uri('device')
@@ -358,7 +348,6 @@ def test_partial_update(site, client):
         status.HTTP_400_BAD_REQUEST
     )
 
-
 def test_deletion(site, client):
     """Test deletion of Devices."""
     dev_uri = site.list_uri('device')
@@ -385,7 +374,6 @@ def test_deletion(site, client):
     dev3 = get_result(dev3_resp)
     dev3_natural_uri = site.detail_uri('device', id=dev3['hostname'])
     assert_deleted(client.delete(dev3_natural_uri))
-
 
 def test_detail_routes(site, client):
     """Test detail routes for Devices."""

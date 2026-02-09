@@ -1,11 +1,7 @@
-from __future__ import unicode_literals
-
-from __future__ import absolute_import
 import re
 
 from django.conf import settings
 from django.db import models
-import six
 
 from .. import exc, fields, validators
 from . import constants
@@ -88,7 +84,6 @@ class Attribute(models.Model):
 
     class Meta:
         unique_together = ("site", "resource_name", "name")
-        index_together = unique_together
 
     @classmethod
     def all_by_name(cls, resource_name=None, site=None):
@@ -118,7 +113,7 @@ class Attribute(models.Model):
                 {"constraints": "allow_empty expected type bool."}
             )
 
-        if not isinstance(constraints["pattern"], six.string_types):
+        if not isinstance(constraints["pattern"], str):
             raise exc.ValidationError(
                 {"constraints": "pattern expected type string."}
             )
@@ -157,7 +152,7 @@ class Attribute(models.Model):
         self.name = self.clean_name(self.name)
 
     def _validate_single_value(self, value, constraints=None):
-        if not isinstance(value, six.string_types):
+        if not isinstance(value, str):
             raise exc.ValidationError(
                 {"value": "Attribute values must be a string type"}
             )

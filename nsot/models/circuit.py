@@ -1,7 +1,3 @@
-from __future__ import unicode_literals
-
-from __future__ import absolute_import
-
 from django.db import models
 
 from .. import exc, util
@@ -89,8 +85,10 @@ class Circuit(Resource):
 
     @property
     def addresses(self):
-        """Return addresses associated with this circuit. This includes addresses
-        associated with child interfaces."""
+        """Return addresses associated with this circuit.
+
+        This includes addresses associated with child interfaces.
+        """
         addresses = []
         for interface in self.interfaces:
             addresses.extend(interface.addresses.all())

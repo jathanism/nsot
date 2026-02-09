@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
 from django.db import models as djmodels
 
 from .assignment import Assignment
@@ -15,7 +14,6 @@ from .resource import Resource
 from .site import Site
 from .user import User
 from .value import Value
-
 
 __all__ = [
     "Assignment",

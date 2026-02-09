@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 
-from __future__ import absolute_import
 import pytest
 # Allow everything in there to access the DB
 pytestmark = pytest.mark.django_db
@@ -17,7 +15,6 @@ from nsot import exc, models
 
 from .fixtures import admin_user, device, site, user, transactional_db
 
-
 def test_creation(device):
     """Test basic Interface creation."""
     iface = models.Interface.objects.create(
@@ -31,7 +28,6 @@ def test_creation(device):
     with pytest.raises(exc.ValidationError):
         iface.name = None
         iface.save()
-
 
 def test_tree_methods(device):
     iface = models.Interface.objects.create(
@@ -76,7 +72,6 @@ def test_tree_methods(device):
     expected.sort()
     assert siblings == expected
 
-
 def test_speed(device):
     """Test interface speed."""
     iface = models.Interface.objects.create(device=device, name='eth0')
@@ -104,7 +99,6 @@ def test_speed(device):
         iface.speed = 10.0
         iface.save()
 
-
 def test_mac_address(device):
     """Test mac_address."""
     iface = models.Interface.objects.create(device=device, name='eth0')
@@ -126,7 +120,6 @@ def test_mac_address(device):
 
     assert iface.mac_address == '00:1c:73:2a:60:62'
 
-
 def test_type(device):
     """Test types."""
     iface = models.Interface.objects.create(device=device, name='eth0')
@@ -141,7 +134,6 @@ def test_type(device):
     with pytest.raises(exc.ValidationError):
         iface.type = None
         iface.save()
-
 
 def test_attributes(device):
     """Test that attributes work as expected."""
@@ -171,7 +163,6 @@ def test_attributes(device):
 
     with pytest.raises(exc.ValidationError):
         iface.set_attributes({'made_up': 'value'})
-
 
 def test_set_addresses(device):
     """Test addresses/assignment."""
@@ -208,7 +199,6 @@ def test_set_addresses(device):
     iface.set_addresses([], overwrite=True)
     assert iface.get_addresses() == []
 
-
 def test_set_addresses_on_create(device):
     """Test address/assignment on create"""
     root_network = models.Network.objects.create(
@@ -228,7 +218,6 @@ def test_set_addresses_on_create(device):
 
     # Test get_networks
     assert iface.get_networks() == [str(parent_network)]
-
 
 def test_assign_address(device):
     root_network = models.Network.objects.create(
@@ -269,7 +258,6 @@ def test_assign_address(device):
     address.delete()
     assert list(iface.assignments.all()) == []
 
-
 def test_device_hostname(device):
     """Test the device_hostname convenience field"""
     intf = models.Interface.objects.create(device=device, name='eth0')
@@ -285,7 +273,6 @@ def test_device_hostname(device):
     # Ensure query by device_hostname works
     intf == models.Interface.objects.get(device_hostname='foo-baz',
                                          name='eth0')
-
 
 def test_interface_networks_refresh(device):
     """Test the interface parent networks refresh upon reparenting of a

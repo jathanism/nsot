@@ -1,6 +1,3 @@
-from __future__ import unicode_literals
-
-from __future__ import absolute_import
 import time
 import logging
 from operator import attrgetter
@@ -9,12 +6,10 @@ from django.conf import settings
 from django.db import models
 import ipaddress
 import netaddr
-import six
 
 from .. import exc, fields, util, validators
 from . import constants
 from .resource import Resource, ResourceManager
-
 
 log = logging.getLogger(__name__)
 
@@ -75,7 +70,7 @@ class NetworkManager(ResourceManager):
             supernets.reverse()
 
         # Enumerate all unique networks and prefixes
-        network_addresses = {six.text_type(s.network) for s in supernets}
+        network_addresses = {str(s.network) for s in supernets}
         prefix_lengths = {s.prefixlen for s in supernets}
         del supernets  # Free the memory because DevOps.
 
@@ -202,7 +197,6 @@ class Network(Resource):
             "network_address",
             "prefix_length",
         )
-        index_together = unique_together
 
     def supernets(self, direct=False, discover_mode=False, for_update=False):
         query = Network.objects.all()
@@ -420,7 +414,7 @@ class Network(Resource):
         elapsed_time = time.time() - start_time
         log.debug(">> WANTED = %s", wanted)
         log.debug(">> ELAPSED TIME: %s" % elapsed_time)
-        return wanted if as_objects else [six.text_type(w) for w in wanted]
+        return wanted if as_objects else [str(w) for w in wanted]
 
     def get_next_address(self, num=1, strict=False, as_objects=True):
         """
@@ -561,14 +555,10 @@ class Network(Resource):
             raise exc.ValidationError(msg)
 
         # Determine network properties
-        network = cidr  # In-case we're not a unicode string.
+        network = cidr  # In-case we're not a string.
 
-        # Convert to unicode in case it's bytes.
-        if isinstance(cidr, six.string_types):
-            cidr = six.text_type(cidr)
-
-        # Convert a unicode string to an IPNetwork.
-        if isinstance(cidr, six.text_type):
+        # Convert a string to an IPNetwork.
+        if isinstance(cidr, str):
             try:
                 network = ipaddress.ip_network(cidr)
             except ValueError as err:
@@ -578,8 +568,8 @@ class Network(Resource):
             self.is_ip = True
 
         self.ip_version = str(network.version)
-        self.network_address = six.text_type(network.network_address)
-        self.broadcast_address = six.text_type(network.broadcast_address)
+        self.network_address = str(network.network_address)
+        self.broadcast_address = str(network.broadcast_address)
         self.prefix_length = network.prefixlen
         self.state = self.clean_state(self.state)
 
@@ -605,20 +595,14 @@ class Network(Resource):
                             )
                 # Otherwise, update all children to use the new parent and
                 # delete the old parent of these child nodes.
-                try:
-                    err.protected_objects.update(parent=new_parent)
-                # FIXME(jathan): This is a temporary workaround for a
-                # regression in Django 3.1.1 where ``.protected_objects`` is an
-                # ``itertools.chain`` vs. ``QuerySet``. Remove me when fixed.
-                # Ref: https://code.djangoproject.com/ticket/31219
-                except AttributeError:
-                    # Extract the pk for reach protected object
-                    protected_ids = (p.pk for p in err.protected_objects)
-                    # Explicitly craft a new QuerySet and then update the
-                    # parent
-                    Network.objects.filter(pk__in=protected_ids).update(
-                        parent=new_parent
-                    )
+                # In Django 4.1+, protected_objects is a set of model
+                # instances rather than a QuerySet, so we always extract
+                # the PKs and use an explicit QuerySet to perform the
+                # update.
+                protected_ids = [p.pk for p in err.protected_objects]
+                Network.objects.filter(pk__in=protected_ids).update(
+                    parent=new_parent
+                )
                 super(Network, self).delete(**kwargs)
             else:
                 raise

@@ -1,14 +1,10 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 
-from __future__ import absolute_import
 from django.db import migrations, models
-
 
 def remove_name_slug(apps, schema_editor):
     Interface = apps.get_model("nsot", "Interface")
     Interface.objects.update(name_slug=None)
-
 
 class Migration(migrations.Migration):
 

@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 
-from __future__ import absolute_import
 import pytest
 
 # Allow everything in there to access the DB
@@ -19,9 +17,7 @@ from .util import (
     Client, SiteHelper, load, filter_circuits, get_result
 )
 
-
 log = logging.getLogger(__name__)
-
 
 @pytest.fixture
 def asn_attribute(site, client):
@@ -30,14 +26,12 @@ def asn_attribute(site, client):
     resp = client.create(attr_uri, name='asn', resource_name='Protocol')
     return resp.json()
 
-
 @pytest.fixture
 def metric_attribute(site, client):
     """``Protocol:metric`` attribute."""
     attr_uri = site.list_uri('attribute')
     resp = client.create(attr_uri, name='metric', resource_name='Protocol')
     return resp.json()
-
 
 @pytest.fixture
 def bgp_type(site, client, asn_attribute):
@@ -46,14 +40,12 @@ def bgp_type(site, client, asn_attribute):
     resp = client.create(pt_uri, name='bgp', required_attributes=['asn'])
     return resp.json()
 
-
 @pytest.fixture
 def isis_type(site, client, metric_attribute):
     """ProtocolType instance of 'isis' with 'metric' as required attribute."""
     pt_uri = site.list_uri('protocoltype')
     resp = client.create(pt_uri, name='isis', required_attributes=['metric'])
     return resp.json()
-
 
 class TestProtocolType(object):
     """Tests for ProtocolType resource object."""
@@ -192,7 +184,6 @@ class TestProtocolType(object):
         # Filter by description
         assert_success(client.retrieve(pt_uri, description='bgp2'), [bgp2_type])
 
-
 class ProtocolTestCase(object):
     """Reusable test class for Protocol objects with common fixtures."""
 
@@ -274,7 +265,6 @@ class ProtocolTestCase(object):
         proto = get_result(proto_resp)
         return proto
 
-
 class TestCreation(ProtocolTestCase):
     def test_basic(self, site, client, device, bgp_type):
         """Test basic creation of a Protocol."""
@@ -331,7 +321,6 @@ class TestCreation(ProtocolTestCase):
         proto_obj_uri = site.detail_uri('protocol', id=proto['id'])
 
         assert_created(proto_resp, proto_obj_uri)
-
 
 class TestRetrieval(ProtocolTestCase):
     def test_lookup_by_id(self, site, client, bgp_protocol):
@@ -494,7 +483,6 @@ class TestRetrieval(ProtocolTestCase):
             status.HTTP_400_BAD_REQUEST
         )
 
-
 class TestUpdate(ProtocolTestCase):
     """Test update on Protocol objects."""
     def test_update_by_id(self, site, client, bgp_protocol, device):
@@ -576,7 +564,6 @@ class TestUpdate(ProtocolTestCase):
         payload = {'attributes': {'metric': '200'}}
         expected.update(payload)
         assert_success(client.partial_update(obj_uri, **payload), expected)
-
 
 class TestDeletion(ProtocolTestCase):
     """Test delete on Protocol objects."""

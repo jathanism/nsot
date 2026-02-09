@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 
-from __future__ import absolute_import
 from django.db import migrations, models
 
 from nsot.util import slugify_interface
-
 
 def add_name_slug(apps, schema_editor):
     """Correctly name_slug for every Interface with slash in the name."""
@@ -15,11 +12,9 @@ def add_name_slug(apps, schema_editor):
         i.name_slug = name_slug
         i.save()
 
-
 def remove_name_slug(apps, schema_editor):
     Interface = apps.get_model("nsot", "Interface")
     Interface.objects.update(name_slug=None)
-
 
 class Migration(migrations.Migration):
 

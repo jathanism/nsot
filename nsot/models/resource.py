@@ -1,16 +1,11 @@
-from __future__ import unicode_literals
-
-from __future__ import absolute_import
 import logging
 
 from django.db import models
 from django.db.models.query_utils import Q
-import six
 
 from .. import exc, fields, util
 from .attribute import Attribute
 from .value import Value
-
 
 log = logging.getLogger(__name__)
 
@@ -274,7 +269,7 @@ class Resource(models.Model):
         # are not found incoming in ``attributes``.
         missing_attributes = {
             attribute.name
-            for attribute in six.itervalues(valid_attributes)
+            for attribute in valid_attributes.values()
             if attribute.required and attribute.name not in attributes
         }
         log.debug(
@@ -292,12 +287,12 @@ class Resource(models.Model):
         # Run validation each attribute value and prepare them for DB
         # insertion, raising any validation errors immediately.
         inserts = []
-        for name, value in six.iteritems(attributes):
+        for name, value in attributes.items():
             if name not in valid_attributes:
                 msg = "Attribute name ({}) does not exist.".format(name)
                 raise exc.ValidationError({"attributes": msg})
 
-            if not isinstance(name, six.string_types):
+            if not isinstance(name, str):
                 raise exc.ValidationError(
                     {"attributes": "Attribute names must be a string type."}
                 )

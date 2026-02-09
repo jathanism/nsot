@@ -2,13 +2,9 @@
 Test NSoT utilities.
 """
 
-from __future__ import unicode_literals, print_function
-
-from __future__ import absolute_import
 import pytest
 
 from nsot import models, util
-
 
 def test_parse_set_query():
     """
@@ -59,7 +55,6 @@ def test_parse_set_query():
     with pytest.raises(ValueError):
         util.parse_set_query('foo="bar')  # Unbalanced quotes
 
-
 PARENT = '10.47.216.0/22'
 HOSTS = [
     '10.47.216.9/32', '10.47.216.10/32', '10.47.216.11/32', '10.47.216.12/32',
@@ -102,7 +97,6 @@ HOSTS = [
     '10.47.219.249/32'
 ]
 
-
 def test_stats_get_utilization(parent=PARENT, hosts=HOSTS):
     """
     Make sure that getting network utilization stats is accurate.
@@ -111,7 +105,6 @@ def test_stats_get_utilization(parent=PARENT, hosts=HOSTS):
     output = util.calculate_network_utilization(parent, hosts, as_string=True)
 
     assert output == expected
-
 
 def test_slugify():
     """Test ``util.slugify()``."""
@@ -127,7 +120,6 @@ def test_slugify():
 
     for case, expected in cases:
         assert util.slugify(case) == expected
-
 
 def test_slugify_interface():
     """Test ``util.slugify_interface``."""
@@ -149,7 +141,6 @@ def test_slugify_interface():
 
     with pytest.raises(RuntimeError):
         util.slugify_interface(name='bogus')
-
 
 def test_get_field_attr():
     """Test ``util.get_field_attr()``."""

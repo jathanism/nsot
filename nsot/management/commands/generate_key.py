@@ -1,5 +1,3 @@
-from __future__ import absolute_import, print_function
-
 """Command to generate a secret key."""
 
 from cryptography.fernet import Fernet

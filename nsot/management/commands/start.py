@@ -1,5 +1,3 @@
-from __future__ import absolute_import, print_function
-
 """
 Command to start the NSoT server process.
 """

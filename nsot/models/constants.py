@@ -2,11 +2,9 @@
 Constants for working with models.
 """
 
-from __future__ import absolute_import
 from collections import OrderedDict
 
 from django.conf import settings
-
 
 # These are constants that becuase they are tied directly to the underlying
 # objects are explicitly NOT USER CONFIGURABLE.

@@ -1,6 +1,4 @@
-from __future__ import absolute_import
 from django.db import models
-import six
 
 from .. import exc
 from .attribute import Attribute
@@ -76,7 +74,7 @@ class Protocol(Resource):
     )
 
     def __str__(self):
-        description = six.text_type(self.type)
+        description = str(self.type)
 
         if self.circuit:
             description += " over %s" % self.circuit
@@ -108,7 +106,7 @@ class Protocol(Resource):
         return value
 
     def clean_circuit(self, value):
-        """ Ensure at least one endpoint on the circuit is on this device """
+        """Ensure at least one endpoint on the circuit is on this device"""
         if value and value.interface_for(self.device) is None:
             raise exc.ValidationError(
                 {
