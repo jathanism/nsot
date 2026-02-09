@@ -2,6 +2,11 @@
 SuSe
 ####
 
+.. note::
+    This guide was written for SuSe 13 and may be outdated. For a modern
+    installation, please refer to the :doc:`ubuntu` guide or simply run
+    ``pip install nsot`` on any system with Python 3.10+.
+
 This installation guide assumes that you have installed SuSe 13 on your
 machine, and are wanting to install NSoT. This guide will help you install NSoT
 and then run it locally from a browser window.
@@ -21,7 +26,7 @@ Now we'll install the prerequisite software with zypper:
 
 .. code-block:: bash
 
-    $ sudo zypper --non-interactive in python-devel gcc gcc-c++ git libffi48-devel libopenssl-devel python-pip 
+    $ sudo zypper --non-interactive in python-devel gcc gcc-c++ git libffi48-devel libopenssl-devel python-pip
 
 Next you'll need to upgrade Pip and security addons:
 
@@ -44,7 +49,7 @@ this demo:
 
 .. code-block:: bash
 
-    $  sudo /sbin/service SuSEfirewall2_setup stop 
+    $  sudo /sbin/service SuSEfirewall2_setup stop
 
 For production installations we reccomend adding a rule to your iptables for
 NSoT on ports ``8990/tcp`` (or the port of your choosing).

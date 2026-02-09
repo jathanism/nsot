@@ -2,6 +2,11 @@
 Fedora
 ######
 
+.. note::
+    This guide was written for Fedora 22 and may be outdated. For a modern
+    installation, please refer to the :doc:`ubuntu` guide or simply run
+    ``pip install nsot`` on any system with Python 3.10+.
+
 This installation guide assumes that you have installed Fedora 22 on your
 machine, and are wanting to install NSoT. This guide will help you install NSoT
 and then run it locally from a browser window.
@@ -9,12 +14,12 @@ and then run it locally from a browser window.
 Installation
 ============
 
-To ensure your Fedora installation is up to date, please update it. 
+To ensure your Fedora installation is up to date, please update it.
 Once complete, open a command prompt and run the following:
 
 .. code-block:: bash
 
-    $ sudo dnf -y install gcc gcc-c++ libffi libffi-devel python-devel openssl-devel 
+    $ sudo dnf -y install gcc gcc-c++ libffi libffi-devel python-devel openssl-devel
     $ sudo dnf -y gcc-plugin-devel make automake kernel kernel-devel psmisc
     $ sudo dnf -y install python2-devel
 

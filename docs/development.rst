@@ -4,54 +4,27 @@ Development
 Git Branches
 ------------
 
-On the parent repo for NSoT, there are two important branches:
+The primary branch for NSoT development is ``main``. All Pull Requests should
+be opened against ``main``.
 
-- ``develop`` is the branch that all Pull Requests are opened against and
-  represents the bleeding edge of work being done on NSoT.
-- ``master`` is considered to be the 'stable' branch and no PRs should be
-  merged directly in to this branch. As features are merged into ``develop``,
-  releases are created off of that branch and then merged into ``master``. See
-  :ref:`release-process` for more information on how this is done.
-
-When developing on NSoT, you should be basing your work on the ``develop``
-branch.
+Releases are managed automatically via `python-semantic-release
+<https://python-semantic-release.readthedocs.io>`_ and GitHub Actions. See
+:ref:`release-process` for more information.
 
 Setting up Your Environment
 ---------------------------
 
-**Note:** You'll need to have a reasonably recent version of `npm
-<https://github.com/npm/npm>`_ to build front-end dependencies. (Minimum
-version tested is ``1.3.24``)
-
-We suggest setting up your test environment in a Python `virtualenv
-<https://virtualenv.pypa.io>`_:
+We use `uv <https://docs.astral.sh/uv/>`_ for dependency management. To get
+started, install uv and then clone the repository:
 
 .. code-block:: bash
 
-    $ virtualenv nsot
-    $ source nsot/bin/activate
-
-Or, if you use `virtualenvwrapper
-<https://virtualenvwrapper.readthedocs.io>`_:
-
-.. code-block:: bash
-
-    $ mkvirtualenv nsot
-
-If you haven't already, make sure you `set up git
-<https://help.github.com/articles/set-up-git/>`_ and `add an SSH key to your
-GitHub account <https://help.github.com/articles/generating-ssh-keys/>`_ before
-proceeding!
-
-After that, clone the repository into whichever directory you use for
-development and install the dependencies:
-
-.. code-block:: bash
-
-    $ git clone git@github.com:dropbox/nsot.git
+    $ git clone git@github.com:jathanism/nsot.git
     $ cd nsot
-    $ pip install -r requirements-dev.txt
-    $ python setup.py develop
+    $ uv sync --all-extras
+
+This installs all runtime, dev, and docs dependencies into a managed virtual
+environment.
 
 Running a Test Instance
 -----------------------
@@ -74,8 +47,7 @@ To get started, follow these steps:
     # Run the development reverse proxy (where $USER is the desired username)
     $ nsot-server user_proxy $USER
 
-    # (In another terminal) Run the front-end server, remember to activate your
-    # virtualenv first if you need to
+    # (In another terminal) Run the front-end server
     $ nsot-server start
 
 **Note:** This quick start assumes that you're installing and running NSoT on
@@ -87,12 +59,12 @@ Now, point your web browser to http://localhost:8991 and explore the
 Running Unit Tests
 ------------------
 
-All tests will automatically be run on Travis CI when pull requests are sent.
-However, it's beneficial to run the tests often during development:
+All tests will automatically be run on GitHub Actions when pull requests are
+sent. However, it's beneficial to run the tests often during development:
 
 .. code-block:: bash
 
-    $ py.test -v tests/
+    $ NSOT_API_VERSION=1.0 uv run pytest -vv tests/
 
 Working with Database Migrations
 --------------------------------
@@ -124,7 +96,7 @@ If you're actively modifying the docs it's useful to run the autobuild server:
 
 .. code-block:: bash
 
-    $ sphinx-autobuild docs docs/_build/html/
+    $ uv run sphinx-autobuild docs docs/_build/html/
 
 This will start a server listening on a port that you can browse to and will be
 automatically reloaded when you change any rst files. One downside of this
@@ -137,9 +109,6 @@ We use a combination JavaScript utilities to do front-end development:
 
 + `npm <https://www.npmjs.com/>`_ - npm is used to manage our build dependencies
 + `gulp <http://gulpjs.com/>`_ - gulp for building, linting, testing
-
-**Note:** You do not have to install these yourself! When you run ``setup.py develop``,
-it will install and build all front-end components for you!
 
 Adding New Build Dependencies
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -172,6 +141,19 @@ updating ``package.json`` with the new package you need to update the
 VENDOR_FILES variable in ``gulpfile.js`` to let the build workflow know
 which files to include.
 
+Linting and Formatting
+----------------------
+
+We use `ruff <https://docs.astral.sh/ruff/>`_ for linting and code formatting:
+
+.. code-block:: bash
+
+    # Check for lint issues
+    $ uv run ruff check nsot/ tests/
+
+    # Auto-format code
+    $ uv run ruff format nsot/ tests/
+
 .. _versioning:
 
 Versioning
@@ -180,7 +162,7 @@ Versioning
 We use `semantic versioning <http://semver.org>`_. Version numbers will
 follow this format::
 
-    {Major version}.{Minor version}.{Revision number}.{Build number (optional)}
+    {Major version}.{Minor version}.{Revision number}
 
 Patch version numbers (0.0.x) are used for changes that are API compatible. You
 should be able to upgrade between minor point releases without any other code
@@ -197,44 +179,27 @@ Major version numbers (x.0.0) are reserved for substantial project milestones.
 Release Process
 ---------------
 
-When a new version is to be cut from the commits made on the ``develop``
-branch, the following process should be followed. This is meant to be done by
-project maintainers, who have push access to the parent repository.
+Releases are automated via `python-semantic-release
+<https://python-semantic-release.readthedocs.io>`_ and GitHub Actions. When
+commits following the `Conventional Commits
+<https://www.conventionalcommits.org/>`_ format are merged to ``main``,
+semantic-release determines the next version, updates the changelog, tags the
+release, and publishes to PyPI.
 
-#. Create a branch off of the ``develop`` branch called ``release-vX.Y.Z``
-   where ``vX.Y.Z`` is the version you are releasing
-#. Use ``bump.sh`` to update the version in ``nsot/version.py`` and the
-   Dockerfile. Example:
+Commit prefixes that trigger releases:
 
-.. code-block:: bash
+- ``fix:`` — patch release
+- ``feat:`` — minor release
+- ``BREAKING CHANGE:`` — major release
 
-    $ ./bump.sh -v X.Y.Z
+Other prefixes (``docs:``, ``ci:``, ``chore:``, ``refactor:``, ``test:``) do
+**not** trigger a release.
 
-3. Update ``CHANGELOG.rst`` with what has changed since the last version. A
-   one-line summary for each change is sufficient, and often the summary from
-   each PR merge works.
-#. Commit these changes to your branch.
-#. Open a release Pull Request against the ``master`` branch
-#. On GitHub, merge the release Pull Request into ``master``
-#. Locally, merge the release branch into ``develop`` and push that ``develop``
-   branch up
-#. Switch to the ``master`` branch and pull the latest updates (with the PR you
-   just merged)
-#. Create a new git tag with this verison in the format of ``vX.Y.Z``
-#. Push up the new tag
+To build the package locally:
 
 .. code-block:: bash
 
-    # 'upstream' here is the name of the remote, it may also be 'origin'
-    $ git push --tags upstream
-
-11. Create a new package and push it up to PyPI (where ``{version}`` is the
-    current release version):
-
-.. code-block:: bash
-
-    $ python setup.py sdist
-    $ twine upload dist/nsot-{version}.tar.gz
+    $ uv build
 
 .. _deprecation-policy:
 

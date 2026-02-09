@@ -9,7 +9,7 @@ skip ahead, this guide is for you.
     This quick start assumes a lot. If it doesn't work for you, please skip
     this and read the installation_ guide.
 
-.. _installation: https://github.com/dropbox/nsot/blob/develop/docs/installation.rst
+.. _installation: https://github.com/jathanism/nsot/blob/main/docs/installation.rst
 
 1. Install NSoT:
 
@@ -46,4 +46,4 @@ skip ahead, this guide is for you.
 
 Now, head over to the tutorial_ to start getting acquainted with NSoT!
 
-.. _tutorial: https://github.com/dropbox/nsot/blob/develop/docs/tutorial.rst
+.. _tutorial: https://github.com/jathanism/nsot/blob/main/docs/tutorial.rst
