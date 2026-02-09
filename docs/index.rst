@@ -28,16 +28,16 @@ interfaces.
    changelog
    support
 
-.. |Build Status| image:: https://img.shields.io/travis/dropbox/nsot/master.svg?style=flat
-   :target: https://travis-ci.org/dropbox/nsot
+.. |Build Status| image:: https://github.com/jathanism/nsot/actions/workflows/ci.yml/badge.svg
+   :target: https://github.com/jathanism/nsot/actions/workflows/ci.yml
    :width: 88px
    :height: 20px
 .. |Documentation Status| image:: https://readthedocs.org/projects/nsot/badge/?version=latest&style=flat
-   :target: https://readthedocs.org/projects/nsot/?badge=latest
+   :target: https://nsot.readthedocs.io/
    :width: 76px
    :height: 20px
 .. |PyPI Status| image:: https://img.shields.io/pypi/v/nsot.svg?style=flat
-   :target: https://pypi.python.org/pypi/nsot
+   :target: https://pypi.org/project/nsot/
    :width: 68px
    :height: 20px
 

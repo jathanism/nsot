@@ -78,7 +78,7 @@ PostgreSQL, and Oracle.
 
 For more information on configuring the database, please see the `official
 Django database documentation
-<https://docs.djangoproject.com/en/1.8/ref/settings/#databases>`_.
+<https://docs.djangoproject.com/en/5.2/ref/settings/#databases>`_.
 
 Caching
 -------
@@ -102,5 +102,5 @@ dramatically perform read operations of databases with a large amount of
 network Interface objects.
 
 If you need caching, see the `official Django caching documentation
-<https://docs.djangoproject.com/en/1.8/ref/settings/#caches>`_ on how to set
+<https://docs.djangoproject.com/en/5.2/ref/settings/#caches>`_ on how to set
 it up.

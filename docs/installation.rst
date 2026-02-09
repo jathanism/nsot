@@ -7,7 +7,7 @@ Dependencies
 
 Network Source of Truth (NSoT) should run on any Unix-like platform that has:
 
-+ Python 2.7
++ Python 3.10+
 + `pip <https://pip.pypa.io>`_
 
 Python dependencies
@@ -70,7 +70,7 @@ directory:
 
 .. code-block:: bash
 
-    $ git clone https://github.com/dropbox/nsot
+    $ git clone https://github.com/jathanism/nsot
     $ cd nsot
 
 Then to switch to the  ``demo`` directory and fire up the demo:

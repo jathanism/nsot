@@ -56,7 +56,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Network Source of Truth'
-copyright = u'2014-2016, Dropbox, Inc.'
+copyright = u'2014-2016 Dropbox, Inc., 2024-2026 Jathan McCollum'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
