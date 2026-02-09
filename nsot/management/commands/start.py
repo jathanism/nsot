@@ -112,7 +112,7 @@ class Command(NsotCommand):
                 port = int(port)
             else:
                 host = address
-                port = None
+                port = settings.NSOT_PORT
         else:
             host, port = None, None
 
