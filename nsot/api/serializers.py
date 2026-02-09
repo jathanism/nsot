@@ -569,17 +569,36 @@ class InterfaceSerializer(ResourceSerializer):
         return obj
 
 
+class InterfaceTypeField(serializers.Field):
+    """Accepts integer type IDs or string type names (e.g. 6 or "ethernet")."""
+
+    def to_internal_value(self, data):
+        from ..models import constants
+
+        if data is None:
+            return None
+        if isinstance(data, str):
+            resolved = constants.INTERFACE_TYPE_BY_NAME.get(data)
+            if resolved is not None:
+                return resolved
+            # Let the model's clean_type handle the error for unknown strings
+            return data
+        try:
+            return int(data)
+        except (TypeError, ValueError):
+            self.fail("invalid")
+
+    def to_representation(self, value):
+        return value
+
+
 class InterfaceCreateSerializer(InterfaceSerializer):
     """Used for POST on Interfaces."""
 
     description = serializers.CharField(
         required=False, allow_blank=True, default="", max_length=255
     )
-    type = serializers.IntegerField(
-        required=False,
-        allow_null=True,
-        default=settings.INTERFACE_DEFAULT_TYPE,
-    )
+    type = InterfaceTypeField(required=False, allow_null=True)
 
     class Meta:
         model = models.Interface

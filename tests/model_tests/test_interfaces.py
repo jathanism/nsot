@@ -130,6 +130,25 @@ def test_type(device):
     assert iface.type == 6
 
 
+def test_type_string(device):
+    """Test that string type names are resolved to integer IDs."""
+    iface = models.Interface.objects.create(
+        device=device, name="eth0", type="ethernet"
+    )
+    assert iface.type == 6
+
+    # Change to loopback by name
+    iface.type = "loopback"
+    iface.save()
+    iface.refresh_from_db()
+    assert iface.type == 24
+
+    # Unknown string name should still raise
+    with pytest.raises(exc.ValidationError):
+        iface.type = "nonexistent"
+        iface.save()
+
+
 def test_attributes(device):
     """Test that attributes work as expected."""
     models.Attribute.objects.create(

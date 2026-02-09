@@ -879,3 +879,37 @@ def test_create_with_null_description(site, client, device):
     assert ifc_resp.status_code == status.HTTP_201_CREATED
     ifc = get_result(ifc_resp)
     assert ifc["description"] == ""
+
+
+def test_create_with_string_type(site, client, device):
+    """Test that creating an Interface with a string type name works."""
+    ifc_uri = site.list_uri("interface")
+
+    # Create with string type name "loopback"
+    ifc_resp = client.create(
+        ifc_uri, device=device["id"], name="lo0", type="loopback"
+    )
+    assert ifc_resp.status_code == status.HTTP_201_CREATED
+    ifc = get_result(ifc_resp)
+    assert ifc["type"] == 24
+
+    # Verify type_name is in the response
+    assert ifc["type_name"] == "loopback"
+
+    # Create with string type name "ethernet"
+    ifc_resp2 = client.create(
+        ifc_uri, device=device["id"], name="eth0", type="ethernet"
+    )
+    assert ifc_resp2.status_code == status.HTTP_201_CREATED
+    ifc2 = get_result(ifc_resp2)
+    assert ifc2["type"] == 6
+    assert ifc2["type_name"] == "ethernet"
+
+    # Integer type should still work
+    ifc_resp3 = client.create(
+        ifc_uri, device=device["id"], name="lag0", type=161
+    )
+    assert ifc_resp3.status_code == status.HTTP_201_CREATED
+    ifc3 = get_result(ifc_resp3)
+    assert ifc3["type"] == 161
+    assert ifc3["type_name"] == "lag"
