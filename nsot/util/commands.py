@@ -7,7 +7,7 @@ import logging
 
 from django.core.management.base import BaseCommand, CommandError
 
-__all__ = ("NsotCommand", "CommandError")
+__all__ = ("CommandError", "NsotCommand")
 
 
 class NsotCommand(BaseCommand):
@@ -19,7 +19,7 @@ class NsotCommand(BaseCommand):
 
     def create_parser(self, prog_name, subcommand):
         """Override default parser to include default values in help."""
-        parser = super(NsotCommand, self).create_parser(prog_name, subcommand)
+        parser = super().create_parser(prog_name, subcommand)
 
         # So that we can see default values in the help text.
         parser.formatter_class = argparse.ArgumentDefaultsHelpFormatter
@@ -37,8 +37,7 @@ class NsotCommand(BaseCommand):
 
         if as_string:
             return level_name
-        else:
-            return getattr(logging, level_name.upper())
+        return getattr(logging, level_name.upper())
 
     def set_logging(self, verbosity):
         """Set the log-level."""
@@ -53,4 +52,4 @@ class NsotCommand(BaseCommand):
         """Setup our logging object before execution."""
         self.set_logging(options.get("verbosity"))
 
-        super(NsotCommand, self).execute(*args, **options)
+        super().execute(*args, **options)

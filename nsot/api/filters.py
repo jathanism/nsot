@@ -1,7 +1,7 @@
 import logging
 
-from django.db.models import Q
 import django_filters
+from django.db.models import Q
 
 from .. import models
 from ..util import qpbool
@@ -91,8 +91,7 @@ class NetworkFilter(ResourceFilter):
         if not all([include_networks, include_ips]):
             if include_networks:
                 return queryset.filter(is_ip=False)
-            else:
-                return queryset.exclude(is_ip=False)
+            return queryset.exclude(is_ip=False)
 
         return queryset
 
@@ -104,8 +103,7 @@ class NetworkFilter(ResourceFilter):
         if not all([include_networks, include_ips]):
             if include_ips:
                 return queryset.filter(is_ip=True)
-            else:
-                return queryset.exclude(is_ip=True)
+            return queryset.exclude(is_ip=True)
 
         return queryset
 
@@ -183,8 +181,7 @@ class CircuitFilter(ResourceFilter):
 
         if value.isdigit():
             return queryset.filter(endpoint_a=value)
-        else:
-            return queryset.filter(endpoint_a__name_slug=value)
+        return queryset.filter(endpoint_a__name_slug=value)
 
     def filter_endpoint_z(self, queryset, name, value):
         """Overload to use natural key."""
@@ -193,8 +190,7 @@ class CircuitFilter(ResourceFilter):
 
         if value.isdigit():
             return queryset.filter(endpoint_z=value)
-        else:
-            return queryset.filter(endpoint_z__name_slug=value)
+        return queryset.filter(endpoint_z__name_slug=value)
 
 
 class ProtocolTypeFilter(django_filters.rest_framework.FilterSet):
@@ -224,8 +220,7 @@ class ProtocolFilter(ResourceFilter):
 
         if value.isdigit():
             return queryset.filter(device=value)
-        else:
-            return queryset.filter(device__hostname=value)
+        return queryset.filter(device__hostname=value)
 
     def filter_type(self, queryset, name, value):
         """Overload to use natural key."""
@@ -234,8 +229,7 @@ class ProtocolFilter(ResourceFilter):
 
         if value.isdigit():
             return queryset.filter(type=value)
-        else:
-            return queryset.filter(type__name=value)
+        return queryset.filter(type__name=value)
 
     def filter_interface(self, queryset, name, value):
         """Overload to use natural key."""
@@ -244,8 +238,7 @@ class ProtocolFilter(ResourceFilter):
 
         if value.isdigit():
             return queryset.filter(interface=value)
-        else:
-            return queryset.filter(interface__name_slug=value)
+        return queryset.filter(interface__name_slug=value)
 
     def filter_circuit(self, queryset, name, value):
         """Overload to use natural key."""
@@ -254,5 +247,4 @@ class ProtocolFilter(ResourceFilter):
 
         if value.isdigit():
             return queryset.filter(circuit=value)
-        else:
-            return queryset.filter(circuit__name_slug=value)
+        return queryset.filter(circuit__name_slug=value)

@@ -1,9 +1,9 @@
+import logging
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
-import logging
-from rest_framework import authentication
-from rest_framework import exceptions
+from rest_framework import authentication, exceptions
 
 from ..util import normalize_auth_header
 
@@ -24,12 +24,12 @@ class AuthTokenAuthentication(authentication.BaseAuthentication):
             raise exceptions.AuthenticationFailed(
                 "Invalid token header. No credentials provided."
             )
-        elif len(auth_fields) > 2:
+        if len(auth_fields) > 2:
             raise exceptions.AuthenticationFailed(
                 "Invalid token header. Token should not contain spaces."
             )
 
-        auth_type, data = auth_fields
+        _auth_type, data = auth_fields
         email, auth_token = data.split(":", 1)
 
         log.debug("     email: %r", email)

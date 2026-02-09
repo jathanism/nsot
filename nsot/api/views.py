@@ -1,23 +1,26 @@
-from collections import namedtuple, OrderedDict
 import logging
+from collections import OrderedDict, namedtuple
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from rest_framework import (
     mixins,
-    status as status_codes,
     permissions,
     viewsets,
 )
-from rest_framework.views import APIView
+from rest_framework import (
+    status as status_codes,
+)
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.views import APIView
+
 from nsot.vendor.rest_framework_bulk import mixins as bulk_mixins
 
-from . import auth, filters, serializers
 from .. import exc, models
-from ..util import qpbool, cidr_to_dict
+from ..util import cidr_to_dict, qpbool
+from . import auth, filters, serializers
 
 log = logging.getLogger(__name__)
 
@@ -53,9 +56,7 @@ class BaseNsotViewSet(viewsets.ReadOnlyModelViewSet):
     def not_found(self, pk=None, site_pk=None, msg=None):
         """Standard formatting for 404 errors."""
         if msg is None:
-            msg = "No such {} found at (site_id, id) = ({}, {})".format(
-                self.model_name, site_pk, pk
-            )
+            msg = f"No such {self.model_name} found at (site_id, id) = ({site_pk}, {pk})"
         raise exc.NotFound(msg)
 
     def success(self, data, status=None, headers=None):
@@ -92,9 +93,7 @@ class BaseNsotViewSet(viewsets.ReadOnlyModelViewSet):
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
-            return super(BaseNsotViewSet, self).get_paginated_response(
-                serializer.data
-            )
+            return super().get_paginated_response(serializer.data)
 
         serializer = self.get_serializer(queryset, many=True)
         return self.success(serializer.data)
@@ -461,9 +460,7 @@ class NetworkViewSet(ResourceViewSet):
     def query(self, request, site_pk=None, *args, **kwargs):
         """Override base query to inherit filtering by query params."""
         self.queryset = self.get_queryset()
-        return super(NetworkViewSet, self).query(
-            request, site_pk, *args, **kwargs
-        )
+        return super().query(request, site_pk, *args, **kwargs)
 
     @action(methods=["get"], detail=True)
     def closest_parent(self, request, pk=None, site_pk=None, *args, **kwargs):
@@ -585,10 +582,7 @@ class NetworkViewSet(ResourceViewSet):
         """Return the parent of this Network."""
         network = self.get_resource_object(pk, site_pk)
         parent = network.parent
-        if parent is not None:
-            pk = network.parent_id
-        else:
-            pk = None
+        pk = network.parent_id if parent is not None else None
 
         return self.retrieve(request, pk, site_pk, *args, **kwargs)
 
@@ -597,10 +591,7 @@ class NetworkViewSet(ResourceViewSet):
         """Return the parent of all ancestors for this Network."""
         network = self.get_resource_object(pk, site_pk)
         root = network.get_root()
-        if root is not None:
-            pk = root.id
-        else:
-            pk = None
+        pk = root.id if root is not None else None
 
         return self.retrieve(request, pk, site_pk, *args, **kwargs)
 
@@ -700,10 +691,7 @@ class InterfaceViewSet(ResourceViewSet):
         """Return the parent of this Interface."""
         interface = self.get_resource_object(pk, site_pk)
         parent = interface.parent
-        if parent is not None:
-            pk = interface.parent_id
-        else:
-            pk = None
+        pk = interface.parent_id if parent is not None else None
         return self.retrieve(request, pk, site_pk, *args, **kwargs)
 
     @action(methods=["get"], detail=True)
@@ -927,9 +915,7 @@ class UserViewSet(BaseNsotViewSet, mixins.CreateModelMixin):
                 )
             kwargs["with_secret_key"] = qpbool(with_secret_key)
 
-        return super(UserViewSet, self).retrieve(
-            request, pk, site_pk, *args, **kwargs
-        )
+        return super().retrieve(request, pk, site_pk, *args, **kwargs)
 
     @action(methods=["post"], detail=True)
     def rotate_secret_key(self, request, pk=None, *args, **kwargs):
@@ -954,10 +940,10 @@ class NotFoundViewSet(viewsets.GenericViewSet):
         return None
 
     def get(self, *args, **kwargs):
-        raise exc.NotFound()
+        raise exc.NotFound
 
     def list(self, *args, **kwargs):
-        raise exc.NotFound()
+        raise exc.NotFound
 
     def get_serializer_class(self):
         return None

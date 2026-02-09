@@ -1,12 +1,11 @@
-# -*- coding: utf-8 -*-
+import ipaddress
+import logging
 
 from django.conf import settings
 from django.db import models
 from django.utils.datastructures import DictWrapper
 from django_extensions.db.fields.json import JSONField
 from macaddress.fields import MACAddressField as BaseMACAddressField
-import ipaddress
-import logging
 
 from . import exc
 
@@ -19,7 +18,7 @@ class BinaryIPAddressField(models.Field):
     """IP Address field that stores values as varbinary."""
 
     def __init__(self, *args, **kwargs):
-        super(BinaryIPAddressField, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.editable = True
 
     def db_type(self, connection):
@@ -93,9 +92,7 @@ class MACAddressField(BaseMACAddressField):
             value = int(value)
 
         try:
-            return super(MACAddressField, self).from_db_value(
-                value, expression, connection
-            )
+            return super().from_db_value(value, expression, connection)
         except exc.DjangoValidationError as err:
             raise exc.ValidationError(str(err))
 
@@ -105,6 +102,6 @@ class MACAddressField(BaseMACAddressField):
             value = int(value)
 
         try:
-            return super(MACAddressField, self).to_python(value)
+            return super().to_python(value)
         except exc.DjangoValidationError as err:
             raise exc.ValidationError(str(err))

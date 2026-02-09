@@ -1,0 +1,52 @@
+# Pre-commit hooks for NSoT - works with prek (https://prek.j178.dev/)
+# Also compatible with standard pre-commit (https://pre-commit.com/)
+
+repos:
+  # Ruff - Python linter and formatter
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.14.14
+    hooks:
+      # Linter with auto-fix
+      - id: ruff
+        name: ruff check
+        args: [--fix]
+        files: ^(nsot|tests)/
+        exclude: ^nsot/(vendor|migrations)/
+
+      # Formatter in check-only mode
+      - id: ruff-format
+        name: ruff format
+        files: ^(nsot|tests)/
+        exclude: ^nsot/(vendor|migrations)/
+
+  # Built-in hooks (work offline with prek)
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: no-commit-to-branch
+        args: [--branch, main]
+      - id: check-yaml
+        exclude: ^\.github/workflows/
+      - id: end-of-file-fixer
+        exclude: ^nsot/(vendor|migrations)/
+      - id: trailing-whitespace
+        exclude: ^nsot/(vendor|migrations)/
+      - id: check-merge-conflict
+
+default_language_version:
+  python: python3.11
+
+files: \.(py|yaml|yml|md|txt|rst)$
+exclude: |
+  (?x)(
+    ^\.venv/|
+    ^\.worktrees/|
+    ^build/|
+    ^dist/|
+    ^\.eggs/|
+    ^\.pytest_cache/|
+    ^\.ruff_cache/|
+    ^nsot\.egg-info/|
+    ^nsot/vendor/|
+    ^node_modules/
+  )

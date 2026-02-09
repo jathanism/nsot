@@ -2,10 +2,11 @@
 Validators for validating object fields.
 """
 
+import ipaddress
+
+import netaddr
 from django.conf import settings
 from django.core.validators import EmailValidator
-import ipaddress
-import netaddr
 
 from . import exc
 

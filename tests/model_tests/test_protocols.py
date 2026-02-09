@@ -1,52 +1,54 @@
-# -*- coding: utf-8 -*-
-
 import pytest
+
 from nsot import exc, models
-from .fixtures import circuit, site
 
 # Allow everything in there to access the DB
 pytestmark = pytest.mark.django_db
+
 
 @pytest.fixture
 def asn_attribute(site):
     return models.Attribute.objects.create(
         site=site,
-        name='asn',
-        resource_name='Protocol',
+        name="asn",
+        resource_name="Protocol",
     )
+
 
 @pytest.fixture
 def bgp(asn_attribute, site):
     bgp = models.ProtocolType.objects.create(
-        name='bgp',
-        description='Border Gateway Protocol',
+        name="bgp",
+        description="Border Gateway Protocol",
         site=site,
     )
     bgp.required_attributes.add(asn_attribute)
 
     return bgp
 
+
 @pytest.fixture
 def area_attribute(site):
     return models.Attribute.objects.create(
         site=site,
-        name='area',
-        resource_name='Protocol',
+        name="area",
+        resource_name="Protocol",
     )
+
 
 @pytest.fixture
 def ospf(area_attribute, site):
     ospf = models.ProtocolType.objects.create(
-        name='ospf',
-        description='Open Shortest Path First protocol',
-        site=site
+        name="ospf", description="Open Shortest Path First protocol", site=site
     )
     ospf.required_attributes.add(area_attribute)
 
     return ospf
 
-class ProtocolTestCase(object):
+
+class ProtocolTestCase:
     """Shared fixtures for Protocol(Type) tests."""
+
     @pytest.fixture
     def device(self, circuit):
         return circuit.endpoint_a.device
@@ -55,17 +57,19 @@ class ProtocolTestCase(object):
     def interface(self, circuit):
         return circuit.endpoint_a
 
+
 class TestProtocolType(ProtocolTestCase):
     """Test ProtocolType constraints."""
+
     def test_required_attributes_site(self, site, bgp, area_attribute):
         """Test that required_attributes are in same site."""
         # Create a 2nd site and 2 protocol attributes.
-        site2 = models.Site.objects.create(name='Site2')
+        site2 = models.Site.objects.create(name="Site2")
         attr1 = models.Attribute.objects.create(
-            resource_name='Protocol', name='attr1', site=site2
+            resource_name="Protocol", name="attr1", site=site2
         )
         attr2 = models.Attribute.objects.create(
-            resource_name='Protocol', name='attr2', site=site2
+            resource_name="Protocol", name="attr2", site=site2
         )
 
         # Adding attributes from wrong site should fail.
@@ -75,12 +79,13 @@ class TestProtocolType(ProtocolTestCase):
     def test_required_attributes_resource(self, site, bgp):
         """Test Protocol attributes only for required_attributes."""
         bad_attr = models.Attribute.objects.create(
-            site=site, name='bad', resource_name='Device'
+            site=site, name="bad", resource_name="Device"
         )
 
         # Adding attributes from wrong resource should fail.
         with pytest.raises(exc.ValidationError):
             bgp.required_attributes.add(bad_attr)
+
 
 class TestCreation(ProtocolTestCase):
     def test_normal_conditions(self, device, circuit, bgp):
@@ -92,10 +97,10 @@ class TestCreation(ProtocolTestCase):
             device=device,
             circuit=circuit,
             type=bgp,
-            description='My fancy peer',
+            description="My fancy peer",
             attributes={
-                'asn': '1234',
-            }
+                "asn": "1234",
+            },
         )
         protocol.save()
 
@@ -117,26 +122,24 @@ class TestCreation(ProtocolTestCase):
                 circuit=bad_circuit,
                 type=bgp,
                 attributes={
-                    'asn': '1234',
-                }
+                    "asn": "1234",
+                },
             )
 
     def test_attributes(self, device, circuit, bgp):
-        """ Ensure that we can set arbitrary attributes on a Protocol """
+        """Ensure that we can set arbitrary attributes on a Protocol"""
         models.Attribute.objects.create(
-            site=device.site, resource_name='Protocol', name='import_policies')
+            site=device.site, resource_name="Protocol", name="import_policies"
+        )
 
         protocol = models.Protocol.objects.create(
             device=device,
             circuit=circuit,
             type=bgp,
-            attributes={
-                'asn': '1234',
-                'import_policies': 'foo'
-            }
+            attributes={"asn": "1234", "import_policies": "foo"},
         )
 
-        assert protocol.get_attributes()['import_policies'] == 'foo'
+        assert protocol.get_attributes()["import_policies"] == "foo"
 
     def test_missing_attributes(self, device, circuit, bgp):
         """
@@ -160,7 +163,7 @@ class TestCreation(ProtocolTestCase):
             device=device,
             interface=interface,
             type=ospf,
-            attributes={'area': 'threeve'}
+            attributes={"area": "threeve"},
         )
 
     def test_mixed_attrs(self, device, circuit, bgp, area_attribute):
@@ -174,18 +177,20 @@ class TestCreation(ProtocolTestCase):
             circuit=circuit,
             type=bgp,
             attributes={
-                'asn': '1234',
-                'area': 'threeve',
-            }
+                "asn": "1234",
+                "area": "threeve",
+            },
         )
 
-        assert protocol.get_attributes()['asn'] == '1234'
-        assert protocol.get_attributes()['area'] == 'threeve'
+        assert protocol.get_attributes()["asn"] == "1234"
+        assert protocol.get_attributes()["area"] == "threeve"
+
 
 class TestUnicode(ProtocolTestCase):
     """
     Tests for the __unicode__ method on Protocol
     """
+
     @pytest.fixture
     def base_protocol(self, bgp, circuit):
         device = circuit.endpoint_a.device
@@ -194,15 +199,15 @@ class TestUnicode(ProtocolTestCase):
             device=device,
             type=bgp,
             attributes={
-                'asn': '1234',
-            }
+                "asn": "1234",
+            },
         )
 
     def test_circuit(self, base_protocol, circuit):
         """
         Case when only a circuit is set on the Protocol (no interface)
         """
-        expected = 'bgp over foo-bar1:eth0_foo-bar2:eth0'
+        expected = "bgp over foo-bar1:eth0_foo-bar2:eth0"
 
         base_protocol.circuit = circuit
         base_protocol.save()
@@ -216,7 +221,7 @@ class TestUnicode(ProtocolTestCase):
         """
         Case when only an interface is set on the Protocol (no circuit)
         """
-        expected = 'bgp on foo-bar1:eth0'
+        expected = "bgp on foo-bar1:eth0"
 
         base_protocol.interface = interface
         base_protocol.save()
@@ -230,19 +235,20 @@ class TestUnicode(ProtocolTestCase):
         """
         Case when neither a circuit nor interface are set
         """
-        expected = 'bgp on foo-bar1'
+        expected = "bgp on foo-bar1"
 
         assert base_protocol.circuit is None
         assert base_protocol.interface is None
 
         assert str(base_protocol) == expected
 
-    def test_both_circuit_and_interface(self, base_protocol, circuit,
-                                        interface):
+    def test_both_circuit_and_interface(
+        self, base_protocol, circuit, interface
+    ):
         """
         Case when both a circuit and interface are set
         """
-        expected = 'bgp over foo-bar1:eth0_foo-bar2:eth0'
+        expected = "bgp over foo-bar1:eth0_foo-bar2:eth0"
 
         base_protocol.circuit = circuit
         base_protocol.interface = interface

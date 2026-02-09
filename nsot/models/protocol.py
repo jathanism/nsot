@@ -162,7 +162,7 @@ class Protocol(Resource):
             if r in valid_attributes:
                 valid_attributes[r].required = True
 
-        return super(Protocol, self).set_attributes(
+        return super().set_attributes(
             attributes, valid_attributes=valid_attributes, partial=partial
         )
 
@@ -174,7 +174,7 @@ class Protocol(Resource):
 
     def save(self, *args, **kwargs):
         self.full_clean()
-        super(Protocol, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     # TODO(jathan): type, device, interface, circuit need indexing. We might
     # consider caching these values ON the Protocol object similarly how we've

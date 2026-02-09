@@ -1,9 +1,9 @@
 from django.conf import settings
-from django.urls import include, path, re_path
 from django.contrib import admin
+from django.urls import include, path, re_path
 from django.views.generic import RedirectView
-from rest_framework.schemas import get_schema_view
 from rest_framework.renderers import JSONOpenAPIRenderer
+from rest_framework.schemas import get_schema_view
 
 from ..api.views import NotFoundViewSet
 from ..ui.views import FeView

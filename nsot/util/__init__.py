@@ -3,11 +3,9 @@ Utilities used across the project.
 """
 
 # Core
-from . import core
-from .core import *  # noqa
-
 # Stats
-from . import stats
+from . import core, stats
+from .core import *  # noqa
 from .stats import *  # noqa
 
 __all__ = []

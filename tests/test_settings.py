@@ -9,9 +9,10 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.8/ref/settings/
 """
 
-SECRET_KEY = u'fMK68NKgazLCjjTXjDtthhoRUS8IV4lwD-9G7iVd2Xs='
-from nsot.conf.settings import *
+SECRET_KEY = "fMK68NKgazLCjjTXjDtthhoRUS8IV4lwD-9G7iVd2Xs="
 import os.path
+
+from nsot.conf.settings import *
 
 # Path where the config is found.
 CONF_ROOT = os.path.dirname(__file__)
@@ -26,13 +27,13 @@ DEBUG = False
 ############
 # https://docs.djangoproject.com/en/dev/ref/settings/#databases
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(CONF_ROOT, 'nsot.sqlite3'),
-        'USER': 'nsot',
-        'PASSWORD': '',
-        'HOST': '',
-        'PORT': '',
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": os.path.join(CONF_ROOT, "nsot.sqlite3"),
+        "USER": "nsot",
+        "PASSWORD": "",
+        "HOST": "",
+        "PORT": "",
     }
 }
 
@@ -42,7 +43,7 @@ DATABASES = {
 
 # The address on which the application will listen.
 # Default: localhost
-NSOT_HOST = 'localhost'
+NSOT_HOST = "localhost"
 
 # The port on which the application will be accessed.
 # Default: 8990
@@ -72,7 +73,7 @@ SERVE_STATIC_FILES = True
 
 # Header to check for Authenticated Email. This is intended for use behind an
 # authenticating reverse proxy.
-USER_AUTH_HEADER = 'X-NSoT-Email'
+USER_AUTH_HEADER = "X-NSoT-Email"
 
 # The age, in seconds, until an AuthToken granted by the API will expire.
 # Default: 600
@@ -84,7 +85,7 @@ AUTH_TOKEN_EXPIRY = 600  # 10 minutes
 # submitting requests with a fake HTTP Host header, which is possible even under
 # many seemingly-safe web server configurations.
 # https://docs.djangoproject.com/en/1.8/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ["*"]
 
 ##############
 # Interfaces #
@@ -92,7 +93,7 @@ ALLOWED_HOSTS = ['*']
 
 # The default format for displaying MAC addresses. This defaults to
 # ":"-separated and expanded (e.g. '00:00:00:00:00:00')
-MACADDRESS_DEFAULT_DIALECT = 'macaddress.mac_linux'
+MACADDRESS_DEFAULT_DIALECT = "macaddress.mac_linux"
 
 # The default speed in Mbps for newly device interfaces if not otherwise
 # specified.
@@ -105,10 +106,10 @@ INTERFACE_DEFAULT_SPEED = 1000  # In Mbps (e.g. 1Gbps)
 NSOT_COMPRESS_IPV6 = True
 
 # Temp debug logging
-if os.getenv('NSOT_DEBUG'):
+if os.getenv("NSOT_DEBUG"):
     DEBUG = True
-    LOGGING['loggers']['nsot']['level'] = 'DEBUG'
-    LOGGING['loggers']['django.db.backends'] = {
-        'handlers': ['console'],
-        'level': 'DEBUG'
+    LOGGING["loggers"]["nsot"]["level"] = "DEBUG"
+    LOGGING["loggers"]["django.db.backends"] = {
+        "handlers": ["console"],
+        "level": "DEBUG",
     }

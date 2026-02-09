@@ -3,55 +3,47 @@ Make dummy data and fixtures and stuff to use in benchmarking.
 """
 
 import collections
-import faker
-import json
-import hashlib
-from hashlib import sha1
-import ipaddress
-import pytest
 import random
 import socket
 import struct
-import time
+
+import faker
 
 # Constants and stuff
 fake = faker.Factory.create()
 
 # Phony attributes to randomly generate for testing.
 ATTRIBUTE_DATA = {
-    'lifecycle': ['monitored', 'ignored'],
-    'owner': ['jathan', 'gary', 'lisa', 'jimmy', 'bart', 'bob', 'alice'],
-    'metro': ['lax', 'iad', 'sjc', 'tyo'],
-    'foo': ['bar', 'baz', 'spam'],
+    "lifecycle": ["monitored", "ignored"],
+    "owner": ["jathan", "gary", "lisa", "jimmy", "bart", "bob", "alice"],
+    "metro": ["lax", "iad", "sjc", "tyo"],
+    "foo": ["bar", "baz", "spam"],
 }
 
 # Used to store Attribute/value pairs
-Attribute = collections.namedtuple('Attribute', 'name value')
+Attribute = collections.namedtuple("Attribute", "name value")
+
 
 def rando():
     return random.choice((True, False))
+
 
 def generate_words(num_items=100, title=False, add_suffix=False):
     stuff = set()
     for _ in range(num_items + 1):
         things = (fake.word(), fake.first_name(), fake.last_name())
-        suffix = str(random.randint(1, 32)) if add_suffix else ''
+        suffix = str(random.randint(1, 32)) if add_suffix else ""
         word = random.choice(things) + suffix
 
         # Title it?
         if rando():
             word = word.title()
 
-        # Reverse it?
-        if rando():
-            word = word[::-1]  # Reverse it
-
-        # Lower it?
-        else:
-            word = word.lower()
+        word = word[::-1] if rando() else word.lower()
 
         # stuff.add(word)
         yield word
+
 
 def generate_hostnames(num_items=100):
     """
@@ -62,11 +54,13 @@ def generate_hostnames(num_items=100):
     """
 
     for i in range(1, num_items + 1):
-        yield 'host%s' % i
+        yield "host%s" % i
+
 
 def generate_ipv4():
     """Generate a random IPv4 address."""
-    return socket.inet_ntoa(struct.pack('>I', random.randint(1, 0xffffffff)))
+    return socket.inet_ntoa(struct.pack(">I", random.randint(1, 0xFFFFFFFF)))
+
 
 def generate_ipv4list(num_items=100, include_hosts=False):
     """
@@ -84,17 +78,17 @@ def generate_ipv4list(num_items=100, include_hosts=False):
     # bunch of /24 networks.
     while len(ipset) < num_items:
         ip = generate_ipv4()
-        if ip.startswith('0'):
+        if ip.startswith("0"):
             continue
 
-        if ip.endswith('.0.0.0'):
-            prefix = '/8'
-        elif ip.endswith('.0.0'):
-            prefix = '/16'
-        elif ip.endswith('.0'):
-            prefix = '/24'
+        if ip.endswith(".0.0.0"):
+            prefix = "/8"
+        elif ip.endswith(".0.0"):
+            prefix = "/16"
+        elif ip.endswith(".0"):
+            prefix = "/24"
         elif include_hosts:
-            prefix = '/32'
+            prefix = "/32"
         else:
             continue
 
@@ -102,12 +96,14 @@ def generate_ipv4list(num_items=100, include_hosts=False):
         ipset.add(ip)
     return sorted(ipset)
 
+
 def enumerate_attributes(resource_name, attributes=None):
     if attributes is None:
         attributes = ATTRIBUTE_DATA
 
     for name in attributes:
-        yield {'name': name, 'resource_name': resource_name}
+        yield {"name": name, "resource_name": resource_name}
+
 
 def generate_attributes(attributes=None, as_dict=True):
     """
@@ -130,6 +126,7 @@ def generate_attributes(attributes=None, as_dict=True):
         attrs = dict(attrs)
     return attrs
 
+
 def generate_devices(num_items=100, with_attributes=True):
     """
     Return a list of dicts for Device creation.
@@ -144,16 +141,19 @@ def generate_devices(num_items=100, with_attributes=True):
 
     devices = []
     for hostname in hostnames:
-        item = {'hostname': hostname}
+        item = {"hostname": hostname}
         if with_attributes:
             attributes = generate_attributes()
-            item['attributes'] = attributes
+            item["attributes"] = attributes
 
         yield item
         # devices.append(item)
     # return devices
 
-def generate_networks(num_items=100, with_attributes=True, include_hosts=False):
+
+def generate_networks(
+    num_items=100, with_attributes=True, include_hosts=False
+):
     """
     Return a list of dicts for Network creation.
 
@@ -168,19 +168,21 @@ def generate_networks(num_items=100, with_attributes=True, include_hosts=False):
     networks = []
     for cidr in ipv4list:
         attributes = generate_attributes()
-        item = {'cidr': cidr}
+        item = {"cidr": cidr}
         if with_attributes:
             attributes = generate_attributes()
-            item['attributes'] = attributes
+            item["attributes"] = attributes
 
         networks.append(item)
     return networks
 
+
 def rando_set_action():
-    return random.choice(['+', '-', ''])
+    return random.choice(["+", "-", ""])
+
 
 def rando_set_query():
     action = rando_set_action()
-    return ' '.join(
-        action + '%s=%s' % (k, v) for k,v in generate_attributes().items()
+    return " ".join(
+        action + "%s=%s" % (k, v) for k, v in generate_attributes().items()
     )

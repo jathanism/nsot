@@ -118,9 +118,8 @@ class ResourceSetTheoryQuerySet(models.query.QuerySet):
             # There can be only one
             msg = "Query returned %r results, but exactly 1 expected" % count
             raise exc.ValidationError({"query": msg})
-        else:
-            # Gotta call .distinct() or we might get dupes.
-            return objects.distinct()
+        # Gotta call .distinct() or we might get dupes.
+        return objects.distinct()
 
     def by_attribute(self, name, value, site_id=None):
         """
@@ -212,7 +211,7 @@ class Resource(models.Model):
 
     def __init__(self, *args, **kwargs):
         self._set_attributes = kwargs.pop("attributes", None)
-        super(Resource, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     class Meta:
         abstract = True
@@ -243,14 +242,12 @@ class Resource(models.Model):
 
         # If no attributes and it's a partial update, NOOP.
         if attributes is None and partial:
-            return None
+            return
 
         if not isinstance(attributes, dict):
             raise exc.ValidationError(
                 {
-                    "attributes": "Expected dictionary but received {}".format(
-                        type(attributes)
-                    )
+                    "attributes": f"Expected dictionary but received {type(attributes)}"
                 }
             )
 
@@ -281,7 +278,7 @@ class Resource(models.Model):
         if missing_attributes:
             names = ", ".join(missing_attributes)
             raise exc.ValidationError(
-                {"attributes": "Missing required attributes: {}".format(names)}
+                {"attributes": f"Missing required attributes: {names}"}
             )
 
         # Run validation each attribute value and prepare them for DB
@@ -289,7 +286,7 @@ class Resource(models.Model):
         inserts = []
         for name, value in attributes.items():
             if name not in valid_attributes:
-                msg = "Attribute name ({}) does not exist.".format(name)
+                msg = f"Attribute name ({name}) does not exist."
                 raise exc.ValidationError({"attributes": msg})
 
             if not isinstance(name, str):
@@ -335,7 +332,7 @@ class Resource(models.Model):
         # Use incoming valid_attributes if they are provided.
         valid_attributes = kwargs.pop("valid_attributes", None)
 
-        super(Resource, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
         # This is so that we can set the attributes on create/update, but if
         # the object is new, make sure that it doesn't persist if attributes

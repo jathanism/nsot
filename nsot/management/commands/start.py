@@ -2,12 +2,13 @@
 Command to start the NSoT server process.
 """
 
-from django.conf import settings
-from django.core.management import call_command
 import sys
 
+from django.conf import settings
+from django.core.management import call_command
+
 from nsot.services import http
-from nsot.util.commands import NsotCommand, CommandError
+from nsot.util.commands import CommandError, NsotCommand
 
 
 class Command(NsotCommand):
@@ -66,8 +67,7 @@ class Command(NsotCommand):
             action="store_true",
             default=settings.NSOT_PRELOAD,
             help=(
-                "Load application code before the worker processes are "
-                "forked."
+                "Load application code before the worker processes are forked."
             ),
         )
         parser.add_argument(

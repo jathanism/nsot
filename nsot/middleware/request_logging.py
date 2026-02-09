@@ -13,7 +13,7 @@ logger = logging.getLogger("nsot_server")
 class LoggingMiddleware(MiddlewareMixin):
     def process_request(self, request):
         request.timer = time()
-        return None
+        return
 
     def process_response(self, request, response):
         if "HTTP_X_FORWARDED_FOR" in request.META:
