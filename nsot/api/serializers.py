@@ -572,21 +572,29 @@ class InterfaceSerializer(ResourceSerializer):
 class InterfaceTypeField(serializers.Field):
     """Accepts integer type IDs or string type names (e.g. 6 or "ethernet")."""
 
+    default_error_messages = {
+        "invalid": "Invalid interface type: {input!r}.",
+    }
+
     def to_internal_value(self, data):
         from ..models import constants
 
         if data is None:
             return None
         if isinstance(data, str):
+            # Try name lookup first (e.g. "ethernet" -> 6)
             resolved = constants.INTERFACE_TYPE_BY_NAME.get(data)
             if resolved is not None:
                 return resolved
-            # Let the model's clean_type handle the error for unknown strings
-            return data
+            # Try numeric string (e.g. "6" -> 6, common in form data)
+            try:
+                return int(data)
+            except ValueError:
+                self.fail("invalid", input=data)
         try:
             return int(data)
         except (TypeError, ValueError):
-            self.fail("invalid")
+            self.fail("invalid", input=data)
 
     def to_representation(self, value):
         return value
@@ -598,7 +606,11 @@ class InterfaceCreateSerializer(InterfaceSerializer):
     description = serializers.CharField(
         required=False, allow_blank=True, default="", max_length=255
     )
-    type = InterfaceTypeField(required=False, allow_null=True)
+    type = InterfaceTypeField(
+        required=False,
+        allow_null=True,
+        default=settings.INTERFACE_DEFAULT_TYPE,
+    )
 
     class Meta:
         model = models.Interface
