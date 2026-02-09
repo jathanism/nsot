@@ -46,3 +46,8 @@ RESOURCE_CHOICES = [(c, c) for c in VALID_ATTRIBUTE_RESOURCES]
 
 # Unique interface type IDs.
 INTERFACE_TYPES = [t[0] for t in settings.INTERFACE_TYPE_CHOICES]
+
+# Reverse mapping from type name to type ID (e.g. "ethernet" -> 6).
+INTERFACE_TYPE_BY_NAME = {
+    name: id for id, name in settings.INTERFACE_TYPE_CHOICES
+}

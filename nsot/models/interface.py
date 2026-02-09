@@ -386,9 +386,11 @@ class Interface(Resource):
             return value
 
     def clean_type(self, value):
-        """Enforce valid type."""
+        """Enforce valid type. Accepts integer IDs or string names."""
         if value is None:
             value = settings.INTERFACE_DEFAULT_TYPE
+        if isinstance(value, str):
+            value = constants.INTERFACE_TYPE_BY_NAME.get(value, value)
         if value not in constants.INTERFACE_TYPES:
             raise exc.ValidationError({"type": "Invalid type: %r" % value})
 
@@ -469,6 +471,7 @@ class Interface(Resource):
             "mac_address": self.get_mac_address(),
             "speed": self.speed,
             "type": self.type,
+            "type_name": self.get_type_display(),
             "attributes": self.get_attributes(),
         }
 
