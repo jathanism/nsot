@@ -312,6 +312,11 @@ AUTH_TOKEN_EXPIRY = 600  # 10 minutes
 # under many seemingly-safe web server configurations.
 # https://docs.djangoproject.com/en/1.8/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = ['*']
+
+# Whether new users created via header authentication (X-NSoT-Email) are
+# automatically granted superuser privileges.
+# Default: True
+# NSOT_NEW_USERS_AS_SUPERUSER = True
 '''
 
 

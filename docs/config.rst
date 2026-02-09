@@ -104,3 +104,24 @@ network Interface objects.
 If you need caching, see the `official Django caching documentation
 <https://docs.djangoproject.com/en/5.2/ref/settings/#caches>`_ on how to set
 it up.
+
+Authentication
+--------------
+
+NSOT_NEW_USERS_AS_SUPERUSER
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+    # Default: True
+    NSOT_NEW_USERS_AS_SUPERUSER = True
+
+When set to ``True``, users that are automatically created via header-based
+authentication (the ``X-NSoT-Email`` header) are granted superuser privileges.
+This only applies to auto-created users — it does not affect users created
+manually via ``createsuperuser`` or the Django admin.
+
+.. warning::
+    In production deployments you should set this to ``False`` and manage
+    permissions explicitly. Leaving it as ``True`` means any user who can
+    present a valid email header to NSoT will have full administrative access.
