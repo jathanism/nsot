@@ -857,3 +857,25 @@ def test_detail_routes(site, client):
     # Verify assignments
     # FIXME(jathan): Assignments detail route testing is NYI!
     # LOL nothing happens here
+
+
+def test_create_with_null_type(site, client, device):
+    """Test that creating an Interface with type=None uses the default."""
+    ifc_uri = site.list_uri("interface")
+    ifc_resp = client.create(
+        ifc_uri, device=device["id"], name="eth0", type=None
+    )
+
+    assert ifc_resp.status_code == status.HTTP_201_CREATED
+    ifc = get_result(ifc_resp)
+    assert ifc["type"] == settings.INTERFACE_DEFAULT_TYPE
+
+
+def test_create_with_null_description(site, client, device):
+    """Test that creating an Interface with description omitted works."""
+    ifc_uri = site.list_uri("interface")
+    ifc_resp = client.create(ifc_uri, device=device["id"], name="eth0")
+
+    assert ifc_resp.status_code == status.HTTP_201_CREATED
+    ifc = get_result(ifc_resp)
+    assert ifc["description"] == ""

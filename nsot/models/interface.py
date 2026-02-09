@@ -387,6 +387,8 @@ class Interface(Resource):
 
     def clean_type(self, value):
         """Enforce valid type."""
+        if value is None:
+            value = settings.INTERFACE_DEFAULT_TYPE
         if value not in constants.INTERFACE_TYPES:
             raise exc.ValidationError({"type": "Invalid type: %r" % value})
 
