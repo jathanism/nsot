@@ -390,6 +390,7 @@ class DeviceViewSet(ResourceViewSet):
     queryset = models.Device.objects.all()
     serializer_class = serializers.DeviceSerializer
     filterset_class = filters.DeviceFilter
+    lookup_value_regex = settings.DEVICE_NAME_PATTERN
     natural_key = "hostname"
 
     def get_serializer_class(self):

@@ -363,9 +363,13 @@ ATTRIBUTE_NAME = re.compile(r"^[a-z][a-z0-9_]*$")
 ###########
 
 # Acceptable regex pattern for naming Device objects.
-DEVICE_NAME = re.compile(
-    r"^([A-Za-z0-9][A-Za-z0-9\-]{0,61}[A-Za-z0-9]|[A-Za-z0-9])$"
-)
+# Single DNS label (RFC 952/1123): 1-63 chars, alphanumeric ends, hyphens ok
+_LABEL = r"[A-Za-z0-9](?:[A-Za-z0-9\-]{0,61}[A-Za-z0-9])?"
+# Device name: one or more dot-separated labels (FQDN without trailing dot).
+# DEVICE_NAME_PATTERN is the raw pattern (no anchors) reused by DeviceViewSet's
+# lookup_value_regex for URL routing.
+DEVICE_NAME_PATTERN = rf"{_LABEL}(?:\.{_LABEL})*"
+DEVICE_NAME = re.compile(rf"^{DEVICE_NAME_PATTERN}$")
 
 ##############
 # Interfaces #

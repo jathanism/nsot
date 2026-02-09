@@ -349,6 +349,55 @@ def test_deletion(site, client):
     assert_deleted(client.delete(dev3_natural_uri))
 
 
+def test_fqdn_creation_and_retrieval(site, client):
+    """Test creating and retrieving devices with FQDN hostnames."""
+    dev_uri = site.list_uri("device")
+
+    # Create device with FQDN
+    fqdn = "router1.example.com"
+    dev_resp = client.create(dev_uri, hostname=fqdn)
+    dev = get_result(dev_resp)
+    assert_created(dev_resp, site.detail_uri("device", id=dev["id"]))
+    assert dev["hostname"] == fqdn
+
+    # Retrieve by PK
+    dev_pk_uri = site.detail_uri("device", id=dev["id"])
+    assert_success(client.get(dev_pk_uri), dev)
+
+    # Retrieve by FQDN natural key
+    dev_natural_uri = site.detail_uri("device", id=fqdn)
+    assert_success(client.get(dev_natural_uri), dev)
+
+    # Update simple hostname to FQDN
+    dev2_resp = client.create(dev_uri, hostname="switch1")
+    dev2 = get_result(dev2_resp)
+    dev2_pk_uri = site.detail_uri("device", id=dev2["id"])
+    new_fqdn = "switch1.dc1.example.com"
+    params = {"hostname": new_fqdn, "attributes": {}}
+    dev2.update(params)
+    assert_success(client.update(dev2_pk_uri, **params), dev2)
+
+    # Verify the updated device is retrievable by new FQDN
+    dev2_natural_uri = site.detail_uri("device", id=new_fqdn)
+    assert_success(client.get(dev2_natural_uri), dev2)
+
+    # Validation errors for invalid FQDNs
+    assert_error(
+        client.create(dev_uri, hostname="bad.hostname."),
+        status.HTTP_400_BAD_REQUEST,
+    )
+    assert_error(
+        client.create(dev_uri, hostname="bad..hostname"),
+        status.HTTP_400_BAD_REQUEST,
+    )
+    # Total >253 chars
+    long_fqdn = ".".join(["a" * 63] * 4)  # 255 chars
+    assert_error(
+        client.create(dev_uri, hostname=long_fqdn),
+        status.HTTP_400_BAD_REQUEST,
+    )
+
+
 def test_detail_routes(site, client):
     """Test detail routes for Devices."""
     ifc_uri = site.list_uri("interface")

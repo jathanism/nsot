@@ -80,3 +80,70 @@ def test_validation(site, transactional_db):
 
     device.hostname = "newtesthostname"
     device.save()
+
+
+def test_fqdn_validation(site):
+    """Test FQDN hostnames are accepted and invalid ones rejected."""
+    # Simple hostname still works (backward compat)
+    d1 = models.Device.objects.create(site=site, hostname="router1")
+    assert d1.hostname == "router1"
+
+    # Basic FQDN
+    d2 = models.Device.objects.create(
+        site=site, hostname="router1.example.com"
+    )
+    assert d2.hostname == "router1.example.com"
+
+    # Real-world FQDN from bug report (dropbox/nsot#264)
+    d_real = models.Device.objects.create(
+        site=site, hostname="TIJ-S5320.36C.EI.28S.DC-SW00294"
+    )
+    assert d_real.hostname == "TIJ-S5320.36C.EI.28S.DC-SW00294"
+
+    # Multi-level FQDN
+    d3 = models.Device.objects.create(
+        site=site, hostname="sw1.pop.region.example.com"
+    )
+    assert d3.hostname == "sw1.pop.region.example.com"
+
+    # Single-char labels
+    d4 = models.Device.objects.create(site=site, hostname="a.b.c")
+    assert d4.hostname == "a.b.c"
+
+    # Trailing dot rejected
+    with pytest.raises(exc.ValidationError):
+        models.Device.objects.create(
+            site=site, hostname="router1.example.com."
+        )
+
+    # Leading dot rejected
+    with pytest.raises(exc.ValidationError):
+        models.Device.objects.create(
+            site=site, hostname=".router1.example.com"
+        )
+
+    # Consecutive dots rejected
+    with pytest.raises(exc.ValidationError):
+        models.Device.objects.create(
+            site=site, hostname="router1..example.com"
+        )
+
+    # Label >63 chars rejected
+    long_label = "a" * 64
+    with pytest.raises(exc.ValidationError):
+        models.Device.objects.create(
+            site=site, hostname=f"{long_label}.example.com"
+        )
+
+    # Total >253 chars rejected
+    # Build a valid-looking FQDN that exceeds 253 chars
+    label = "a" * 63
+    fqdn = ".".join([label] * 4)  # 63*4 + 3 dots = 255 chars
+    with pytest.raises(exc.ValidationError):
+        models.Device.objects.create(site=site, hostname=fqdn)
+
+    # Spaces rejected
+    with pytest.raises(exc.ValidationError):
+        models.Device.objects.create(
+            site=site, hostname="router 1.example.com"
+        )
