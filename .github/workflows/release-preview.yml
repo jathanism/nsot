@@ -59,11 +59,13 @@ jobs:
 
       - name: Upsert PR comment
         uses: actions/github-script@v7
+        env:
+          NEXT_VERSION: ${{ steps.version.outputs.next_version }}
         with:
           script: |
             const fs = require('fs');
             const marker = '<!-- release-preview-bot -->';
-            const nextVersion = '${{ steps.version.outputs.next_version }}';
+            const nextVersion = process.env.NEXT_VERSION;
             const changelog = fs.readFileSync('/tmp/changelog-preview.md', 'utf8').trim();
 
             const body = [
