@@ -1,6 +1,31 @@
 # CHANGELOG
 
 
+## v2.0.3 (2026-02-09)
+
+### Bug Fixes
+
+- Include regex pattern in attribute name validation error
+  ([`b782ca9`](https://github.com/jathanism/nsot/commit/b782ca9fb5d619b26fa88286ab821295227e66f0))
+
+Show the required pattern in the error message so users know what format is expected for attribute
+  names.
+
+Closes #21
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+### Continuous Integration
+
+- Skip redundant CI run on merge to main
+  ([`e02e738`](https://github.com/jathanism/nsot/commit/e02e738bd52f4817ac128239f27eff68f943f3cc))
+
+Tests, lint, and build already run on the PR branch. Running them again on the push to main is
+  redundant.
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
 ## v2.0.2 (2026-02-09)
 
 ### Bug Fixes
