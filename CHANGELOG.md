@@ -1,6 +1,21 @@
 # CHANGELOG
 
 
+## v2.0.4 (2026-02-09)
+
+### Bug Fixes
+
+- Fall back to NSOT_PORT when address has no port
+  ([`1402939`](https://github.com/jathanism/nsot/commit/1402939b0ea0f188263ba763425368d3642d5e3f))
+
+When --address is given without a :port suffix (e.g. "0.0.0.0"), fall back to settings.NSOT_PORT
+  instead of None to prevent a crash in the HTTP service layer.
+
+Closes #23
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
 ## v2.0.3 (2026-02-09)
 
 ### Bug Fixes
