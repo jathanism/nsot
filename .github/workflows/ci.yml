@@ -50,7 +50,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          uv pip install --system ruff
+          uv tool install ruff
 
       - name: Run ruff check
         run: |
