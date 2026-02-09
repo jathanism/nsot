@@ -17,6 +17,12 @@ skip ahead, this guide is for you.
 
        $ pip install nsot
 
+   Or using `uv <https://docs.astral.sh/uv/>`_:
+
+   .. code-block:: bash
+
+       $ uv pip install nsot
+
 2. Initialize the config (this will create a default config in
    ``~/.nsot/nsot.conf.py``):
 
@@ -24,25 +30,35 @@ skip ahead, this guide is for you.
 
        $ nsot-server init
 
-3. Create a superuser and start the server on ``8990/tcp`` (the default):
-
-   .. code-block:: bash
-
-       $ nsot-server createsuperuser --email admin@localhost
-       Password:
-       Password (again):
-       Superuser created successfully.
+3. Start the server on ``8990/tcp`` (the default):
 
    .. code-block:: bash
 
        $ nsot-server start
+
+   By default, ``NSOT_NEW_USERS_AS_SUPERUSER`` is ``True``, which means any
+   user authenticated via the ``X-NSoT-Email`` header is automatically created
+   as a superuser. For the quick start this is convenient — no extra setup is
+   needed.
+
+   .. tip::
+       If you are using session or basic authentication instead of header
+       authentication, you will need to create a superuser manually:
+
+       .. code-block:: bash
+
+           $ nsot-server createsuperuser --email admin@localhost
+
+       See the :ref:`configuration` docs for more details on
+       ``NSOT_NEW_USERS_AS_SUPERUSER``.
 
 4. Now fire up your browser and visit http://localhost:8990!
 
 .. image:: _static/web_login.png
    :alt: NSoT Login
 
-5. Use the username/password created in step 3 to login.
+5. Log in using header authentication (the default) or the credentials created
+   in step 3 if you used ``createsuperuser``.
 
 Now, head over to the tutorial_ to start getting acquainted with NSoT!
 
