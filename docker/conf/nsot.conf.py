@@ -3,10 +3,10 @@ This configuration file is just Python code. You may override any global
 defaults by specifying them here.
 
 For more information on this file, see
-https://docs.djangoproject.com/en/1.8/topics/settings/
+https://docs.djangoproject.com/en/5.2/topics/settings/
 
 For the full list of settings and their values, see
-https://docs.djangoproject.com/en/1.8/ref/settings/
+https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 from nsot.conf.settings import *  # noqa
 
@@ -23,15 +23,11 @@ DEBUG = False
 ############
 # Database #
 ############
-# https://docs.djangoproject.com/en/dev/ref/settings/#databases
+# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 DATABASES = {
     'default': {
-        'ENGINE': os.environ.get('DB_ENGINE', 'django.db.backends.sqlite3'),
-        'NAME': os.environ.get('DB_NAME', 'nsot.sqlite3'),
-        'USER': os.environ.get('DB_USER', 'nsot'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
-        'HOST': os.environ.get('DB_HOST', ''),
-        'PORT': os.environ.get('DB_PORT', '')
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.environ.get('DB_NAME', '/var/lib/nsot/nsot.sqlite3'),
     }
 }
 
@@ -79,5 +75,5 @@ AUTH_TOKEN_EXPIRY = 600  # 10 minutes
 # caches and triggering password reset emails with links to malicious hosts by
 # submitting requests with a fake HTTP Host header, which is possible even
 # under many seemingly-safe web server configurations.
-# https://docs.djangoproject.com/en/1.8/ref/settings/#allowed-hosts
+# https://docs.djangoproject.com/en/5.2/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = ['*']

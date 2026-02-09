@@ -1,0 +1,15 @@
+services:
+  nsot:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8990:8990"
+    environment:
+      - NSOT_SECRET=changeme-generate-a-real-secret-key
+    volumes:
+      - nsot-data:/var/lib/nsot
+    restart: unless-stopped
+
+volumes:
+  nsot-data:

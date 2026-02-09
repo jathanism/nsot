@@ -1,0 +1,17 @@
+.git
+.github
+.gitignore
+.ruff_cache
+.pytest_cache
+.venv
+__pycache__
+*.egg-info
+*.pyc
+*.sqlite3
+dist
+build
+node_modules
+docs/_build
+docker/README.md
+docker/Dockerfile.sub
+docker-compose.yml

@@ -1,51 +1,46 @@
-FROM ubuntu:14.04
-MAINTAINER Codey oxley <codey.a.oxley+os@gmail.com>
+# syntax=docker/dockerfile:1
+
+# ---- Build stage ----
+FROM ghcr.io/astral-sh/uv:0.6-python3.12-bookworm-slim AS builder
+
+WORKDIR /build
+
+# Copy dependency metadata first for better layer caching
+COPY pyproject.toml uv.lock README.md ./
+COPY nsot/ nsot/
+
+# Install dependencies into a virtual environment (no dev deps, no editable)
+RUN uv sync --frozen --no-dev --no-editable
+
+# ---- Runtime stage ----
+FROM python:3.12-slim-bookworm
+
+# Install sqlite3 CLI for dbshell support
+RUN apt-get update -qq \
+    && apt-get install -y --no-install-recommends sqlite3 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN groupadd --system nsot && useradd --system --gid nsot nsot
+
+# Copy virtual environment from builder
+COPY --from=builder /build/.venv /opt/nsot-venv
+
+# Put the venv on PATH so nsot-server is available
+ENV PATH="/opt/nsot-venv/bin:$PATH"
+
+# Point logan runner at the Docker config file
+ENV NSOT_CONF=/etc/nsot/nsot.conf.py
+
+# Copy Docker-specific config
+COPY docker/conf /etc/nsot
+
+# Create data directory for SQLite persistence
+RUN mkdir -p /var/lib/nsot && chown nsot:nsot /var/lib/nsot
+
 EXPOSE 8990
 
-# These are the supported environment variables.
-# Use them to control the 'default' Django database configuration:
-#     DB_ENGINE
-#     DB_NAME
-#     DB_USER
-#     DB_PASSWORD
-#     DB_HOST
-#     DB_PORT
-#
-#     NSOT_EMAIL
-#     NSOT_SECRET
+USER nsot
 
-# Install necessary packages
-#
-# The development packages are for building certain dependencies that pip pulls
-# in
-ENV DEBIAN_FRONTEND noninteractive
-RUN apt-get --quiet=2 update
-RUN apt-get --quiet=2 install -y \
-        python \
-        python-dev \
-        python-pip \
-        libffi6 \
-        libffi-dev \
-        libssl-dev \
-        libmysqlclient-dev \
-        curl
-
-RUN apt-get --quiet=2 install -y python-psycopg2
-RUN apt-get --quiet=2 install -y sqlite3
-RUN pip install MySQL-Python
-RUN pip install psycopg2
-# upgrade pip to fix https://github.com/dropbox/nsot/issues/277
-RUN pip install -U setuptools
-
-# Try to run this as late as possible for layer caching - this version will be
-# updated every update so let the build not take longer than necessary
-RUN pip install nsot==1.4.6
-
-COPY conf /etc/nsot
-
-ENTRYPOINT ["nsot-server", "--config=/etc/nsot/nsot.conf.py"]
-
-# If using --no-upgrade then the database won't be built for first run. Use
-# should specify --no-upgrade manually if they don't want it
+ENTRYPOINT ["nsot-server"]
 CMD ["start", "--noinput"]
-# CMD ["start", "--noinput", "--no-upgrade"]
