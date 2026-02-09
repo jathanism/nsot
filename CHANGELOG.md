@@ -1,6 +1,34 @@
 # CHANGELOG
 
 
+## v2.1.0 (2026-02-09)
+
+### Bug Fixes
+
+- Handle numeric strings and error messages in InterfaceTypeField
+  ([`decadc8`](https://github.com/jathanism/nsot/commit/decadc8e1cdc850a6289c3760e4c80bce0a3f1f7))
+
+Fix two bugs in InterfaceTypeField.to_internal_value(): - Numeric strings like "6" (common in form
+  data) are now converted to int instead of being passed through as raw strings - Add
+  default_error_messages with "invalid" key so self.fail() returns a proper 400 ValidationError
+  instead of a 500 AssertionError
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+### Features
+
+- Accept string type names for Interface.type
+  ([`5006bc3`](https://github.com/jathanism/nsot/commit/5006bc383e99a9d60738a30697033f10364f6056))
+
+Allow users to pass string type names like "ethernet" or "loopback" instead of integer IDs when
+  creating or updating interfaces. Add type_name to API responses via Interface.to_dict(). Add
+  reverse mapping INTERFACE_TYPE_BY_NAME in constants.
+
+Closes #26
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
 ## v2.0.5 (2026-02-09)
 
 ### Bug Fixes
