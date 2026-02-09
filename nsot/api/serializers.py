@@ -571,6 +571,9 @@ class InterfaceSerializer(ResourceSerializer):
 class InterfaceCreateSerializer(InterfaceSerializer):
     """Used for POST on Interfaces."""
 
+    description = serializers.CharField(required=False, allow_blank=True)
+    type = serializers.IntegerField(required=False, allow_null=True)
+
     class Meta:
         model = models.Interface
         fields = (

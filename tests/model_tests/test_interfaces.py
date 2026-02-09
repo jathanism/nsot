@@ -123,10 +123,11 @@ def test_type(device):
         iface.type = "bogus"
         iface.save()
 
-    # None is invalid
-    with pytest.raises(exc.ValidationError):
-        iface.type = None
-        iface.save()
+    # None falls back to default type (ethernet = 6)
+    iface.type = None
+    iface.save()
+    iface.refresh_from_db()
+    assert iface.type == 6
 
 
 def test_attributes(device):
