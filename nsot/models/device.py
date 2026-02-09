@@ -47,8 +47,14 @@ class Device(Resource):
             raise exc.ValidationError(
                 {"hostname": "Hostname must be non-zero length string."}
             )
+        if len(value) > 253:
+            raise exc.ValidationError(
+                {"hostname": "Hostname exceeds 253-character FQDN limit."}
+            )
         if not settings.DEVICE_NAME.match(value):
-            raise exc.ValidationError({"name": "Invalid name: %r." % value})
+            raise exc.ValidationError(
+                {"hostname": "Invalid hostname: %r." % value}
+            )
         return value
 
     def clean_fields(self, exclude=None):
