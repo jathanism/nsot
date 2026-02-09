@@ -1,6 +1,29 @@
 # CHANGELOG
 
 
+## v2.2.0 (2026-02-09)
+
+### Features
+
+- Remove legacy AngularJS frontend
+  ([`5269520`](https://github.com/jathanism/nsot/commit/5269520f9bad482e496b851069771f142e4178de))
+
+The AngularJS 1.3 frontend was frozen since 2015, non-functional without manual npm install && gulp
+  build, not built in CI or Docker, and the source of all 8 Dependabot security alerts (1 critical,
+  7 high).
+
+Remove it entirely to make NSoT a clean API-only service:
+
+- Delete nsot/static/src/, nsot/templates/ui/, nsot/ui/, package.json, npm-shrinkwrap.json,
+  gulpfile.js - Replace FeView catch-all with JSON service info at / - Remove Jinja2 template
+  backend (only used by frontend) - Simplify DRF templates to use default styling - Remove
+  jinja2/markupsafe dependencies - Clean up .gitignore, .dockerignore, pyproject.toml, docs
+
+Django admin (/admin/) and DRF browsable API (/api/) are preserved.
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
 ## v2.1.0 (2026-02-09)
 
 ### Bug Fixes
