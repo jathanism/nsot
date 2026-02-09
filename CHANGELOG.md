@@ -1,6 +1,45 @@
 # CHANGELOG
 
 
+## v2.0.2 (2026-02-09)
+
+### Bug Fixes
+
+- Default timezone to UTC and enable timezone-aware datetimes
+  ([`135239f`](https://github.com/jathanism/nsot/commit/135239f4f3c58c948a1a0f0c2f8607cdd1ef3036))
+
+Set TIME_ZONE = "UTC" and USE_TZ = True so that Django stores and displays datetimes in UTC. A
+  network infrastructure tool should not default to America/Chicago.
+
+Closes #20
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+### Documentation
+
+- Clarify superuser creation in quickstart guide
+  ([`d57c057`](https://github.com/jathanism/nsot/commit/d57c0574d38d4426507d5d931641fdd49096947f))
+
+Rewrite step 3 to explain that NSOT_NEW_USERS_AS_SUPERUSER=True is the default, so header-auth users
+  are auto-created as superusers. Move createsuperuser to a tip for session/basic auth users. Add uv
+  as an alternative install method.
+
+Closes #25
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+- Document NSOT_NEW_USERS_AS_SUPERUSER setting
+  ([`11427f6`](https://github.com/jathanism/nsot/commit/11427f60ee8d0a44c06a091be0f245905d8897e2))
+
+Add an Authentication section to docs/config.rst explaining the NSOT_NEW_USERS_AS_SUPERUSER setting,
+  its default value, scope, and security implications. Also add it (commented out) to the config
+  template emitted by nsot-server init.
+
+Closes #24
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
+
 ## v2.0.1 (2026-02-09)
 
 ### Bug Fixes
