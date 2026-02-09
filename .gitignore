@@ -50,3 +50,12 @@ nosetests.xml
 docs/_build
 .*sw?
 .vagrant
+
+# Ruff
+.ruff_cache/
+
+# Virtual environments
+.venv/
+
+# Worktrees
+.worktrees/
