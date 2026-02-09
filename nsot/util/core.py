@@ -14,16 +14,16 @@ log = logging.getLogger(__name__)
 _TRUTHY = set(["true", "yes", "on", "1", ""])
 
 __all__ = (
-    "qpbool",
-    "normalize_auth_header",
-    "generate_secret_key",
-    "get_field_attr",
     "SetQuery",
-    "parse_set_query",
+    "cidr_to_dict",
+    "generate_secret_key",
     "generate_settings",
+    "get_field_attr",
     "initialize_app",
     "main",
-    "cidr_to_dict",
+    "normalize_auth_header",
+    "parse_set_query",
+    "qpbool",
     "slugify",
     "slugify_interface",
 )
@@ -337,7 +337,6 @@ def initialize_app(config):
         Config object
     """
     # This currently does nothing but it's here in case we need it.
-    pass
 
 
 def main():

@@ -24,7 +24,7 @@ class Site(models.Model):
 
     def save(self, *args, **kwargs):
         self.full_clean()  # First validate fields are correct
-        super(Site, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     def to_dict(self):
         return {

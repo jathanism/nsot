@@ -1,33 +1,34 @@
-from collections import OrderedDict
 import logging
+from collections import OrderedDict
 
 from django.core.exceptions import (
-    ValidationError as DjangoValidationError,
-    ObjectDoesNotExist,
     MultipleObjectsReturned,
+    ObjectDoesNotExist,
+)
+from django.core.exceptions import (
+    ValidationError as DjangoValidationError,
 )
 from django.db import IntegrityError
 from django.db.models import ProtectedError
-from rest_framework.exceptions import ValidationError
-from rest_framework.exceptions import APIException
+from rest_framework.exceptions import APIException, ValidationError
 from rest_framework.views import exception_handler
 
 log = logging.getLogger(__name__)
 
 __all__ = (
-    "Error",
-    "ModelError",
-    "BaseHttpError",
     "BadRequest",
-    "Unauthorized",
-    "Forbidden",
-    "NotFound",
+    "BaseHttpError",
     "Conflict",
     "DjangoValidationError",
+    "Error",
+    "Forbidden",
+    "ModelError",
+    "MultipleObjectsReturned",
+    "NotFound",
     "ObjectDoesNotExist",
     "ProtectedError",
+    "Unauthorized",
     "ValidationError",
-    "MultipleObjectsReturned",
 )
 
 
@@ -91,8 +92,6 @@ class ModelError(Error):
 
 class BaseHttpError(Error):
     """Base HTTP error."""
-
-    pass
 
 
 class BadRequest(BaseHttpError):

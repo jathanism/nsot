@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
-
-from django.urls import include, path
 from django.conf import settings
+from django.urls import include, path
 
 from . import routers, views
 

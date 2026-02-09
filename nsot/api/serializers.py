@@ -1,19 +1,20 @@
 import ast
-from collections import OrderedDict
 import json
 import logging
+from collections import OrderedDict
 
 from django.contrib.auth import get_user_model
 from rest_framework import fields, serializers
 from rest_framework import validators as drf_validators
+
 from nsot.vendor.rest_framework_bulk import (
-    BulkSerializerMixin,
     BulkListSerializer,
+    BulkSerializerMixin,
 )
 
-from . import auth
 from .. import exc, models, validators
 from ..util import get_field_attr
+from . import auth
 
 log = logging.getLogger(__name__)
 
@@ -122,14 +123,11 @@ class NaturalKeyRelatedField(serializers.SlugRelatedField):
 
     def get_queryset(self):
         """Attempt to filter queryset by site_pk."""
-        queryset = super(NaturalKeyRelatedField, self).get_queryset()
+        queryset = super().get_queryset()
         view = self.context.get("view")
 
         # Get site_id from the view or None
-        if view is None:
-            site_id = None
-        else:
-            site_id = view.kwargs.get("site_pk")
+        site_id = None if view is None else view.kwargs.get("site_pk")
 
         # Filter by site_id if applicable.
         if site_id is not None:
@@ -170,7 +168,7 @@ class NsotSerializer(serializers.ModelSerializer):
 
         log.debug("NsotSerializer.to_internal_value() data [after] = %r", data)
 
-        return super(NsotSerializer, self).to_internal_value(data)
+        return super().to_internal_value(data)
 
     def to_representation(self, obj):
         """Always return the dict representation."""
@@ -192,7 +190,7 @@ class UserSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         # Don't pass `with_secret_key` up to the superclass
         self.with_secret_key = kwargs.pop("with_secret_key", None)
-        super(UserSerializer, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         # If we haven't passed `with_secret_key`, don't show the secret_key
         # field.
@@ -335,7 +333,7 @@ class ResourceSerializer(NsotSerializer):
         attributes = validated_data.pop("attributes", {})
 
         # Save the base object to the database.
-        obj = super(ResourceSerializer, self).create(validated_data)
+        obj = super().create(validated_data)
 
         # Try to populate the related fields and if there are any validation
         # problems, delete the object and re-raise the error. If not, save the
@@ -362,7 +360,7 @@ class ResourceSerializer(NsotSerializer):
         attributes = validated_data.pop("attributes", None)
 
         # Save the object to the database.
-        obj = super(ResourceSerializer, self).update(instance, validated_data)
+        obj = super().update(instance, validated_data)
 
         # If attributes have been provided, populate them and save the object,
         # allowing any validation errors to raise before saving.
@@ -534,9 +532,7 @@ class InterfaceSerializer(ResourceSerializer):
 
         # Create the base object to the database, but don't save attributes
         # yet.
-        obj = super(InterfaceSerializer, self).create(
-            validated_data, commit=False
-        )
+        obj = super().create(validated_data, commit=False)
 
         # Try to populate the related fields and if there are any validation
         # problems, delete the object and re-raise the error. If not, save the
@@ -563,9 +559,7 @@ class InterfaceSerializer(ResourceSerializer):
         addresses = validated_data.pop("addresses", None)
 
         # Update the attributes in the database, but don't save them yet.
-        obj = super(InterfaceSerializer, self).update(
-            instance, validated_data, commit=False
-        )
+        obj = super().update(instance, validated_data, commit=False)
 
         # Assign the address objects to the Interface.
         obj.set_addresses(addresses, overwrite=True, partial=self.partial)
@@ -595,7 +589,7 @@ class InterfaceCreateSerializer(InterfaceSerializer):
 class InterfacePartialUpdateSerializer(
     BulkSerializerMixin, InterfaceCreateSerializer
 ):
-    "Used for PATCH on Interfaces." ""
+    "Used for PATCH on Interfaces."
 
     class Meta:
         model = models.Interface
@@ -614,7 +608,7 @@ class InterfacePartialUpdateSerializer(
 
 
 class InterfaceUpdateSerializer(InterfacePartialUpdateSerializer):
-    "Used for PUT on Interfaces." ""
+    "Used for PUT on Interfaces."
 
     class Meta(InterfacePartialUpdateSerializer.Meta):
         extra_kwargs = {
@@ -805,9 +799,7 @@ class AuthTokenSerializer(serializers.Serializer):
                     raise exc.ValidationError(msg)
                 attrs["user"] = user
                 return attrs
-            else:
-                msg = "Unable to login with provided credentials."
-                raise exc.ValidationError(msg)
-        else:
-            msg = 'Must include "email" and "secret_key"'
+            msg = "Unable to login with provided credentials."
             raise exc.ValidationError(msg)
+        msg = 'Must include "email" and "secret_key"'
+        raise exc.ValidationError(msg)

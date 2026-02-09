@@ -4,8 +4,8 @@ Middleware for authentication.
 
 import logging
 
-from django.contrib.auth import backends, middleware
 from django.conf import settings
+from django.contrib.auth import backends, middleware
 from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
 from guardian.backends import ObjectPermissionBackend
@@ -26,15 +26,13 @@ class EmailHeaderBackend(backends.RemoteUserBackend):
     def authenticate(self, request, remote_user):
         """Override default to return None if username is invalid."""
         if not remote_user:
-            return
+            return None
 
         username = self.clean_username(remote_user)
         if not username:
-            return
+            return None
 
-        return super(EmailHeaderBackend, self).authenticate(
-            request, remote_user
-        )
+        return super().authenticate(request, remote_user)
 
     def clean_username(self, username):
         """Makes sure that the username is a valid email address."""
@@ -75,9 +73,7 @@ class NsotObjectPermissionsBackend(ObjectPermissionBackend):
         the ancestor tree has ``perm`` for the ``obj``, then ``True`` is
         returned, else ``False`` is returned.
         """
-        check = super(NsotObjectPermissionsBackend, self).has_perm(
-            user_obj, perm, obj
-        )
+        check = super().has_perm(user_obj, perm, obj)
         if check:
             return True
 

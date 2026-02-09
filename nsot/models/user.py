@@ -220,7 +220,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def save(self, *args, **kwargs):
         self.full_clean()
-        super(User, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     def to_dict(self, with_permissions=False, with_secret_key=False):
         out = [

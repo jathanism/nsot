@@ -37,9 +37,7 @@ def calculate_network_utilization(parent, hosts, as_string=False):
 
     # 10.47.216.0/22 - 14% used (139), 86% free (885)
     if as_string:
-        return "{} - {:.0%} used ({}), {:.0%} free ({})".format(
-            parent, used, hosts.size, free, num_free
-        )
+        return f"{parent} - {used:.0%} used ({hosts.size}), {free:.0%} free ({num_free})"
 
     return stats
 

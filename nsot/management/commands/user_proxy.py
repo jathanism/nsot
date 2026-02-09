@@ -4,12 +4,12 @@ Command for starting up an authenticating reverse proxy for use in development.
 Please, don't use me in production!
 """
 
-import http.server
-from django.conf import settings
 import getpass
-import socket
+import http.server
 
-from nsot.util.commands import NsotCommand, CommandError
+from django.conf import settings
+
+from nsot.util.commands import CommandError, NsotCommand
 
 
 class Command(NsotCommand):
@@ -69,7 +69,7 @@ class Command(NsotCommand):
                 "README.rst."
             )
 
-        class ServerArgs(object):
+        class ServerArgs:
             """Argument container for http service."""
 
             def __init__(self, backend_port, username, auth_header):
@@ -87,7 +87,7 @@ class Command(NsotCommand):
             server = http.server.HTTPServer(
                 (address, listen_port), UserProxyHandler
             )
-        except socket.error as err:
+        except OSError as err:
             raise CommandError(err)
         else:
             server.args = ServerArgs(backend_port, username, auth_header)

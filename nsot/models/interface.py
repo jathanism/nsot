@@ -5,14 +5,13 @@ from django.core.cache import cache as djcache
 from django.db import models
 from django.utils import timezone
 
+from .. import exc, fields, util, validators
+from . import constants
 from .assignment import Assignment
 from .circuit import Circuit
 from .device import Device
 from .network import Network
 from .resource import Resource
-
-from .. import exc, fields, util, validators
-from . import constants
 
 log = logging.getLogger(__name__)
 
@@ -159,7 +158,7 @@ class Interface(Resource):
 
     def __init__(self, *args, **kwargs):
         self._set_addresses = kwargs.pop("addresses", None)
-        super(Interface, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     ##########################################
     # THESE WILL BE IMPLEMENTED AS ATTRIBUTES
@@ -260,15 +259,11 @@ class Interface(Resource):
 
         # If no addresses and it's a partial update, NOOP.
         if addresses is None and partial:
-            return None
+            return
 
         if not isinstance(addresses, list):
             raise exc.ValidationError(
-                {
-                    "addresses": "Expected list but received {}".format(
-                        type(addresses)
-                    )
-                }
+                {"addresses": f"Expected list but received {type(addresses)}"}
             )
 
         if overwrite:
@@ -346,7 +341,7 @@ class Interface(Resource):
     def get_mac_address(self):
         """Return a serializable representation of mac_address."""
         if self.mac_address is None:
-            return
+            return None
         return str(self.mac_address)
 
     def clean_addresses(self):
@@ -441,7 +436,7 @@ class Interface(Resource):
         # We don't want to validate unique because we want the IntegrityError
         # to fall through so we can catch it an raise a 409 CONFLICT.
         self.full_clean(validate_unique=False)
-        super(Interface, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
         # This is so that we can set the addresses on create/update, but if
         # the object is new, make sure that it doesn't persist if addresses

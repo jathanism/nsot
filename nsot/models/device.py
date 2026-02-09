@@ -56,7 +56,7 @@ class Device(Resource):
 
     def save(self, *args, **kwargs):
         self.full_clean()
-        super(Device, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     def to_dict(self):
         return {

@@ -1,9 +1,8 @@
-# -*- coding: utf-8 -*-
-
-from nsot.vendor.rest_framework_bulk.routes import BulkRouter
 from rest_framework_nested.routers import NestedSimpleRouter
 
-__all__ = ("BulkRouter", "BulkNestedRouter")
+from nsot.vendor.rest_framework_bulk.routes import BulkRouter
+
+__all__ = ("BulkNestedRouter", "BulkRouter")
 
 # Map of HTTP verbs to rest_framework_bulk operations.
 BULK_OPERATIONS_MAP = {
@@ -19,5 +18,5 @@ class BulkNestedRouter(NestedSimpleRouter):
     """
 
     def __init__(self, *args, **kwargs):
-        super(BulkNestedRouter, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.routes[0].mapping.update(BULK_OPERATIONS_MAP)

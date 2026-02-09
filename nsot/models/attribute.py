@@ -99,7 +99,7 @@ class Attribute(models.Model):
     def clean_constraints(self, value):
         """Enforce formatting of constraints."""
         if not isinstance(value, dict):
-            msg = "Expected dictionary but received {}".format(type(value))
+            msg = f"Expected dictionary but received {type(value)}"
             raise exc.ValidationError({"constraints": msg})
 
         constraints = {
@@ -162,14 +162,12 @@ class Attribute(models.Model):
 
         allow_empty = constraints.get("allow_empty", False)
         if not allow_empty and not value:
-            msg = "Attribute {} doesn't allow empty values".format(self.name)
+            msg = f"Attribute {self.name} doesn't allow empty values"
             raise exc.ValidationError({"constraints": msg})
 
         pattern = constraints.get("pattern")
         if pattern and not re.match(pattern, value):
-            msg = "Attribute value {} for {} didn't match pattern: {}".format(
-                value, self.name, pattern
-            )
+            msg = f"Attribute value {value} for {self.name} didn't match pattern: {pattern}"
             raise exc.ValidationError({"pattern": msg})
 
         valid_values = set(constraints.get("valid_values", []))
@@ -205,7 +203,7 @@ class Attribute(models.Model):
     def save(self, *args, **kwargs):
         """Always enforce constraints."""
         self.full_clean()
-        super(Attribute, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     def to_dict(self):
         return {

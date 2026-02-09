@@ -1,25 +1,16 @@
-# -*- coding: utf-8 -*-
-
 import pytest
+
 # Allow everything in there to access the DB
 pytestmark = pytest.mark.django_db
 
-from django.db import IntegrityError
-from django.db.models import ProtectedError
 from django.conf import settings
-from django.core.exceptions import ValidationError as DjangoValidationError
-import ipaddress
-import logging
 
 from nsot import exc, models
 
-from .fixtures import admin_user, device, site, user, transactional_db
 
 def test_creation(device):
     """Test basic Interface creation."""
-    iface = models.Interface.objects.create(
-        device=device, name='eth0'
-    )
+    iface = models.Interface.objects.create(device=device, name="eth0")
 
     # Interface inherits Device's site
     assert iface.site == device.site
@@ -29,21 +20,20 @@ def test_creation(device):
         iface.name = None
         iface.save()
 
+
 def test_tree_methods(device):
-    iface = models.Interface.objects.create(
-        device = device, name = 'eth0'
-    )
+    iface = models.Interface.objects.create(device=device, name="eth0")
     iface1 = models.Interface.objects.create(
-        device = device, name = 'eth0.0', parent = iface
+        device=device, name="eth0.0", parent=iface
     )
     iface2 = models.Interface.objects.create(
-        device = device, name = 'eth0.1', parent = iface
+        device=device, name="eth0.1", parent=iface
     )
     iface3 = models.Interface.objects.create(
-        device = device, name = 'eth0.2', parent = iface1
+        device=device, name="eth0.2", parent=iface1
     )
     iface4 = models.Interface.objects.create(
-        device = device, name = 'eth0.3', parent = iface
+        device=device, name="eth0.3", parent=iface
     )
     assert iface1.parent.id is iface.id
     assert iface3.get_root().id is iface.id
@@ -72,15 +62,16 @@ def test_tree_methods(device):
     expected.sort()
     assert siblings == expected
 
+
 def test_speed(device):
     """Test interface speed."""
-    iface = models.Interface.objects.create(device=device, name='eth0')
+    iface = models.Interface.objects.create(device=device, name="eth0")
 
     # Interface inherits default speed.
     assert iface.speed == settings.INTERFACE_DEFAULT_SPEED
 
     # String integers are ok, and are converted to integers
-    iface.speed = '10000'
+    iface.speed = "10000"
     iface.save()
     assert iface.speed == 10000
 
@@ -91,7 +82,7 @@ def test_speed(device):
 
     # Bad strings are bad
     with pytest.raises(exc.ValidationError):
-        iface.speed = 'bogus'
+        iface.speed = "bogus"
         iface.save()
 
     # Floats are also bad
@@ -99,18 +90,19 @@ def test_speed(device):
         iface.speed = 10.0
         iface.save()
 
+
 def test_mac_address(device):
     """Test mac_address."""
-    iface = models.Interface.objects.create(device=device, name='eth0')
+    iface = models.Interface.objects.create(device=device, name="eth0")
     assert iface.mac_address == settings.INTERFACE_DEFAULT_MAC
 
     # Bad MAC is bad
     with pytest.raises(exc.ValidationError):
-        iface.mac_address = 'bogus'
+        iface.mac_address = "bogus"
         iface.save()
 
     # Set mac by string
-    iface.mac_address = '00:00:8E:B1:B5:78'
+    iface.mac_address = "00:00:8E:B1:B5:78"
     iface.save()
 
     # Set mac by integer
@@ -118,16 +110,17 @@ def test_mac_address(device):
     iface.save()
     iface.refresh_from_db()
 
-    assert iface.mac_address == '00:1c:73:2a:60:62'
+    assert iface.mac_address == "00:1c:73:2a:60:62"
+
 
 def test_type(device):
     """Test types."""
-    iface = models.Interface.objects.create(device=device, name='eth0')
+    iface = models.Interface.objects.create(device=device, name="eth0")
     assert iface.type == 6
 
     # Make sure validation works.
     with pytest.raises(exc.ValidationError):
-        iface.type = 'bogus'
+        iface.type = "bogus"
         iface.save()
 
     # None is invalid
@@ -135,17 +128,18 @@ def test_type(device):
         iface.type = None
         iface.save()
 
+
 def test_attributes(device):
     """Test that attributes work as expected."""
     models.Attribute.objects.create(
-        site=device.site, resource_name='Interface', name='vlan'
+        site=device.site, resource_name="Interface", name="vlan"
     )
 
     iface = models.Interface.objects.create(
-        name='eth0', device=device, attributes={'vlan': '300'}
+        name="eth0", device=device, attributes={"vlan": "300"}
     )
 
-    assert iface.get_attributes() == {'vlan': '300'}
+    assert iface.get_attributes() == {"vlan": "300"}
 
     # Verify that we can zero out attributes
     iface.set_attributes({})
@@ -156,26 +150,27 @@ def test_attributes(device):
         iface.set_attributes(None)
 
     with pytest.raises(exc.ValidationError):
-        iface.set_attributes({0: 'value'})
+        iface.set_attributes({0: "value"})
 
     with pytest.raises(exc.ValidationError):
-        iface.set_attributes({'key': 0})
+        iface.set_attributes({"key": 0})
 
     with pytest.raises(exc.ValidationError):
-        iface.set_attributes({'made_up': 'value'})
+        iface.set_attributes({"made_up": "value"})
+
 
 def test_set_addresses(device):
     """Test addresses/assignment."""
     root_network = models.Network.objects.create(
-        cidr='10.0.0.0/8', site=device.site
+        cidr="10.0.0.0/8", site=device.site
     )
     parent_network = models.Network.objects.create(
-        cidr='10.1.1.0/24', site=device.site
+        cidr="10.1.1.0/24", site=device.site
     )
-    iface = models.Interface.objects.create(device=device, name='eth0')
+    iface = models.Interface.objects.create(device=device, name="eth0")
 
     # Test set_addresses
-    addresses = ['10.1.1.1/32']
+    addresses = ["10.1.1.1/32"]
     iface.set_addresses(addresses)
 
     # Test get_addresses
@@ -185,7 +180,7 @@ def test_set_addresses(device):
     assert iface.get_networks() == [str(parent_network)]
 
     # Set multiple addresses w/ one existing.
-    multi = ['10.1.1.1/32', '10.1.1.2/32']
+    multi = ["10.1.1.1/32", "10.1.1.2/32"]
     iface.set_addresses(multi)
 
     # Multi addresses should match
@@ -193,24 +188,25 @@ def test_set_addresses(device):
 
     # Set bad address
     with pytest.raises(exc.ValidationError):
-        iface.set_addresses(['bogus'])
+        iface.set_addresses(["bogus"])
 
     # Test overwrite, which should remove all addresses.
     iface.set_addresses([], overwrite=True)
     assert iface.get_addresses() == []
 
+
 def test_set_addresses_on_create(device):
     """Test address/assignment on create"""
     root_network = models.Network.objects.create(
-        cidr='10.0.0.0/8', site=device.site
+        cidr="10.0.0.0/8", site=device.site
     )
     parent_network = models.Network.objects.create(
-        cidr='10.1.1.0/24', site=device.site
+        cidr="10.1.1.0/24", site=device.site
     )
-    addresses = ['10.1.1.1/32', '10.1.1.2/32']
+    addresses = ["10.1.1.1/32", "10.1.1.2/32"]
 
     iface = models.Interface.objects.create(
-        device=device, name='eth0', addresses=addresses
+        device=device, name="eth0", addresses=addresses
     )
 
     # Test get_addresses
@@ -219,18 +215,19 @@ def test_set_addresses_on_create(device):
     # Test get_networks
     assert iface.get_networks() == [str(parent_network)]
 
+
 def test_assign_address(device):
     root_network = models.Network.objects.create(
-        cidr='10.0.0.0/8', site=device.site
+        cidr="10.0.0.0/8", site=device.site
     )
     parent_network = models.Network.objects.create(
-        cidr='10.1.1.0/24', site=device.site
+        cidr="10.1.1.0/24", site=device.site
     )
 
-    iface = models.Interface.objects.create(device=device, name='eth0')
+    iface = models.Interface.objects.create(device=device, name="eth0")
 
     # Test assign_address
-    cidr = '10.1.1.1/32'
+    cidr = "10.1.1.1/32"
     assign1 = iface.assign_address(cidr)
     iface.clean_addresses()
 
@@ -245,7 +242,7 @@ def test_assign_address(device):
 
     # What if we try to assign a non /32 or /128?
     with pytest.raises(exc.ValidationError):
-        iface.assign_address('10.1.1.0/28')
+        iface.assign_address("10.1.1.0/28")
 
     # If we delete assignment, Network object should persist.
     # import pdb; pdb.set_trace()
@@ -258,9 +255,10 @@ def test_assign_address(device):
     address.delete()
     assert list(iface.assignments.all()) == []
 
+
 def test_device_hostname(device):
     """Test the device_hostname convenience field"""
-    intf = models.Interface.objects.create(device=device, name='eth0')
+    intf = models.Interface.objects.create(device=device, name="eth0")
 
     assert intf.device.hostname == intf.device_hostname
 
@@ -271,32 +269,33 @@ def test_device_hostname(device):
     assert intf.device.hostname == intf.device_hostname
 
     # Ensure query by device_hostname works
-    intf == models.Interface.objects.get(device_hostname='foo-baz',
-                                         name='eth0')
+    assert intf == models.Interface.objects.get(
+        device_hostname="foo-baz", name="eth0"
+    )
+
 
 def test_interface_networks_refresh(device):
     """Test the interface parent networks refresh upon reparenting of a
     Network object"""
-    cidr = '10.1.1.1/32'
+    cidr = "10.1.1.1/32"
     parent_network = models.Network.objects.create(
-        cidr='10.1.1.0/24', site=device.site
+        cidr="10.1.1.0/24", site=device.site
     )
-    intf_address = models.Network.objects.create(
-        cidr=cidr, site=device.site
-    )
-    intf = models.Interface.objects.create(device=device, name='eth0')
+    intf_address = models.Network.objects.create(cidr=cidr, site=device.site)
+    intf = models.Interface.objects.create(device=device, name="eth0")
     intf.assign_address(cidr)
     intf.clean_addresses()
     intf.save()
-    assert intf.get_networks() == ['10.1.1.0/24']
+    assert intf.get_networks() == ["10.1.1.0/24"]
 
     new_parent_network = models.Network.objects.create(
-        cidr='10.1.1.0/27', site=device.site
+        cidr="10.1.1.0/27", site=device.site
     )
     new_parent_network.save()
 
-    intf_obj = models.Interface.objects.get(device=device, name='eth0')
-    assert intf_obj.get_networks() == ['10.1.1.0/27']
+    intf_obj = models.Interface.objects.get(device=device, name="eth0")
+    assert intf_obj.get_networks() == ["10.1.1.0/27"]
+
 
 # TODO(jathan): This isn't implemented yet, but the idea is that there will be
 # pluggable parenting/inheritance strategies, with the "SNMP index" strategy as
@@ -307,5 +306,6 @@ def _test_parenting(device):
     # Test setting interface parent's automatically (by attrs??)
 
     # Disallow setting non-Interface objects as parent.
+
 
 # test_retrieve_interfaces

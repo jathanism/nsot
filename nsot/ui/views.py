@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
-
-from http.client import responses
 import logging
+from http.client import responses
 
 from django.shortcuts import render
 from django.views.generic import TemplateView

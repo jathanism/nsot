@@ -1,11 +1,11 @@
-import time
+import ipaddress
 import logging
+import time
 from operator import attrgetter
 
+import netaddr
 from django.conf import settings
 from django.db import models
-import ipaddress
-import netaddr
 
 from .. import exc, fields, util, validators
 from . import constants
@@ -185,7 +185,7 @@ class Network(Resource):
 
     def __init__(self, *args, **kwargs):
         self._cidr = kwargs.pop("cidr", None)
-        super(Network, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def __str__(self):
         return self.cidr
@@ -394,8 +394,7 @@ class Network(Resource):
                     # prefix_length
                     counter += 2 ** (cidr.max_prefixlen - prefix_length)
                 continue
-            else:
-                counter += 2 ** (cidr.max_prefixlen - prefix_length)
+            counter += 2 ** (cidr.max_prefixlen - prefix_length)
 
             # If this is an interconnect network, we include first and last
             # address in subnet
@@ -546,12 +545,11 @@ class Network(Resource):
     def clean_fields(self, exclude=None):
         """This will enforce correct values on fields."""
         cidr = self._cidr
-        if cidr is None:
-            if self.network_address and self.prefix_length:
-                cidr = "%s/%s" % (self.network_address, self.prefix_length)
+        if cidr is None and self.network_address and self.prefix_length:
+            cidr = "%s/%s" % (self.network_address, self.prefix_length)
 
         if not cidr:
-            msg = "Invalid CIDR: {}. Must be IPv4/IPv6 notation.".format(cidr)
+            msg = f"Invalid CIDR: {cidr}. Must be IPv4/IPv6 notation."
             raise exc.ValidationError(msg)
 
         # Determine network properties
@@ -578,7 +576,7 @@ class Network(Resource):
         force_delete = kwargs.pop("force_delete", False)
 
         try:
-            super(Network, self).delete(**kwargs)
+            super().delete(**kwargs)
         except exc.ProtectedError as err:
             if force_delete:
                 new_parent = self.parent
@@ -603,7 +601,7 @@ class Network(Resource):
                 Network.objects.filter(pk__in=protected_ids).update(
                     parent=new_parent
                 )
-                super(Network, self).delete(**kwargs)
+                super().delete(**kwargs)
             else:
                 raise
 
@@ -623,7 +621,7 @@ class Network(Resource):
             raise exc.ValidationError("IP Address needs base network.")
 
         # Save, so we get an ID, and register our parent.
-        super(Network, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
         # If we're not an IP, determine our subnets and reparent them.
         if not self.is_ip:

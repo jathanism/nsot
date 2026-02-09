@@ -1,6 +1,6 @@
-from calendar import timegm
 import difflib
 import json
+from calendar import timegm
 
 from django.apps import apps
 from django.conf import settings
@@ -63,7 +63,7 @@ class Change(models.Model):
 
     def __init__(self, *args, **kwargs):
         self._obj = kwargs.pop("obj", None)
-        super(Change, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     class Meta:
         get_latest_by = "change_at"
@@ -106,13 +106,13 @@ class Change(models.Model):
 
         # Site doesn't have an id to itself, so if obj is a Site, use it.
         # Otherwise get the value of the `.site`
-        return obj if isinstance(obj, Site) else getattr(obj, "site")
+        return obj if isinstance(obj, Site) else obj.site
 
     def clean_fields(self, exclude=None):
         """This will populate the change fields from the incoming object."""
         obj = self._obj
         if obj is None:
-            return None
+            return
 
         self.event = self.clean_event(self.event)
         self.resource_name = self.clean_resource_name(obj.__class__.__name__)
@@ -125,7 +125,7 @@ class Change(models.Model):
 
     def save(self, *args, **kwargs):
         self.full_clean()  # First validate fields are correct
-        super(Change, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     def to_dict(self):
         resource = None

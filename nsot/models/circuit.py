@@ -116,10 +116,9 @@ class Circuit(Resource):
         """
         if self.endpoint_a.device == device:
             return self.endpoint_a
-        elif self.endpoint_z and self.endpoint_z.device == device:
+        if self.endpoint_z and self.endpoint_z.device == device:
             return self.endpoint_z
-        else:
-            return None
+        return None
 
     def clean_site(self, value):
         """Always enforce that site is set."""
@@ -149,7 +148,7 @@ class Circuit(Resource):
             return value
 
         # Add display name of hostname:intf_hostname:intf
-        name = "{}_{}".format(self.endpoint_a, self.endpoint_z)
+        name = f"{self.endpoint_a}_{self.endpoint_z}"
         return name
 
     def clean_fields(self, exclude=None):
@@ -162,7 +161,7 @@ class Circuit(Resource):
 
     def save(self, *args, **kwargs):
         self.full_clean()
-        super(Circuit, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     def to_dict(self):
         return {

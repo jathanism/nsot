@@ -60,7 +60,7 @@ class Value(models.Model):
 
     def __init__(self, *args, **kwargs):
         self._obj = kwargs.pop("obj", None)
-        super(Value, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def __str__(self):
         return "%s:%s %s=%s" % (
@@ -100,7 +100,7 @@ class Value(models.Model):
     def clean_fields(self, exclude=None):
         obj = self._obj
         if obj is None:
-            return None
+            return
 
         self.site_id = self.clean_site(self.site_id)
         self.resource_name = self.clean_resource_name(obj.__class__.__name__)
@@ -109,7 +109,7 @@ class Value(models.Model):
 
     def save(self, *args, **kwargs):
         self.full_clean()
-        super(Value, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     def to_dict(self):
         return {
