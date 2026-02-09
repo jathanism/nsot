@@ -102,45 +102,6 @@ This will start a server listening on a port that you can browse to and will be
 automatically reloaded when you change any rst files. One downside of this
 approach is that is doesn't refresh when docstrings are modified.
 
-Front-end Development
----------------------
-
-We use a combination JavaScript utilities to do front-end development:
-
-+ `npm <https://www.npmjs.com/>`_ - npm is used to manage our build dependencies
-+ `gulp <http://gulpjs.com/>`_ - gulp for building, linting, testing
-
-Adding New Build Dependencies
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-For the most part you shouldn't need to care about these details though if you
-want to add new build dependencies, for example `gulp-concat
-<https://github.com/contra/gulp-concat>`_, you would run the following:
-
-.. code-block:: bash
-
-    # Install gulp-concat, updating package.json with a new devDependency
-    $ npm install gulp-concat --save-dev
-
-    # Writes out npm-shrinkwrap.json, including dev dependencies, so consistent
-    # build tools are used
-    $ npm shrinkwrap --dev
-
-Adding New Web Dependencies
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: bash
-
-    # Install lodash, updating package.json with a new dependency
-    $ npm install lodash --save
-    $ npm shrinkwrap --dev
-    # Update VENDOR_FILES in gulpfile.js with the source files to include
-
-We explicitly include minified versions of web dependencies, so after
-updating ``package.json`` with the new package you need to update the
-VENDOR_FILES variable in ``gulpfile.js`` to let the build workflow know
-which files to include.
-
 Linting and Formatting
 ----------------------
 

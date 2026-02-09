@@ -780,7 +780,7 @@ wheels = [
 
 [[package]]
 name = "nsot"
-version = "2.0.0"
+version = "2.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "coreapi" },
@@ -799,9 +799,7 @@ dependencies = [
     { name = "ipython", version = "8.38.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "ipython", version = "9.10.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "itypes" },
-    { name = "jinja2" },
     { name = "logan" },
-    { name = "markupsafe" },
     { name = "netaddr" },
     { name = "packaging" },
     { name = "requests" },
@@ -848,9 +846,7 @@ requires-dist = [
     { name = "ipdb", marker = "extra == 'dev'", specifier = ">=0.13" },
     { name = "ipython", specifier = ">=8.0" },
     { name = "itypes", specifier = ">=1.1.0" },
-    { name = "jinja2", specifier = ">=3.0" },
     { name = "logan", specifier = "~=0.7.2" },
-    { name = "markupsafe", specifier = ">=2.0" },
     { name = "mrproxy", marker = "extra == 'dev'", specifier = "~=0.4.0" },
     { name = "netaddr", specifier = ">=0.7.18,<0.8" },
     { name = "packaging", specifier = ">=21.0" },

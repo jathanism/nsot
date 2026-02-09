@@ -1,24 +1,32 @@
-from django.conf import settings
 from django.contrib import admin
+from django.http import JsonResponse
 from django.urls import include, path, re_path
-from django.views.generic import RedirectView
 from rest_framework.renderers import JSONOpenAPIRenderer
 from rest_framework.schemas import get_schema_view
 
-from ..api.views import NotFoundViewSet
-from ..ui.views import FeView
+from nsot import __version__
 
-# Custom error-handling views.
-handler400 = "nsot.ui.views.handle400"
-handler403 = "nsot.ui.views.handle403"
-handler404 = "nsot.ui.views.handle404"
-handler500 = "nsot.ui.views.handle500"
+from ..api.views import NotFoundViewSet
 
 # This is the basic API explorer for Swagger/OpenAPI 2.0
 schema_view = get_schema_view(
     title="NSoT API",
     renderer_classes=[JSONOpenAPIRenderer],
 )
+
+
+def api_root(request):
+    """JSON service info at /."""
+    return JsonResponse(
+        {
+            "name": "Network Source of Truth (NSoT)",
+            "version": __version__,
+            "api": "/api/",
+            "admin": "/admin/",
+            "docs": "https://nsot.readthedocs.io/",
+        }
+    )
+
 
 urlpatterns = [
     # API
@@ -29,18 +37,6 @@ urlpatterns = [
     path("schema.json", schema_view, name="swagger"),
     # Admin
     path("admin/", admin.site.urls),
-    # Favicon redirect for when people insist on fetching it from /favicon.ico
-    path(
-        "favicon.ico",
-        RedirectView.as_view(
-            url="%sbuild/images/favicon/favicon.ico" % settings.STATIC_URL,
-            permanent=True,
-        ),
-        name="favicon",
-    ),
-    # FE handlers
-    # Catch index
-    path("", FeView.as_view(), name="index"),
-    # Catch all for remaining URLs
-    re_path(r"^.*/$", FeView.as_view(), name="index"),
+    # Service info
+    path("", api_root, name="index"),
 ]

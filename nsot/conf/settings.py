@@ -92,26 +92,8 @@ WSGI_APPLICATION = "nsot.wsgi.application"
 # Default: True
 APPEND_SLASH = True
 
-# Template loaders. The NSoT web UI is written in Angular.js using Jinja2
-# templates.
+# Template loaders for Django admin, DRF browsable API, etc.
 TEMPLATES = [
-    {
-        "BACKEND": "django.template.backends.jinja2.Jinja2",
-        "APP_DIRS": True,
-        "OPTIONS": {
-            "context_processors": [
-                "django.contrib.auth.context_processors.auth",
-                "django.template.context_processors.csrf",
-                "django.template.context_processors.debug",
-                "django.template.context_processors.i18n",
-                "django.template.context_processors.media",
-                "django.template.context_processors.request",
-                "django.template.context_processors.static",
-                "django.template.context_processors.tz",
-                "django.contrib.messages.context_processors.messages",
-            ],
-        },
-    },
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [
@@ -125,7 +107,6 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                "nsot.ui.context_processors.app_version",
             ],
         },
     },

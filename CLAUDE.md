@@ -90,14 +90,10 @@ All resources belong to a `Site`. The API supports both top-level access (`/api/
 
 ### URL Structure (`nsot/conf/urls.py`)
 
+- `/` — JSON service info (version, API URL, docs link)
 - `/api/` — REST API (registered in `nsot/api/urls.py`)
 - `/admin/` — Django admin
 - `/schema.json` — OpenAPI schema
-- All other URLs fall through to the AngularJS frontend (`FeView`)
-
-### Frontend
-
-AngularJS 1.3 + Bootstrap 3 single-page app. Built with Gulp (`gulpfile.js`). Static assets in `nsot/static/`. Templates use Jinja2.
 
 ### Configuration
 
