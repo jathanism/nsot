@@ -166,6 +166,7 @@ class Circuit(Resource):
     def to_dict(self):
         return {
             "id": self.id,
+            "site_id": self.site_id,
             "name": self.name,
             "name_slug": self.name_slug,
             "endpoint_a": self.endpoint_a and self.endpoint_a.name_slug,
