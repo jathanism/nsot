@@ -6,6 +6,7 @@ pytestmark = pytest.mark.django_db
 import ipaddress
 
 from nsot import models
+from nsot.api.serializers import JSONDictField, JSONListField
 
 from ..util import load_json
 
@@ -137,3 +138,34 @@ def test_device_save_interface_name_slug_issues_356(site, device):
     # New slug should be 'new_hostname:eth0'
     expected = "new-hostname:eth0"
     assert interface.name_slug == expected
+
+
+def test_empty_string_attributes_issues_29():
+    """
+    Test that JSONDictField coerces empty strings to empty dicts.
+
+    When using DRF's browseable API, the attributes field sends an empty
+    string "" instead of {} when no attributes are provided. The field's
+    to_internal_value() must treat this as an empty dict.
+
+    Ref: https://github.com/jathanism/nsot/issues/29
+    """
+    field = JSONDictField()
+
+    # Empty string should be coerced to empty dict
+    assert field.to_internal_value("") == {}
+
+    # None should also be coerced to empty dict
+    assert field.to_internal_value(None) == {}
+
+    # Valid dict should pass through unchanged
+    assert field.to_internal_value({"key": "val"}) == {"key": "val"}
+
+    # JSON string should be parsed to dict
+    assert field.to_internal_value('{"key": "val"}') == {"key": "val"}
+
+    # Also verify JSONListField handles empty strings
+    list_field = JSONListField()
+    assert list_field.to_internal_value("") == []
+    assert list_field.to_internal_value(None) == []
+    assert list_field.to_internal_value([1, 2]) == [1, 2]
