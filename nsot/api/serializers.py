@@ -774,7 +774,7 @@ class ProtocolCreateSerializer(ProtocolSerializer):
     class Meta:
         model = models.Protocol
         fields = (
-            "site_id",
+            "site",
             "type",
             "device",
             "description",
