@@ -690,7 +690,7 @@ class CircuitCreateSerializer(CircuitSerializer):
     class Meta:
         model = models.Circuit
         # Display name is auto-generated, don't include it here.
-        fields = ("site", "endpoint_a", "endpoint_z", "name", "attributes")
+        fields = ("site_id", "endpoint_a", "endpoint_z", "name", "attributes")
 
 
 class CircuitPartialUpdateSerializer(
@@ -774,7 +774,7 @@ class ProtocolCreateSerializer(ProtocolSerializer):
     class Meta:
         model = models.Protocol
         fields = (
-            "site",
+            "site_id",
             "type",
             "device",
             "description",
