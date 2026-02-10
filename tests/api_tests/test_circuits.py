@@ -128,7 +128,7 @@ def test_creation_toplevel(site, client):
     # Create Circuit via top-level endpoint with site in request body
     cir_resp = client.create(
         cir_uri,
-        site=site.id,
+        site_id=site.id,
         endpoint_a=if_a["id"],
         endpoint_z=if_z["id"],
     )
