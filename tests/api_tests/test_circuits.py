@@ -122,12 +122,8 @@ def test_creation_toplevel(site, client):
     dev_z = get_result(client.create(dev_uri, hostname="foo-bar2"))
 
     # Interfaces
-    if_a = get_result(
-        client.create(ifc_uri, device=dev_a["id"], name="eth0")
-    )
-    if_z = get_result(
-        client.create(ifc_uri, device=dev_z["id"], name="eth0")
-    )
+    if_a = get_result(client.create(ifc_uri, device=dev_a["id"], name="eth0"))
+    if_z = get_result(client.create(ifc_uri, device=dev_z["id"], name="eth0"))
 
     # Create Circuit via top-level endpoint with site in request body
     cir_resp = client.create(
@@ -142,16 +138,10 @@ def test_creation_toplevel(site, client):
     assert cir["site_id"] == site.id
 
     # Missing site should fail at top-level endpoint
-    if_a2 = get_result(
-        client.create(ifc_uri, device=dev_a["id"], name="eth1")
-    )
-    if_z2 = get_result(
-        client.create(ifc_uri, device=dev_z["id"], name="eth1")
-    )
+    if_a2 = get_result(client.create(ifc_uri, device=dev_a["id"], name="eth1"))
+    if_z2 = get_result(client.create(ifc_uri, device=dev_z["id"], name="eth1"))
     assert_error(
-        client.create(
-            cir_uri, endpoint_a=if_a2["id"], endpoint_z=if_z2["id"]
-        ),
+        client.create(cir_uri, endpoint_a=if_a2["id"], endpoint_z=if_z2["id"]),
         status.HTTP_400_BAD_REQUEST,
     )
 
