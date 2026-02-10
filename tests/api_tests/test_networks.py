@@ -480,6 +480,41 @@ def test_force_deletion(site, client):
     )
 
 
+def test_deletion_blocked_by_interface_assignment(site, client):
+    """Deleting a Network that is assigned to an Interface should return
+    409 Conflict. After removing the assignment, deletion should succeed."""
+    net_uri = site.list_uri("network")
+    dev_uri = site.list_uri("device")
+    iface_uri = site.list_uri("interface")
+
+    # Create parent network and host address.
+    client.create(net_uri, cidr="10.99.99.0/24")
+    addr_resp = client.create(net_uri, cidr="10.99.99.1/32")
+    addr = get_result(addr_resp)
+    addr_obj_uri = site.detail_uri("network", id=addr["id"])
+
+    # Create device and interface.
+    dev_resp = client.create(dev_uri, hostname="test-dev1")
+    dev = get_result(dev_resp)
+    iface_resp = client.create(
+        iface_uri,
+        device=dev["id"],
+        name="eth0",
+        addresses=["10.99.99.1/32"],
+    )
+    iface = get_result(iface_resp)
+    iface_obj_uri = site.detail_uri("interface", id=iface["id"])
+
+    # Deleting the address Network should fail with 409.
+    assert_error(client.destroy(addr_obj_uri), status.HTTP_409_CONFLICT)
+
+    # Remove the assignment by clearing addresses on the interface.
+    client.partial_update(iface_obj_uri, addresses=[])
+
+    # Now deletion should succeed.
+    assert_deleted(client.destroy(addr_obj_uri))
+
+
 def test_mptt_detail_routes(site, client):
     """Test detail routes for ancestor/children/descendants/root methods."""
     net_uri = site.list_uri("network")

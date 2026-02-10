@@ -270,8 +270,16 @@ def test_assign_address(device):
     assign1.delete()
     assert models.Network.objects.get_by_address(address.cidr) == address
 
-    # If we delete address, asignment should go away.
+    # Deleting an address that has an active assignment should be blocked.
     assign2 = iface.assign_address(cidr)
+    with pytest.raises(exc.ProtectedError):
+        address.delete()
+
+    # Assignment and address still exist.
+    assert iface.assignments.filter(pk=assign2.pk).exists()
+
+    # After removing the assignment, the address can be deleted.
+    assign2.delete()
     address.delete()
     assert list(iface.assignments.all()) == []
 
@@ -315,6 +323,50 @@ def test_interface_networks_refresh(device):
 
     intf_obj = models.Interface.objects.get(device=device, name="eth0")
     assert intf_obj.get_networks() == ["10.1.1.0/27"]
+
+
+def test_network_delete_blocked_by_assignment(device):
+    """Deleting a Network that has an active Interface assignment should raise
+    ProtectedError."""
+    cidr = "10.2.2.1/32"
+    models.Network.objects.create(cidr="10.2.2.0/24", site=device.site)
+    address = models.Network.objects.create(cidr=cidr, site=device.site)
+    intf = models.Interface.objects.create(device=device, name="eth0")
+    intf.assign_address(cidr)
+
+    with pytest.raises(exc.ProtectedError):
+        address.delete()
+
+
+def test_network_delete_succeeds_after_assignment_removed(device):
+    """After removing the assignment, the Network can be deleted."""
+    cidr = "10.3.3.1/32"
+    models.Network.objects.create(cidr="10.3.3.0/24", site=device.site)
+    address = models.Network.objects.create(cidr=cidr, site=device.site)
+    intf = models.Interface.objects.create(device=device, name="eth0")
+    assignment = intf.assign_address(cidr)
+
+    # Remove the assignment first.
+    assignment.delete()
+
+    # Now the Network can be deleted without error.
+    address.delete()
+    assert not models.Network.objects.filter(
+        network_address="10.3.3.1", prefix_length=32
+    ).exists()
+
+
+def test_force_delete_does_not_bypass_assignment_guard(device):
+    """force_delete=True is only for reparenting children — it should NOT
+    bypass the assignment guard."""
+    cidr = "10.4.4.1/32"
+    models.Network.objects.create(cidr="10.4.4.0/24", site=device.site)
+    address = models.Network.objects.create(cidr=cidr, site=device.site)
+    intf = models.Interface.objects.create(device=device, name="eth0")
+    intf.assign_address(cidr)
+
+    with pytest.raises(exc.ProtectedError):
+        address.delete(force_delete=True)
 
 
 # TODO(jathan): This isn't implemented yet, but the idea is that there will be
