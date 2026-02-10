@@ -575,6 +575,16 @@ class Network(Resource):
     def delete(self, **kwargs):
         force_delete = kwargs.pop("force_delete", False)
 
+        # Block deletion if this Network has active Interface assignments.
+        # force_delete does NOT bypass this — it is only for reparenting
+        # child networks.
+        if self.assignments.exists():
+            raise exc.ProtectedError(
+                "Cannot delete Network %s because it has active Interface "
+                "assignments. Remove the assignments first." % self.cidr,
+                set(self.assignments.all()),
+            )
+
         try:
             super().delete(**kwargs)
         except exc.ProtectedError as err:
