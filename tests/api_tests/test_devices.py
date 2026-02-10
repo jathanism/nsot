@@ -398,6 +398,40 @@ def test_fqdn_creation_and_retrieval(site, client):
     )
 
 
+def test_empty_string_attributes(site, client):
+    """Test that empty string attributes are treated as empty dicts.
+
+    When using DRF's browseable API, the attributes field sends "" instead
+    of {} when no attributes are provided. This should not cause a 400 error.
+
+    Ref: https://github.com/jathanism/nsot/issues/29
+    """
+    dev_uri = site.list_uri("device")
+    attr_uri = site.list_uri("attribute")
+
+    client.create(attr_uri, resource_name="Device", name="attr1")
+
+    # POST with attributes="" should succeed (treated as {})
+    dev_resp = client.create(dev_uri, hostname="device1", attributes="")
+    dev = get_result(dev_resp)
+    dev_obj_uri = site.detail_uri("device", id=dev["id"])
+    assert_created(dev_resp, dev_obj_uri)
+    assert dev["attributes"] == {}
+
+    # Set an attribute so we can test clearing it
+    params = {"hostname": "device1", "attributes": {"attr1": "foo"}}
+    dev.update(params)
+    assert_success(client.update(dev_obj_uri, **params), dev)
+
+    # PUT with attributes="" should succeed (treated as {})
+    params = {"hostname": "device1", "attributes": ""}
+    dev.update({"attributes": {}})
+    assert_success(client.update(dev_obj_uri, **params), dev)
+
+    # PATCH with attributes="" should succeed (treated as {})
+    assert_success(client.partial_update(dev_obj_uri, attributes=""), dev)
+
+
 def test_detail_routes(site, client):
     """Test detail routes for Devices."""
     ifc_uri = site.list_uri("interface")
