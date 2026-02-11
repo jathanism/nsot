@@ -196,7 +196,7 @@ class ChangeViewSet(BaseNsotViewSet):
 
     @action(methods=["get"], detail=True)
     def diff(self, request, *args, **kwargs):
-        return self.success(self.get_object().diff)
+        return self.success(self.get_object().resource_diff)
 
 
 class NsotViewSet(BaseNsotViewSet, viewsets.ModelViewSet):

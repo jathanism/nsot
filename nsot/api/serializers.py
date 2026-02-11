@@ -220,9 +220,14 @@ class SiteSerializer(serializers.ModelSerializer):
 class ChangeSerializer(NsotSerializer):
     """Used for displaying Change events."""
 
+    resource_diff = serializers.SerializerMethodField()
+
     class Meta:
         model = models.Change
         fields = "__all__"
+
+    def get_resource_diff(self, obj):
+        return obj.resource_diff
 
 
 ###########

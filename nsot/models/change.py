@@ -2,7 +2,6 @@ import difflib
 import json
 from calendar import timegm
 
-from django.apps import apps
 from django.conf import settings
 from django.db import models
 
@@ -141,44 +140,69 @@ class Change(models.Model):
             "resource_name": self.resource_name,
             "resource_id": self.resource_id,
             "resource": resource,
+            "resource_diff": self.resource_diff,
         }
+
+    def _get_previous_change(self):
+        """Return the most recent prior Change for the same resource, or
+        None."""
+        return (
+            Change.objects.filter(
+                change_at__lt=self.change_at,
+                resource_id=self.resource_id,
+                resource_name=self.resource_name,
+            )
+            .order_by("-change_at")
+            .first()
+        )
+
+    @property
+    def resource_diff(self):
+        """Return a dict of changed fields with old/new values."""
+        if self.event == "Create":
+            return {
+                k: {"old": None, "new": v} for k, v in self._resource.items()
+            }
+
+        if self.event == "Delete":
+            prev = self._get_previous_change()
+            old_resource = prev._resource if prev else self._resource
+            return {
+                k: {"old": v, "new": None} for k, v in old_resource.items()
+            }
+
+        # Update — show only changed fields
+        prev = self._get_previous_change()
+        if prev is None:
+            return {
+                k: {"old": None, "new": v} for k, v in self._resource.items()
+            }
+
+        diff = {}
+        all_keys = set(prev._resource) | set(self._resource)
+        for key in all_keys:
+            old_val = prev._resource.get(key)
+            new_val = self._resource.get(key)
+            if old_val != new_val:
+                diff[key] = {"old": old_val, "new": new_val}
+        return diff
 
     @property
     def diff(self):
-        """
-        Return the diff of the JSON representation of the cached copy of a
-        Resource with its current instance
-        """
+        """Return a text diff between previous and current resource state."""
         if self.event == "Create":
             old = ""
         else:
-            # Get the Change just ahead of _this_ change because that has the
-            # state of the Resource before this Change occurred.
-            # TODO(nickpegg): Get rid of this if we change the behavior of
-            # Change to store the previous version of the object
-            old_change = (
-                Change.objects.filter(
-                    change_at__lt=self.change_at,
-                    resource_id=self.resource_id,
-                    resource_name=self.resource_name,
-                )
-                .order_by("-change_at")
-                .first()
+            prev = self._get_previous_change()
+            old = (
+                json.dumps(prev._resource, indent=2, sort_keys=True)
+                if prev
+                else ""
             )
-            old = json.dumps(old_change._resource, indent=2, sort_keys=True)
 
         if self.event == "Delete":
             current = ""
         else:
-            resource = apps.get_model(self._meta.app_label, self.resource_name)
-            obj = resource.objects.get(pk=self.resource_id)
+            current = json.dumps(self._resource, indent=2, sort_keys=True)
 
-            serializer_class = self.get_serializer_for_resource(
-                self.resource_name
-            )
-            serializer = serializer_class(obj)
-            current = json.dumps(serializer.data, indent=2, sort_keys=True)
-
-        diff = "\n".join(difflib.ndiff(old.splitlines(), current.splitlines()))
-
-        return diff
+        return "\n".join(difflib.ndiff(old.splitlines(), current.splitlines()))
