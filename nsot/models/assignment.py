@@ -63,3 +63,22 @@ class Assignment(models.Model):
             "interface_name": self.interface.name,
             "address": self.address.cidr,
         }
+
+
+def revert_network_state_on_assignment_delete(sender, instance, **kwargs):
+    """Revert Network state to ALLOCATED when no assignments remain."""
+    from .network import Network
+
+    try:
+        address = Network.objects.get(pk=instance.address_id)
+    except Network.DoesNotExist:
+        return  # Network deleted too (e.g., _purge_addresses cascade)
+    if not address.assignments.exists():
+        address.set_allocated()
+
+
+models.signals.post_delete.connect(
+    revert_network_state_on_assignment_delete,
+    sender=Assignment,
+    dispatch_uid="revert_network_state_post_delete_assignment",
+)
