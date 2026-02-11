@@ -369,6 +369,87 @@ def test_force_delete_does_not_bypass_assignment_guard(device):
         address.delete(force_delete=True)
 
 
+def test_assignment_delete_reverts_network_state(device):
+    """Deleting an Assignment should revert the Network state to ALLOCATED."""
+    site = device.site
+    models.Network.objects.create(cidr="10.5.5.0/24", site=site)
+    address = models.Network.objects.create(cidr="10.5.5.1/32", site=site)
+    iface = models.Interface.objects.create(device=device, name="eth0")
+
+    assignment = iface.assign_address("10.5.5.1/32")
+    address.refresh_from_db()
+    assert address.state == models.Network.ASSIGNED
+
+    assignment.delete()
+    address.refresh_from_db()
+    assert address.state == models.Network.ALLOCATED
+
+
+def test_set_addresses_overwrite_reverts_old_network_state(device):
+    """set_addresses(overwrite=True) should revert old address to ALLOCATED."""
+    site = device.site
+    models.Network.objects.create(cidr="10.6.6.0/24", site=site)
+    old_addr = models.Network.objects.create(cidr="10.6.6.1/32", site=site)
+    models.Network.objects.create(cidr="10.6.6.2/32", site=site)
+    iface = models.Interface.objects.create(device=device, name="eth0")
+
+    iface.set_addresses(["10.6.6.1/32"])
+    old_addr.refresh_from_db()
+    assert old_addr.state == models.Network.ASSIGNED
+
+    # Overwrite with a different address
+    iface.set_addresses(["10.6.6.2/32"], overwrite=True)
+    old_addr.refresh_from_db()
+    new_addr = models.Network.objects.get(
+        network_address="10.6.6.2", prefix_length=32
+    )
+    assert old_addr.state == models.Network.ALLOCATED
+    assert new_addr.state == models.Network.ASSIGNED
+
+
+def test_multi_device_assignment_preserves_state(device):
+    """Deleting one of two cross-device assignments should keep ASSIGNED."""
+    site = device.site
+    device2 = models.Device.objects.create(site=site, hostname="foo-bar2")
+    models.Network.objects.create(cidr="10.7.7.0/24", site=site)
+    address = models.Network.objects.create(cidr="10.7.7.1/32", site=site)
+
+    iface1 = models.Interface.objects.create(device=device, name="eth0")
+    iface2 = models.Interface.objects.create(device=device2, name="eth0")
+
+    assign1 = iface1.assign_address("10.7.7.1/32")
+    assign2 = iface2.assign_address("10.7.7.1/32")
+    address.refresh_from_db()
+    assert address.state == models.Network.ASSIGNED
+
+    # Delete one assignment — state should stay ASSIGNED
+    assign1.delete()
+    address.refresh_from_db()
+    assert address.state == models.Network.ASSIGNED
+
+    # Delete the remaining assignment — state should revert to ALLOCATED
+    assign2.delete()
+    address.refresh_from_db()
+    assert address.state == models.Network.ALLOCATED
+
+
+def test_interface_delete_reverts_network_state(device):
+    """Deleting an Interface should cascade-delete assignments and revert
+    Network state to ALLOCATED."""
+    site = device.site
+    models.Network.objects.create(cidr="10.8.8.0/24", site=site)
+    address = models.Network.objects.create(cidr="10.8.8.1/32", site=site)
+    iface = models.Interface.objects.create(device=device, name="eth0")
+
+    iface.assign_address("10.8.8.1/32")
+    address.refresh_from_db()
+    assert address.state == models.Network.ASSIGNED
+
+    iface.delete()
+    address.refresh_from_db()
+    assert address.state == models.Network.ALLOCATED
+
+
 # TODO(jathan): This isn't implemented yet, but the idea is that there will be
 # pluggable parenting/inheritance strategies, with the "SNMP index" strategy as
 # the default/built-in (e.g. snmp_index, snmp_parent_index).

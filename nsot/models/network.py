@@ -501,6 +501,11 @@ class Network(Resource):
         if commit:
             self.save()
 
+    def set_allocated(self, commit=True):
+        self.state = self.ALLOCATED
+        if commit:
+            self.save()
+
     def set_assigned(self, commit=True):
         self.state = self.ASSIGNED
         if commit:

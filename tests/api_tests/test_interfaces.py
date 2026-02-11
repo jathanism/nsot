@@ -913,3 +913,42 @@ def test_create_with_string_type(site, client, device):
     ifc3 = get_result(ifc_resp3)
     assert ifc3["type"] == 161
     assert ifc3["type_name"] == "lag"
+
+
+def test_update_addresses_reverts_old_network_state(site, client):
+    """PATCH with a new address should revert the old Network's state to
+    'allocated' and set the new Network's state to 'assigned'."""
+    dev_uri = site.list_uri("device")
+    ifc_uri = site.list_uri("interface")
+    net_uri = site.list_uri("network")
+
+    dev_resp = client.create(dev_uri, hostname="foo-bar1")
+    dev = get_result(dev_resp)
+
+    # Create parent network and two host addresses
+    client.create(net_uri, cidr="10.9.9.0/24")
+    client.create(net_uri, cidr="10.9.9.1/32")
+    client.create(net_uri, cidr="10.9.9.2/32")
+
+    # Create interface with first address
+    ifc_resp = client.create(
+        ifc_uri,
+        device=dev["id"],
+        name="eth0",
+        addresses=["10.9.9.1/32"],
+    )
+    ifc = get_result(ifc_resp)
+    ifc_pk_uri = site.detail_uri("interface", id=ifc["id"])
+
+    # Old address should be assigned
+    old_net = get_result(client.retrieve(net_uri, cidr="10.9.9.1/32"))[0]
+    assert old_net["state"] == "assigned"
+
+    # PATCH to replace address with the second one
+    client.partial_update(ifc_pk_uri, addresses=["10.9.9.2/32"])
+
+    # Old address should be allocated; new address should be assigned
+    old_net = get_result(client.retrieve(net_uri, cidr="10.9.9.1/32"))[0]
+    new_net = get_result(client.retrieve(net_uri, cidr="10.9.9.2/32"))[0]
+    assert old_net["state"] == "allocated"
+    assert new_net["state"] == "assigned"
