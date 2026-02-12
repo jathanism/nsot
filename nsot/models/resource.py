@@ -247,7 +247,7 @@ class Resource(models.Model):
         # Partial update: merge provided attributes with existing ones.
         # Keys set to None are treated as deletions.
         if partial and attributes is not None:
-            existing = self.to_dict().get("attributes", {})
+            existing = dict(self.to_dict().get("attributes", {}))
             existing.update(attributes)
             attributes = {k: v for k, v in existing.items() if v is not None}
 
