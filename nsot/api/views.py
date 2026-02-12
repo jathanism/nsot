@@ -292,6 +292,55 @@ class NsotViewSet(BaseNsotViewSet, viewsets.ModelViewSet):
             change.delete()
             raise exc.Conflict(err.args[0])
 
+    def bulk_destroy(self, request, site_pk=None, *args, **kwargs):
+        """
+        Delete multiple objects by providing a list of IDs in the request body.
+
+        Accepts a JSON list of integer IDs, e.g.::
+
+            DELETE /api/sites/1/devices/
+            [1, 2, 3]
+
+        Each object's permissions are checked before deletion.
+        """
+        ids = request.data
+
+        if not isinstance(ids, list):
+            raise exc.BadRequest(
+                "Bulk delete expects a list of IDs in the request body."
+            )
+
+        if len(ids) == 0:
+            raise exc.BadRequest("No IDs provided for bulk delete.")
+
+        # Validate all IDs are integers
+        for id_ in ids:
+            if not isinstance(id_, int):
+                raise exc.BadRequest(
+                    "All IDs must be integers. Got: %r" % (id_,)
+                )
+
+        queryset = self.get_queryset()
+        if site_pk is not None:
+            queryset = queryset.filter(site=site_pk)
+
+        # Look up all objects and check permissions
+        objects = []
+        for id_ in ids:
+            try:
+                obj = queryset.get(pk=id_)
+            except exc.ObjectDoesNotExist:
+                self.not_found(id_, site_pk)
+
+            self.check_object_permissions(request, obj)
+            objects.append(obj)
+
+        # Perform deletion
+        for obj in objects:
+            self.perform_destroy(obj)
+
+        return Response(status=status_codes.HTTP_204_NO_CONTENT)
+
 
 class SiteViewSet(NsotViewSet):
     """
