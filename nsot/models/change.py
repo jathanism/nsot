@@ -140,7 +140,6 @@ class Change(models.Model):
             "resource_name": self.resource_name,
             "resource_id": self.resource_id,
             "resource": resource,
-            "resource_diff": self.resource_diff,
         }
 
     def _get_previous_change(self):
