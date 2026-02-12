@@ -305,6 +305,11 @@ class Resource(models.Model):
             # Use merged as the canonical attributes for the rest of the flow.
             attributes = merged
 
+        # Apply default values for attributes that have defaults and aren't provided
+        for attr_name, attr in valid_attributes.items():
+            if attr_name not in attributes and attr.default is not None:
+                attributes[attr_name] = attr.default
+
         # Attributes that are required according to ``valid_attributes``, but
         # are not found in ``attributes``. For partial updates, this validates
         # the final merged result still has all required attributes (preventing

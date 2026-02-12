@@ -6,6 +6,11 @@ from django.db import models
 from .. import exc, fields, validators
 from . import constants
 
+# Internal key used to wrap default values for JSON serialization.
+# The django-extensions JSONField doesn't properly serialize plain strings,
+# so we wrap them in a dict with this key.
+_DEFAULT_VALUE_KEY = "_v"
+
 
 class Attribute(models.Model):
     """Represents a flexible attribute for Resource objects."""
@@ -56,6 +61,38 @@ class Attribute(models.Model):
         blank=True,
         help_text="Dictionary of Attribute constraints.",
     )
+
+    # Internal storage for default value. Use the `default` property instead.
+    # Stored as {"_v": value} to ensure proper JSON serialization.
+    _default = fields.JSONField(
+        "Default",
+        null=True,
+        blank=True,
+        default=None,
+        db_column="default",
+        help_text="Default value applied when this attribute is not provided on resource creation.",
+    )
+
+    @property
+    def default(self):
+        """Get the default value, unwrapping from internal storage format."""
+        if self._default is None or self._default == {}:
+            return None
+        if (
+            isinstance(self._default, dict)
+            and _DEFAULT_VALUE_KEY in self._default
+        ):
+            return self._default[_DEFAULT_VALUE_KEY]
+        # Fallback for any legacy data
+        return self._default
+
+    @default.setter
+    def default(self, value):
+        """Set the default value, wrapping for internal storage format."""
+        if value is None:
+            self._default = None
+        else:
+            self._default = {_DEFAULT_VALUE_KEY: value}
 
     site = models.ForeignKey(
         "Site",
@@ -150,11 +187,47 @@ class Attribute(models.Model):
 
         return value or False
 
+    def clean_default(self, value):
+        """Validate the default value against multi type and constraints."""
+        # No default set
+        if value is None:
+            return None
+
+        # Validate type based on multi flag
+        if self.multi:
+            if not isinstance(value, list):
+                raise exc.ValidationError(
+                    {"default": "Default for multi attribute must be a list."}
+                )
+            # Ensure all items are strings
+            if not all(isinstance(v, str) for v in value):
+                raise exc.ValidationError(
+                    {"default": "Default list items must be strings."}
+                )
+        else:
+            if not isinstance(value, str):
+                raise exc.ValidationError(
+                    {
+                        "default": "Default for single-value attribute must be a string."
+                    }
+                )
+
+        # Validate the default value against constraints using validate_value()
+        # This checks pattern, valid_values, and allow_empty
+        try:
+            self.validate_value(value)
+        except exc.ValidationError as e:
+            # Re-raise with "default" key for clarity
+            raise exc.ValidationError({"default": str(e)})
+
+        return value
+
     def clean_fields(self, exclude=None):
         self.constraints = self.clean_constraints(self.constraints)
         self.display = self.clean_display(self.display)
         self.resource_name = self.clean_resource_name(self.resource_name)
         self.name = self.clean_name(self.name)
+        self.default = self.clean_default(self.default)
 
     def _validate_single_value(self, value, constraints=None):
         if not isinstance(value, str):
@@ -221,4 +294,5 @@ class Attribute(models.Model):
             "display": self.display,
             "multi": self.multi,
             "constraints": self.constraints,
+            "default": self.default,
         }

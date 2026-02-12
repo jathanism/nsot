@@ -74,6 +74,34 @@ class JSONListField(JSONDataField):
     field_type = list
 
 
+class AttributeDefaultField(fields.Field):
+    """
+    Custom field for Attribute.default property.
+
+    Handles serialization of the default value which can be a string (single)
+    or list of strings (multi).
+    """
+
+    def to_representation(self, value):
+        return value
+
+    def to_internal_value(self, data):
+        # Allow None, string, or list of strings
+        if data is None:
+            return None
+        if isinstance(data, str):
+            return data
+        if isinstance(data, list):
+            return data
+        # Try to parse as JSON if it's a string representation
+        if isinstance(data, str):
+            try:
+                return json.loads(data)
+            except (ValueError, TypeError):
+                return data
+        return data
+
+
 class MACAddressField(fields.Field):
     """Field used to validate MAC address objects as integer or string."""
 
@@ -251,6 +279,11 @@ class AttributeCreateSerializer(AttributeSerializer):
         label=get_field_attr(models.Attribute, "constraints", "verbose_name"),
         help_text=get_field_attr(models.Attribute, "constraints", "help_text"),
     )
+    default = AttributeDefaultField(
+        required=False,
+        allow_null=True,
+        help_text=get_field_attr(models.Attribute, "_default", "help_text"),
+    )
     site_id = fields.IntegerField(
         label=get_field_attr(models.Attribute, "site", "verbose_name"),
         help_text=get_field_attr(models.Attribute, "site", "help_text"),
@@ -266,6 +299,7 @@ class AttributeCreateSerializer(AttributeSerializer):
             "display",
             "multi",
             "constraints",
+            "default",
             "site_id",
         )
 
@@ -291,6 +325,7 @@ class AttributeUpdateSerializer(
             "display",
             "multi",
             "constraints",
+            "default",
         )
 
 
