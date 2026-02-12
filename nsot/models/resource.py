@@ -269,6 +269,10 @@ class Resource(models.Model):
         )
 
         # For partial updates, merge incoming attributes with existing ones.
+        # Note: concurrent PATCHes on the same resource could race (read-
+        # merge-write). This is acceptable for SQLite (serialized writes)
+        # and typical single-user IPAM workloads. For high-concurrency
+        # deployments, callers should wrap in select_for_update().
         if partial:
             existing = self.get_attributes() or {}
 
