@@ -404,7 +404,7 @@ class Interface(Resource):
 
         try:
             value = int(value)
-        except ValueError:
+        except (ValueError, TypeError):
             raise exc.ValidationError({"mtu": "Invalid MTU: %r" % value})
 
         if value < 68 or value > 65535:
