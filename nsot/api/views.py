@@ -321,6 +321,10 @@ class NsotViewSet(BaseNsotViewSet, viewsets.ModelViewSet):
                     "All IDs must be integers. Got: %r" % (id_,)
                 )
 
+        # Deduplicate while preserving order to prevent multiple Change
+        # records for the same object.
+        ids = list(dict.fromkeys(ids))
+
         queryset = self.get_queryset()
         if site_pk is not None:
             queryset = queryset.filter(site=site_pk)
