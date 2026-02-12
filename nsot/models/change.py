@@ -189,6 +189,8 @@ class Change(models.Model):
         """Return a text diff between previous and current resource state."""
         if self.event == "Create":
             old = ""
+        elif self.event == "Delete":
+            old = json.dumps(self._resource, indent=2, sort_keys=True)
         else:
             prev = self._get_previous_change()
             old = (
