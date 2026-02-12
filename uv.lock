@@ -780,7 +780,7 @@ wheels = [
 
 [[package]]
 name = "nsot"
-version = "2.4.0"
+version = "2.5.1"
 source = { editable = "." }
 dependencies = [
     { name = "coreapi" },

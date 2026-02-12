@@ -309,9 +309,10 @@ def test_partial_update(site, client):
     dev_natural_uri = site.detail_uri("device", id=device["hostname"])
 
     # Now PATCH it by providing *only* the attributes, which wouldn't be
-    # possible in a PUT
-    params = {"attributes": {}}
-    device.update(params)
+    # possible in a PUT.  With partial semantics, explicitly null each key to
+    # delete it.
+    params = {"attributes": {"attr1": None}}
+    device.update({"attributes": {}})
 
     assert_success(client.partial_update(dev_pk_uri, **params), device)
 

@@ -332,9 +332,10 @@ def test_partial_update(site, client):
 
     assert_success(client.partial_update(cir_obj_uri, **params), payload)
 
-    # Update only attributes
-    params = {"attributes": {}}  # Nuke 'em
-    payload.update(params)
+    # Update only attributes — with partial semantics, explicitly null each
+    # key to delete it.
+    params = {"attributes": {"cid": None, "vendor": None}}
+    payload.update({"attributes": {}})
     assert_success(client.partial_update(cir_obj_uri, **params), payload)
 
     # Update only endpoint_z (to null)
