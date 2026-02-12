@@ -237,7 +237,13 @@ class Resource(models.Model):
         return self._attributes_cache
 
     def set_attributes(self, attributes, valid_attributes=None, partial=False):
-        """Validate and store the attributes dict as a JSON-encoded string."""
+        """Validate and store the attributes dict as a JSON-encoded string.
+
+        When ``partial=True`` (i.e. PATCH), only the provided attributes are
+        merged on top of existing ones. Setting a value to ``None`` (JSON
+        ``null``) deletes that attribute. Required-attribute checks are skipped
+        for partial updates.
+        """
         log.debug("Resource.set_attributes() attributes = %r", attributes)
 
         # If no attributes and it's a partial update, NOOP.
@@ -262,24 +268,50 @@ class Resource(models.Model):
             "Resource.set_attributes() valid_attributes = %r", valid_attributes
         )
 
-        # Attributes that are required according to ``valid_attributes``, but
-        # are not found incoming in ``attributes``.
-        missing_attributes = {
-            attribute.name
-            for attribute in valid_attributes.values()
-            if attribute.required and attribute.name not in attributes
-        }
-        log.debug(
-            "Resource.set_attributes() missing_attributes = %r",
-            missing_attributes,
-        )
+        # For partial updates, merge incoming attributes with existing ones.
+        if partial:
+            existing = self.get_attributes() or {}
 
-        # It's an error to have any missing attributes
-        if missing_attributes:
-            names = ", ".join(missing_attributes)
-            raise exc.ValidationError(
-                {"attributes": f"Missing required attributes: {names}"}
+            # Separate deletions (value is None) from updates.
+            deletions = {k for k, v in attributes.items() if v is None}
+            updates = {k: v for k, v in attributes.items() if v is not None}
+
+            # Validate that all referenced attribute names exist.
+            for name in list(deletions) + list(updates.keys()):
+                if name not in valid_attributes:
+                    msg = f"Attribute name ({name}) does not exist."
+                    raise exc.ValidationError({"attributes": msg})
+
+            # Build merged attribute dict: start with existing, apply updates,
+            # remove deletions.
+            merged = dict(existing)
+            merged.update(updates)
+            for key in deletions:
+                merged.pop(key, None)
+
+            # Use merged as the canonical attributes for the rest of the flow.
+            attributes = merged
+
+        # Attributes that are required according to ``valid_attributes``, but
+        # are not found incoming in ``attributes``.  Skip this check for
+        # partial updates — the caller only sends the keys they want to change.
+        if not partial:
+            missing_attributes = {
+                attribute.name
+                for attribute in valid_attributes.values()
+                if attribute.required and attribute.name not in attributes
+            }
+            log.debug(
+                "Resource.set_attributes() missing_attributes = %r",
+                missing_attributes,
             )
+
+            # It's an error to have any missing attributes
+            if missing_attributes:
+                names = ", ".join(missing_attributes)
+                raise exc.ValidationError(
+                    {"attributes": f"Missing required attributes: {names}"}
+                )
 
         # Run validation each attribute value and prepare them for DB
         # insertion, raising any validation errors immediately.

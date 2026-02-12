@@ -605,9 +605,14 @@ class TestUpdate(ProtocolTestCase):
         expected.update(payload)
         assert_success(client.partial_update(obj_uri, **payload), expected)
 
-        # type
-        payload = {"type": isis_type["name"], "attributes": {"metric": "100"}}
-        expected.update(payload)
+        # type — when changing type, explicitly remove old type's attributes
+        payload = {
+            "type": isis_type["name"],
+            "attributes": {"metric": "100", "asn": None},
+        }
+        expected.update(
+            {"type": isis_type["name"], "attributes": {"metric": "100"}}
+        )
         assert_success(client.partial_update(obj_uri, **payload), expected)
 
         # attributes
