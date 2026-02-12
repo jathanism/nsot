@@ -62,3 +62,28 @@ def test_site_validation(transactional_db):
 
     site.name = "Test Site New"
     site.save()
+
+
+def test_site_emoji_description():
+    """Test that emoji/unicode characters in Site description don't cause errors.
+
+    Ref: https://github.com/jathanism/nsot/issues/56
+    """
+    description = "This is a site with emoji 🎉🚀💡 and unicode ñ é ü"
+    site = models.Site.objects.create(
+        name="Emoji Site", description=description
+    )
+    site.refresh_from_db()
+
+    assert site.description == description
+
+
+def test_site_emoji_name_and_description():
+    """Test that emoji/unicode characters work in both name and description."""
+    site = models.Site.objects.create(
+        name="Site ✨", description="Description with 🌍🔥 emojis"
+    )
+    site.refresh_from_db()
+
+    assert site.name == "Site ✨"
+    assert site.description == "Description with 🌍🔥 emojis"
