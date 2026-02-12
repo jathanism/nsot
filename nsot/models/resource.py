@@ -244,19 +244,19 @@ class Resource(models.Model):
         if attributes is None and partial:
             return
 
-        # Partial update: merge provided attributes with existing ones.
-        # Keys set to None are treated as deletions.
-        if partial and attributes is not None:
-            existing = dict(self.to_dict().get("attributes", {}))
-            existing.update(attributes)
-            attributes = {k: v for k, v in existing.items() if v is not None}
-
         if not isinstance(attributes, dict):
             raise exc.ValidationError(
                 {
                     "attributes": f"Expected dictionary but received {type(attributes)}"
                 }
             )
+
+        # Partial update: merge provided attributes with existing ones.
+        # Keys set to None are treated as deletions.
+        if partial:
+            existing = dict(self.to_dict().get("attributes", {}))
+            existing.update(attributes)
+            attributes = {k: v for k, v in existing.items() if v is not None}
 
         # A dict of valid Attribute objects for this resource, keyed by
         # attribute name. If not provided, defaults to all matching
