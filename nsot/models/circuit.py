@@ -87,7 +87,7 @@ class Circuit(Resource):
     def addresses(self):
         """Return addresses associated with this circuit.
 
-        This includes addresses associated with child interfaces.
+        This includes addresses associated with all descendant interfaces.
         """
         addresses = []
         for interface in self.interfaces:
