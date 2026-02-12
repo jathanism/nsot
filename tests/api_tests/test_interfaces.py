@@ -473,9 +473,8 @@ def test_partial_update(site, client):
     payload["name_slug"] = slugify_interface(**payload)
     assert_success(client.partial_update(ifc_pk_uri, **params), payload)
 
-    # Update only attributes
-    params = {"attributes": {}}  # Nuke 'em
-    payload.update(params)
+    # PATCH with empty attributes is a NOOP (merge preserves existing)
+    params = {"attributes": {}}
     assert_success(client.partial_update(ifc_pk_uri, **params), payload)
 
     # Update attributes by natural key

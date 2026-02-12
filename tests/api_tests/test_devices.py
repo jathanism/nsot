@@ -308,17 +308,52 @@ def test_partial_update(site, client):
     dev_pk_uri = site.detail_uri("device", id=device["id"])
     dev_natural_uri = site.detail_uri("device", id=device["hostname"])
 
-    # Now PATCH it by providing *only* the attributes, which wouldn't be
-    # possible in a PUT
+    # PATCH with empty attributes is a NOOP (merge preserves existing)
     params = {"attributes": {}}
-    device.update(params)
-
     assert_success(client.partial_update(dev_pk_uri, **params), device)
 
     # And just to make sure a PUT with the same payload fails...
     assert_error(
         client.update(dev_pk_uri, **params), status.HTTP_400_BAD_REQUEST
     )
+
+
+def test_partial_update_merges_attributes(site, client):
+    """Test that PATCH merges attributes instead of replacing them."""
+    dev_uri = site.list_uri("device")
+    attr_uri = site.list_uri("attribute")
+
+    client.create(attr_uri, resource_name="Device", name="attr1")
+    client.create(attr_uri, resource_name="Device", name="attr2")
+    dev_resp = client.create(
+        dev_uri,
+        hostname="device1",
+        attributes={"attr1": "foo", "attr2": "bar"},
+    )
+    device = get_result(dev_resp)
+    dev_pk_uri = site.detail_uri("device", id=device["id"])
+
+    # PATCH only attr1; attr2 should be preserved
+    params = {"attributes": {"attr1": "updated"}}
+    device.update(params)
+    # After merge, both attributes should be present
+    device["attributes"] = {"attr1": "updated", "attr2": "bar"}
+    assert_success(client.partial_update(dev_pk_uri, **params), device)
+
+    # PATCH with null deletes that attribute, preserves the other
+    params = {"attributes": {"attr1": None}}
+    device["attributes"] = {"attr2": "bar"}
+    assert_success(client.partial_update(dev_pk_uri, **params), device)
+
+    # PATCH with empty dict is still a NOOP (no attributes key change)
+    params = {"attributes": {}}
+    assert_success(client.partial_update(dev_pk_uri, **params), device)
+
+    # PUT still does full replacement (no merge)
+    params = {"hostname": "device1", "attributes": {"attr1": "only"}}
+    device.update(params)
+    device["attributes"] = {"attr1": "only"}
+    assert_success(client.update(dev_pk_uri, **params), device)
 
 
 def test_deletion(site, client):

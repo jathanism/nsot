@@ -605,14 +605,15 @@ class TestUpdate(ProtocolTestCase):
         expected.update(payload)
         assert_success(client.partial_update(obj_uri, **payload), expected)
 
-        # type
+        # type (merge preserves existing attributes like 'asn')
         payload = {"type": isis_type["name"], "attributes": {"metric": "100"}}
         expected.update(payload)
+        expected["attributes"] = {"asn": "12345", "metric": "100"}
         assert_success(client.partial_update(obj_uri, **payload), expected)
 
-        # attributes
+        # attributes (merge preserves 'asn', updates 'metric')
         payload = {"attributes": {"metric": "200"}}
-        expected.update(payload)
+        expected["attributes"]["metric"] = "200"
         assert_success(client.partial_update(obj_uri, **payload), expected)
 
 
