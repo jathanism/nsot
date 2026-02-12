@@ -160,6 +160,32 @@ def test_creation_speed(site, client, device):
     assert ifc["speed"] is None
 
 
+def test_creation_mtu(site, client, device):
+    """
+    Test the behavior of the ``mtu`` field with creation
+    """
+    ifc_uri = site.list_uri("interface")
+
+    # Default, with mtu omitted from request
+    response = client.create(ifc_uri, device=device["id"], name="eth1")
+    ifc = get_result(response)
+    assert ifc["mtu"] is None
+
+    # Explicit mtu
+    response = client.create(
+        ifc_uri, device=device["id"], name="eth2", mtu=9000
+    )
+    ifc = get_result(response)
+    assert ifc["mtu"] == 9000
+
+    # MTU set to None, should come back as None
+    response = client.create(
+        ifc_uri, device=device["id"], name="eth3", mtu=None
+    )
+    ifc = get_result(response)
+    assert ifc["mtu"] is None
+
+
 def test_tree_traversal(site, client):
     """Test basic creation of an Interface."""
     ifc_uri = site.list_uri("interface")

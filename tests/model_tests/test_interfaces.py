@@ -91,6 +91,49 @@ def test_speed(device):
         iface.save()
 
 
+def test_mtu(device):
+    """Test interface MTU."""
+    iface = models.Interface.objects.create(device=device, name="eth0")
+
+    # Default MTU is None
+    assert iface.mtu is None
+
+    # Valid MTU
+    iface.mtu = 1500
+    iface.save()
+    assert iface.mtu == 1500
+
+    # String integers are ok
+    iface.mtu = "9000"
+    iface.save()
+    assert iface.mtu == 9000
+
+    # Explicit None is ok
+    iface.mtu = None
+    iface.save()
+    assert iface.mtu is None
+
+    # Below minimum (68) is bad
+    with pytest.raises(exc.ValidationError):
+        iface.mtu = 67
+        iface.save()
+
+    # Above maximum (65535) is bad
+    with pytest.raises(exc.ValidationError):
+        iface.mtu = 65536
+        iface.save()
+
+    # Floats are bad
+    with pytest.raises(exc.ValidationError):
+        iface.mtu = 1500.0
+        iface.save()
+
+    # Bad strings are bad
+    with pytest.raises(exc.ValidationError):
+        iface.mtu = "bogus"
+        iface.save()
+
+
 def test_mac_address(device):
     """Test mac_address."""
     iface = models.Interface.objects.create(device=device, name="eth0")
