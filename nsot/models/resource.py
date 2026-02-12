@@ -241,8 +241,8 @@ class Resource(models.Model):
 
         When ``partial=True`` (i.e. PATCH), only the provided attributes are
         merged on top of existing ones. Setting a value to ``None`` (JSON
-        ``null``) deletes that attribute. Required-attribute checks are skipped
-        for partial updates.
+        ``null``) deletes that attribute. Required-attribute validation runs
+        against the final merged result to prevent deletion of required keys.
         """
         log.debug("Resource.set_attributes() attributes = %r", attributes)
 
@@ -293,25 +293,25 @@ class Resource(models.Model):
             attributes = merged
 
         # Attributes that are required according to ``valid_attributes``, but
-        # are not found incoming in ``attributes``.  Skip this check for
-        # partial updates — the caller only sends the keys they want to change.
-        if not partial:
-            missing_attributes = {
-                attribute.name
-                for attribute in valid_attributes.values()
-                if attribute.required and attribute.name not in attributes
-            }
-            log.debug(
-                "Resource.set_attributes() missing_attributes = %r",
-                missing_attributes,
-            )
+        # are not found in ``attributes``. For partial updates, this validates
+        # the final merged result still has all required attributes (preventing
+        # deletion of required attributes via null).
+        missing_attributes = {
+            attribute.name
+            for attribute in valid_attributes.values()
+            if attribute.required and attribute.name not in attributes
+        }
+        log.debug(
+            "Resource.set_attributes() missing_attributes = %r",
+            missing_attributes,
+        )
 
-            # It's an error to have any missing attributes
-            if missing_attributes:
-                names = ", ".join(missing_attributes)
-                raise exc.ValidationError(
-                    {"attributes": f"Missing required attributes: {names}"}
-                )
+        # It's an error to have any missing attributes
+        if missing_attributes:
+            names = ", ".join(missing_attributes)
+            raise exc.ValidationError(
+                {"attributes": f"Missing required attributes: {names}"}
+            )
 
         # Run validation each attribute value and prepare them for DB
         # insertion, raising any validation errors immediately.

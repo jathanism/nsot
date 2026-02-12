@@ -82,6 +82,20 @@ class TestPartialAttributeUpdate:
         attrs = device.get_attributes()
         assert attrs == {"req_attr": "val1", "opt_attr": "val3"}
 
+    def test_partial_cannot_delete_required(self, site):
+        """partial=True should reject deletion of a required attribute."""
+        models.Attribute.objects.create(
+            site=site, resource_name="Device", name="req_attr", required=True
+        )
+        device = models.Device.objects.create(
+            site=site,
+            hostname="req-host2",
+            attributes={"req_attr": "val1"},
+        )
+        # Attempting to delete a required attribute via null should fail.
+        with pytest.raises(exc.ValidationError):
+            device.set_attributes({"req_attr": None}, partial=True)
+
 
 class TestFullAttributeUpdate:
     """set_attributes(partial=False) should still replace all (PUT behaviour)."""
