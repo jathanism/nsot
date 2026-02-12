@@ -9,6 +9,29 @@ from ..util import qpbool
 log = logging.getLogger(__name__)
 
 
+class ChangeFilter(django_filters.rest_framework.FilterSet):
+    """Filter for Change objects."""
+
+    user = django_filters.NumberFilter(field_name="user")
+    change_at__gte = django_filters.IsoDateTimeFilter(
+        field_name="change_at", lookup_expr="gte"
+    )
+    change_at__lte = django_filters.IsoDateTimeFilter(
+        field_name="change_at", lookup_expr="lte"
+    )
+
+    class Meta:
+        model = models.Change
+        fields = [
+            "event",
+            "resource_name",
+            "resource_id",
+            "user",
+            "change_at__gte",
+            "change_at__lte",
+        ]
+
+
 class AttributeFilter(django_filters.rest_framework.FilterSet):
     required = django_filters.BooleanFilter()
     display = django_filters.BooleanFilter()
@@ -168,10 +191,19 @@ class CircuitFilter(ResourceFilter):
 
     endpoint_a = django_filters.CharFilter(method="filter_endpoint_a")
     endpoint_z = django_filters.CharFilter(method="filter_endpoint_z")
+    device_hostname = django_filters.CharFilter(
+        method="filter_device_hostname"
+    )
 
     class Meta:
         model = models.Circuit
-        fields = ["endpoint_a", "endpoint_z", "name", "attributes"]
+        fields = [
+            "endpoint_a",
+            "endpoint_z",
+            "name",
+            "device_hostname",
+            "attributes",
+        ]
 
     # FIXME(jathan): The copy/pasted methods can be ripped out once we upgrade
     # filters in support of the V2 API. For now this is quicker and easier.
@@ -192,6 +224,13 @@ class CircuitFilter(ResourceFilter):
         if value.isdigit():
             return queryset.filter(endpoint_z=value)
         return queryset.filter(endpoint_z__name_slug=value)
+
+    def filter_device_hostname(self, queryset, name, value):
+        """Filter circuits by device hostname on either endpoint."""
+        return queryset.filter(
+            Q(endpoint_a__device__hostname=value)
+            | Q(endpoint_z__device__hostname=value)
+        )
 
 
 class ProtocolTypeFilter(django_filters.rest_framework.FilterSet):

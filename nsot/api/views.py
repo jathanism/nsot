@@ -192,7 +192,7 @@ class ChangeViewSet(BaseNsotViewSet):
 
     queryset = models.Change.objects.order_by("-change_at")
     serializer_class = serializers.ChangeSerializer
-    filterset_fields = ("event", "resource_name", "resource_id")
+    filterset_class = filters.ChangeFilter
 
     @action(methods=["get"], detail=True)
     def diff(self, request, *args, **kwargs):

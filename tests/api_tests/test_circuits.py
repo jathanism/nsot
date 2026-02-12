@@ -424,6 +424,21 @@ def test_filters(site, client):
         client.retrieve(cir_uri, attributes=["cid=abc246"]), expected
     )
 
+    # Test filter by device_hostname (foo-bar1 is A-side on both circuits)
+    wanted = [cir1, cir2]
+    expected = filter_circuits(circuits, wanted)
+    assert_success(
+        client.retrieve(cir_uri, device_hostname="foo-bar1"), expected
+    )
+
+    # Test filter by device_hostname (foo-bar2 is Z-side on both circuits)
+    assert_success(
+        client.retrieve(cir_uri, device_hostname="foo-bar2"), expected
+    )
+
+    # Test filter by device_hostname with no match
+    assert_success(client.retrieve(cir_uri, device_hostname="nonexistent"), [])
+
     # Test filter by attributes (vendor=acme)
     wanted = [cir1, cir2]
     expected = filter_circuits(circuits, wanted)

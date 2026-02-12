@@ -87,6 +87,68 @@ def test_creation(device):
         )
 
 
+def test_addresses_include_descendants(device):
+    """Test that Circuit.addresses includes addresses from all descendant
+    interfaces, not just immediate children."""
+    site = device.site
+
+    # Create a network for interface assignments
+    models.Network.objects.create(cidr="10.99.0.0/24", site=site)
+
+    # A-side: parent -> child -> grandchild
+    device_a = device
+    iface_a = models.Interface.objects.create(
+        device=device_a, name="ae1", addresses=["10.99.0.1/32"]
+    )
+    child_a = models.Interface.objects.create(
+        device=device_a,
+        name="ae1.0",
+        addresses=["10.99.0.2/32"],
+        parent=iface_a,
+    )
+    grandchild_a = models.Interface.objects.create(
+        device=device_a,
+        name="ae1.0.1",
+        addresses=["10.99.0.3/32"],
+        parent=child_a,
+    )
+
+    # Z-side: parent -> child -> grandchild
+    device_z = models.Device.objects.create(hostname="foo-bar3", site=site)
+    iface_z = models.Interface.objects.create(
+        device=device_z, name="ae1", addresses=["10.99.0.4/32"]
+    )
+    child_z = models.Interface.objects.create(
+        device=device_z,
+        name="ae1.0",
+        addresses=["10.99.0.5/32"],
+        parent=iface_z,
+    )
+    grandchild_z = models.Interface.objects.create(
+        device=device_z,
+        name="ae1.0.1",
+        addresses=["10.99.0.6/32"],
+        parent=child_z,
+    )
+
+    circuit = models.Circuit.objects.create(
+        endpoint_a=iface_a, endpoint_z=iface_z
+    )
+
+    address_strs = sorted(str(a) for a in circuit.addresses)
+    expected = sorted(
+        [
+            "10.99.0.1/32",
+            "10.99.0.2/32",
+            "10.99.0.3/32",
+            "10.99.0.4/32",
+            "10.99.0.5/32",
+            "10.99.0.6/32",
+        ]
+    )
+    assert address_strs == expected
+
+
 def test_attributes(circuit):
     """Test that attributes work as expected."""
     models.Attribute.objects.create(
