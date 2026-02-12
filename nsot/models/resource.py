@@ -215,6 +215,9 @@ class Resource(models.Model):
     # If True, clean_site() returns Site object; if False, returns site_id
     site_returns_object = False
 
+    # Whether to validate uniqueness in full_clean() during save()
+    _validate_unique_on_save = True
+
     def __init__(self, *args, **kwargs):
         self._set_attributes = kwargs.pop("attributes", None)
         super().__init__(*args, **kwargs)
@@ -417,6 +420,11 @@ class Resource(models.Model):
 
         # Use incoming valid_attributes if they are provided.
         valid_attributes = kwargs.pop("valid_attributes", None)
+
+        # Allow subclasses to skip full_clean (e.g., Network does its own)
+        skip_full_clean = kwargs.pop("_skip_full_clean", False)
+        if not skip_full_clean:
+            self.full_clean(validate_unique=self._validate_unique_on_save)
 
         super().save(*args, **kwargs)
 

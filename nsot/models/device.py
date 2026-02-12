@@ -60,10 +60,6 @@ class Device(Resource):
     def clean_fields(self, exclude=None):
         self.hostname = self.clean_hostname(self.hostname)
 
-    def save(self, *args, **kwargs):
-        self.full_clean()
-        super().save(*args, **kwargs)
-
     def to_dict(self):
         return {
             "id": self.id,

@@ -155,10 +155,6 @@ class Circuit(Resource):
 
         self.name_slug = util.slugify(self.name)
 
-    def save(self, *args, **kwargs):
-        self.full_clean()
-        super().save(*args, **kwargs)
-
     def to_dict(self):
         return {
             "id": self.id,
