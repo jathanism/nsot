@@ -636,7 +636,8 @@ class Network(Resource):
             raise exc.ValidationError("IP Address needs base network.")
 
         # Save, so we get an ID, and register our parent.
-        super().save(*args, **kwargs)
+        # Skip full_clean in Resource.save() since we already did it above.
+        super().save(*args, _skip_full_clean=True, **kwargs)
 
         # If we're not an IP, determine our subnets and reparent them.
         if not self.is_ip:

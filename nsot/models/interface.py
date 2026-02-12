@@ -22,6 +22,9 @@ class Interface(Resource):
     # Derive site from device
     site_source_field = "device"
 
+    # Don't validate unique in save() - we want IntegrityError for 409 CONFLICT
+    _validate_unique_on_save = False
+
     # if_name
     # SNMP: ifName
     # if_description
@@ -460,9 +463,6 @@ class Interface(Resource):
         self.name_slug = self.clean_name_slug()
 
     def save(self, *args, **kwargs):
-        # We don't want to validate unique because we want the IntegrityError
-        # to fall through so we can catch it an raise a 409 CONFLICT.
-        self.full_clean(validate_unique=False)
         super().save(*args, **kwargs)
 
         # This is so that we can set the addresses on create/update, but if
