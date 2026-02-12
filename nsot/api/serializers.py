@@ -86,19 +86,12 @@ class AttributeDefaultField(fields.Field):
         return value
 
     def to_internal_value(self, data):
-        # Allow None, string, or list of strings
+        # Allow None, string, or list of strings. No automatic JSON parsing —
+        # DRF handles deserialization, so strings stay strings and lists stay
+        # lists. Model validation (clean_default) enforces type correctness.
         if data is None:
             return None
-        if isinstance(data, str):
-            # Try to parse stringified JSON lists (e.g., '["a", "b"]')
-            try:
-                parsed = json.loads(data)
-                if isinstance(parsed, list):
-                    return parsed
-            except (ValueError, TypeError):
-                pass
-            return data
-        if isinstance(data, list):
+        if isinstance(data, (str, list)):
             return data
         return data
 
