@@ -3,6 +3,7 @@ from collections import OrderedDict, namedtuple
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from rest_framework import (
     mixins,
@@ -313,9 +314,9 @@ class NsotViewSet(BaseNsotViewSet, viewsets.ModelViewSet):
         if len(ids) == 0:
             raise exc.BadRequest("No IDs provided for bulk delete.")
 
-        # Validate all IDs are integers
+        # Validate all IDs are integers (reject booleans, which are int subclass)
         for id_ in ids:
-            if not isinstance(id_, int):
+            if isinstance(id_, bool) or not isinstance(id_, int):
                 raise exc.BadRequest(
                     "All IDs must be integers. Got: %r" % (id_,)
                 )
@@ -335,9 +336,11 @@ class NsotViewSet(BaseNsotViewSet, viewsets.ModelViewSet):
             self.check_object_permissions(request, obj)
             objects.append(obj)
 
-        # Perform deletion
-        for obj in objects:
-            self.perform_destroy(obj)
+        # Perform deletion atomically so partial failures don't leave
+        # the database in a half-deleted state.
+        with transaction.atomic():
+            for obj in objects:
+                self.perform_destroy(obj)
 
         return Response(status=status_codes.HTTP_204_NO_CONTENT)
 
