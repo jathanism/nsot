@@ -226,7 +226,9 @@ class ChangeSerializer(NsotSerializer):
 
     def to_representation(self, obj):
         data = super().to_representation(obj)
-        data["resource_diff"] = obj.resource_diff
+        view = self.context.get("view")
+        if view and getattr(view, "action", None) in ("retrieve", "diff"):
+            data["resource_diff"] = obj.resource_diff
         return data
 
 

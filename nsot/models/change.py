@@ -164,10 +164,8 @@ class Change(models.Model):
             }
 
         if self.event == "Delete":
-            prev = self._get_previous_change()
-            old_resource = prev._resource if prev else self._resource
             return {
-                k: {"old": v, "new": None} for k, v in old_resource.items()
+                k: {"old": v, "new": None} for k, v in self._resource.items()
             }
 
         # Update — show only changed fields
