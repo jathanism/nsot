@@ -93,10 +93,10 @@ class Circuit(Resource):
         for interface in self.interfaces:
             addresses.extend(interface.addresses.all())
 
-            # For each interface, get addresses of all child interfaces and
-            # extend the list.
-            for child in interface.children.all():
-                addresses.extend(child.addresses.all())
+            # For each interface, get addresses of all descendant interfaces
+            # (children, grandchildren, etc.) and extend the list.
+            for descendant in interface.get_descendants():
+                addresses.extend(descendant.addresses.all())
 
         return addresses
 
