@@ -304,10 +304,18 @@ class Resource(models.Model):
 
             # Use merged as the canonical attributes for the rest of the flow.
             attributes = merged
+        else:
+            deletions = set()
 
-        # Apply default values for attributes that have defaults and aren't provided
+        # Apply default values for attributes that have defaults and aren't
+        # provided. Skip attributes that were explicitly deleted via null in a
+        # partial update — explicit deletion takes priority over defaults.
         for attr_name, attr in valid_attributes.items():
-            if attr_name not in attributes and attr.default is not None:
+            if (
+                attr_name not in attributes
+                and attr_name not in deletions
+                and attr.default is not None
+            ):
                 attributes[attr_name] = attr.default
 
         # Attributes that are required according to ``valid_attributes``, but
