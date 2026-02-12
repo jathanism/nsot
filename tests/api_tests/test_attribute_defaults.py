@@ -200,3 +200,30 @@ def test_default_none_means_no_default(client, site):
     assert resp.status_code == status.HTTP_201_CREATED
     result = get_result(resp)
     assert "optional-thing" not in result["attributes"]
+
+
+def test_explicit_null_deletion_not_overridden_by_default(client, site):
+    """PATCH with null should delete attribute even if it has a default."""
+    attr_uri = site.list_uri("attribute")
+    dev_uri = site.list_uri("device")
+
+    client.create(
+        attr_uri,
+        resource_name="Device",
+        name="region",
+        required=False,
+        default="us-west",
+    )
+
+    # Create device — gets the default
+    resp = client.create(dev_uri, hostname="test-dev7")
+    assert resp.status_code == status.HTTP_201_CREATED
+    result = get_result(resp)
+    assert result["attributes"]["region"] == "us-west"
+
+    # PATCH with null to explicitly delete
+    detail_uri = site.detail_uri("device", result["id"])
+    resp = client.partial_update(detail_uri, attributes={"region": None})
+    assert resp.status_code == status.HTTP_200_OK
+    result = get_result(resp)
+    assert "region" not in result["attributes"]

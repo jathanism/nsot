@@ -90,15 +90,16 @@ class AttributeDefaultField(fields.Field):
         if data is None:
             return None
         if isinstance(data, str):
+            # Try to parse stringified JSON lists (e.g., '["a", "b"]')
+            try:
+                parsed = json.loads(data)
+                if isinstance(parsed, list):
+                    return parsed
+            except (ValueError, TypeError):
+                pass
             return data
         if isinstance(data, list):
             return data
-        # Try to parse as JSON if it's a string representation
-        if isinstance(data, str):
-            try:
-                return json.loads(data)
-            except (ValueError, TypeError):
-                return data
         return data
 
 
