@@ -379,8 +379,9 @@ class Resource(models.Model):
         to derive site from (e.g., 'device', 'endpoint_a'). Set
         site_returns_object=True to return the Site object instead of site_id.
         """
-        # If value is provided and truthy, return as-is
-        if value:
+        # If value is provided, return as-is (use identity check to preserve
+        # original behavior — only derive site when value is explicitly None)
+        if value is not None:
             return value
 
         # If no source field configured, return value as-is
