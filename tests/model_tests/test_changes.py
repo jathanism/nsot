@@ -101,18 +101,8 @@ def test_resource_diff_delete(create, device, user):
     )
     diff = delete.resource_diff
 
-    # Every field should appear with new=None, old from previous change
-    prev = (
-        models.Change.objects.filter(
-            resource_id=delete.resource_id,
-            resource_name=delete.resource_name,
-            change_at__lt=delete.change_at,
-        )
-        .order_by("-change_at")
-        .first()
-    )
-
-    for key, value in prev.resource.items():
+    # Every field should appear with new=None, old from self._resource
+    for key, value in delete.resource.items():
         assert key in diff
         assert diff[key]["old"] == value
         assert diff[key]["new"] is None
