@@ -7,6 +7,9 @@ from .resource import Resource
 class Circuit(Resource):
     """Represents two network Interfaces that are connected"""
 
+    # Derive site from A-side endpoint
+    site_source_field = "endpoint_a"
+
     # A-side endpoint interface
     endpoint_a = models.OneToOneField(
         "Interface",
@@ -119,13 +122,6 @@ class Circuit(Resource):
         if self.endpoint_z and self.endpoint_z.device == device:
             return self.endpoint_z
         return None
-
-    def clean_site(self, value):
-        """Always enforce that site is set."""
-        if value is None:
-            return self.endpoint_a.site_id
-
-        return value
 
     def clean_endpoint_a(self, value):
         if Circuit.objects.filter(endpoint_z=value).exists():

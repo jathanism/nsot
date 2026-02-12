@@ -19,6 +19,9 @@ log = logging.getLogger(__name__)
 class Interface(Resource):
     """A network interface."""
 
+    # Derive site from device
+    site_source_field = "device"
+
     # if_name
     # SNMP: ifName
     # if_description
@@ -364,16 +367,6 @@ class Interface(Resource):
     def clean_name(self, value):
         """Enforce name."""
         return validators.validate_name(value)
-
-    def clean_site(self, value):
-        """Always enforce that site is set."""
-        if value is None:
-            try:
-                return self.device.site_id
-            except Device.DoesNotExist:
-                return Device.objects.get(id=self.device_id).site_id
-
-        return value
 
     def clean_speed(self, value):
         """Enforce valid speed."""

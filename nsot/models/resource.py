@@ -209,6 +209,12 @@ class Resource(models.Model):
         help_text="Local cache of attributes. (Internal use only)",
     )
 
+    # Subclasses set this to the field name to derive site from (e.g., 'device')
+    site_source_field = None
+
+    # If True, clean_site() returns Site object; if False, returns site_id
+    site_returns_object = False
+
     def __init__(self, *args, **kwargs):
         self._set_attributes = kwargs.pop("attributes", None)
         super().__init__(*args, **kwargs)
@@ -361,6 +367,50 @@ class Resource(models.Model):
         self._attributes_cache = attrs  # Cache the attributes
 
         return attrs
+
+    def clean_site(self, value):
+        """
+        Ensure site is set. If not provided, derive from site_source_field.
+
+        Subclasses set site_source_field to the name of the relation field
+        to derive site from (e.g., 'device', 'endpoint_a'). Set
+        site_returns_object=True to return the Site object instead of site_id.
+        """
+        # If value is provided and truthy, return as-is
+        if value:
+            return value
+
+        # If no source field configured, return value as-is
+        if self.site_source_field is None:
+            return value
+
+        # Try to get the source object
+        source = None
+        try:
+            source = getattr(self, self.site_source_field)
+        except self._meta.get_field(
+            self.site_source_field
+        ).related_model.DoesNotExist:
+            # Source relation not loaded; try via FK id
+            fk_id = getattr(self, f"{self.site_source_field}_id", None)
+            if fk_id is not None:
+                field = self._meta.get_field(self.site_source_field)
+                source = field.related_model.objects.get(id=fk_id)
+
+        if source is None:
+            return value
+
+        # Return either site object or site_id based on class configuration
+        if self.site_returns_object:
+            site_value = source.site
+            if not site_value:
+                msg = (
+                    "No site was provided and the provided Device does not "
+                    "have a site defined"
+                )
+                raise exc.ValidationError({"site": msg})
+            return site_value
+        return source.site_id
 
     def save(self, *args, **kwargs):
         self._is_new = self.id is None  # Check if this is a new object.

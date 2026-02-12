@@ -10,6 +10,10 @@ class Protocol(Resource):
     Representation of a routing protocol
     """
 
+    # Derive site from device; returns Site object (not site_id)
+    site_source_field = "device"
+    site_returns_object = True
+
     site = models.ForeignKey(
         "Site",
         db_index=True,
@@ -87,23 +91,6 @@ class Protocol(Resource):
 
     class Meta:
         ordering = ("device",)
-
-    def clean_site(self, value):
-        """
-        Ensure we have a site set. If one is not explicitly set, glean it from
-        the device. If the device has none, then raise a ValidationError
-        """
-        if not value:
-            value = self.device.site
-
-        if not value:
-            msg = (
-                "No site was provided and the provided Device does not have "
-                "a site defined"
-            )
-            raise exc.ValidationError({"site": msg})
-
-        return value
 
     def clean_circuit(self, value):
         """Ensure at least one endpoint on the circuit is on this device"""
