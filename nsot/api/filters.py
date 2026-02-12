@@ -144,6 +144,7 @@ class InterfaceFilter(ResourceFilter):
             "device__hostname",
             "name",
             "speed",
+            "mtu",
             "type",
             "mac_address",
             "description",

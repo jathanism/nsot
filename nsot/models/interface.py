@@ -127,6 +127,15 @@ class Interface(Resource):
         ),
     )
 
+    # Maximum Transmission Unit (MTU) in bytes
+    mtu = models.IntegerField(
+        blank=True,
+        db_index=True,
+        default=None,
+        null=True,
+        help_text="MTU (Maximum Transmission Unit) in bytes.",
+    )
+
     parent = models.ForeignKey(
         "self",
         blank=True,
@@ -385,6 +394,26 @@ class Interface(Resource):
         else:
             return value
 
+    def clean_mtu(self, value):
+        """Enforce valid MTU."""
+        if value is None:
+            return value
+
+        if isinstance(value, float):
+            raise exc.ValidationError({"mtu": "MTU must be an integer."})
+
+        try:
+            value = int(value)
+        except ValueError:
+            raise exc.ValidationError({"mtu": "Invalid MTU: %r" % value})
+
+        if value < 68 or value > 65535:
+            raise exc.ValidationError(
+                {"mtu": "MTU must be between 68 and 65535."}
+            )
+
+        return value
+
     def clean_type(self, value):
         """Enforce valid type. Accepts integer IDs or string names."""
         if value is None:
@@ -431,6 +460,7 @@ class Interface(Resource):
         self.name = self.clean_name(self.name)
         self.type = self.clean_type(self.type)
         self.speed = self.clean_speed(self.speed)
+        self.mtu = self.clean_mtu(self.mtu)
         self.mac_address = self.clean_mac_address(self.mac_address)
         self.device_hostname = self.clean_device_hostname(self.device)
         self.parent = self.clean_parent(self.parent)
@@ -470,6 +500,7 @@ class Interface(Resource):
             "networks": self.get_networks(),
             "mac_address": self.get_mac_address(),
             "speed": self.speed,
+            "mtu": self.mtu,
             "type": self.type,
             "type_name": self.get_type_display(),
             "attributes": self.get_attributes(),
