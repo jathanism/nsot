@@ -452,7 +452,7 @@ def test_update(site, client):
 
     # Update parent by natural key (set `ifc` as parent to `ifc2`)
     params["parent_id"] = ifc["name_slug"]
-    payload["parent_id"] = ifc["id"]
+    payload["parent_id"] = ifc["name_slug"]
     payload["parent"] = ifc["name_slug"]
     payload["name_slug"] = slugify_interface(**payload)
 
