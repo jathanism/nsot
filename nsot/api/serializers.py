@@ -255,16 +255,7 @@ class ChangeSerializer(NsotSerializer):
 
     class Meta:
         model = models.Change
-        fields = (
-            "id",
-            "site",
-            "user",
-            "change_at",
-            "event",
-            "resource_name",
-            "resource_id",
-            "resource",
-        )
+        exclude = ["_resource"]
 
     def get_user(self, obj):
         return {"id": obj.user.id, "email": obj.user.email}
@@ -296,18 +287,7 @@ class AttributeSerializer(NsotSerializer):
 
     class Meta:
         model = models.Attribute
-        fields = (
-            "id",
-            "site_id",
-            "description",
-            "name",
-            "resource_name",
-            "required",
-            "display",
-            "multi",
-            "constraints",
-            "default",
-        )
+        exclude = ["_default"]
 
     def get_constraints(self, obj):
         return obj.constraints
@@ -388,14 +368,7 @@ class ValueSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Value
-        fields = (
-            "id",
-            "name",
-            "value",
-            "attribute",
-            "resource_name",
-            "resource_id",
-        )
+        exclude = ["site"]
 
 
 class ValueCreateSerializer(ValueSerializer):
@@ -476,7 +449,7 @@ class DeviceSerializer(ResourceSerializer):
 
     class Meta:
         model = models.Device
-        fields = ("id", "site_id", "hostname", "attributes")
+        exclude = ["_attributes_cache", "site"]
 
     def get_attributes(self, obj):
         return obj.get_attributes()
@@ -537,25 +510,14 @@ class NetworkSerializer(ResourceSerializer):
     """Used for GET, DELETE on Networks."""
 
     cidr = serializers.CharField(read_only=True)
+    parent_id = serializers.IntegerField(read_only=True, allow_null=True)
     parent = serializers.SerializerMethodField()
     is_ip = serializers.BooleanField(read_only=True)
     attributes = serializers.SerializerMethodField()
 
     class Meta:
         model = models.Network
-        fields = (
-            "id",
-            "cidr",
-            "parent_id",
-            "parent",
-            "site_id",
-            "is_ip",
-            "ip_version",
-            "network_address",
-            "prefix_length",
-            "state",
-            "attributes",
-        )
+        exclude = ["_attributes_cache", "broadcast_address", "site"]
 
     def get_parent(self, obj):
         return obj.parent.cidr if obj.parent else None
@@ -629,6 +591,9 @@ class NetworkUpdateSerializer(NetworkPartialUpdateSerializer):
 class InterfaceSerializer(ResourceSerializer):
     """Used for GET, DELETE on Interfaces."""
 
+    # Suppress site_id from ResourceSerializer — Interface output doesn't
+    # include it (matches to_dict output used by detail routes).
+    site_id = None
     parent_id = serializers.IntegerField(read_only=True, allow_null=True)
     parent = serializers.SerializerMethodField()
     # For read, device returns device_id (matching to_dict output).
@@ -643,24 +608,12 @@ class InterfaceSerializer(ResourceSerializer):
 
     class Meta:
         model = models.Interface
-        fields = (
-            "id",
-            "parent_id",
-            "parent",
-            "name",
-            "name_slug",
-            "device",
-            "device_hostname",
-            "description",
-            "addresses",
-            "networks",
-            "mac_address",
-            "speed",
-            "mtu",
-            "type",
-            "type_name",
-            "attributes",
-        )
+        exclude = [
+            "_attributes_cache",
+            "_addresses_cache",
+            "_networks_cache",
+            "site",
+        ]
 
     def get_parent(self, obj):
         return obj.parent.name_slug if obj.parent else None
@@ -873,15 +826,7 @@ class CircuitSerializer(ResourceSerializer):
 
     class Meta:
         model = models.Circuit
-        fields = (
-            "id",
-            "site_id",
-            "name",
-            "name_slug",
-            "endpoint_a",
-            "endpoint_z",
-            "attributes",
-        )
+        exclude = ["_attributes_cache", "site"]
 
     def get_endpoint_a(self, obj):
         return obj.endpoint_a.name_slug if obj.endpoint_a else None
@@ -981,17 +926,7 @@ class ProtocolSerializer(ResourceSerializer):
 
     class Meta:
         model = models.Protocol
-        fields = (
-            "id",
-            "site",
-            "type",
-            "device",
-            "interface",
-            "circuit",
-            "description",
-            "auth_string",
-            "attributes",
-        )
+        exclude = ["_attributes_cache"]
 
     def get_type(self, obj):
         return obj.type.name
