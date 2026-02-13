@@ -107,6 +107,10 @@ class NaturalKeyRelatedField(serializers.SlugRelatedField):
     """Field that takes either a primary key or a natural key."""
 
     def to_representation(self, value):
+        # When the source is a FK column (e.g. parent_id), DRF passes the raw
+        # PK value (int) rather than the related object. Return it as-is.
+        if isinstance(value, (int, str, type(None))):
+            return value
         return getattr(value, self.slug_field)
 
     def to_internal_value(self, value):
@@ -641,7 +645,6 @@ class InterfaceSerializer(ResourceSerializer):
     """Used for GET, DELETE on Interfaces."""
 
     parent_id = NaturalKeyRelatedField(
-        source="parent",
         required=False,
         allow_null=True,
         slug_field="name_slug",
