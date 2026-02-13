@@ -209,9 +209,27 @@ class WriteSerializerMixin:
 
     Subclasses must define ``read_serializer_class`` pointing to the read
     serializer whose output format should be used for ``to_representation``.
+
+    This mixin also disables ``FlexFieldsSerializerMixin`` behaviour
+    (``?fields``, ``?omit``, ``?expand``) during deserialization so that
+    query-parameter driven field removal/expansion cannot strip required
+    fields (e.g. ``site_id``) from write payloads.
     """
 
     read_serializer_class = None
+
+    def get_fields(self):
+        """Bypass flex-fields ``apply_flex_fields`` during deserialization.
+
+        ``FlexFieldsSerializerMixin.get_fields`` calls ``apply_flex_fields``
+        which can pop required fields from the field map when ``?fields`` or
+        ``?omit`` query parameters are present.  Write serializers must always
+        expose the full set of declared fields so that ``to_internal_value``
+        receives all expected inputs.
+        """
+        # Skip FlexFieldsSerializerMixin.get_fields; go straight to the base
+        # ModelSerializer implementation.
+        return super(FlexFieldsSerializerMixin, self).get_fields()
 
     def to_representation(self, obj):
         if self.read_serializer_class is None:
