@@ -569,9 +569,6 @@ class NetworkUpdateSerializer(NetworkPartialUpdateSerializer):
 class InterfaceSerializer(ResourceSerializer):
     """Used for GET, DELETE on Interfaces."""
 
-    # Suppress site_id from ResourceSerializer — Interface output doesn't
-    # include it (matches to_dict output used by detail routes).
-    site_id = None
     parent_id = NaturalKeyRelatedField(
         source="parent",
         required=False,
