@@ -285,9 +285,11 @@ class AttributeSerializer(NsotSerializer):
     constraints = serializers.SerializerMethodField()
     default = serializers.SerializerMethodField()
 
+    site_id = serializers.IntegerField(source="site.id", read_only=True)
+
     class Meta:
         model = models.Attribute
-        exclude = ["_default"]
+        exclude = ["_default", "site"]
 
     def get_constraints(self, obj):
         return obj.constraints
@@ -923,6 +925,8 @@ class ProtocolSerializer(ResourceSerializer):
     interface = serializers.SerializerMethodField()
     circuit = serializers.SerializerMethodField()
     attributes = serializers.SerializerMethodField()
+
+    site_id = None  # Suppress inherited site_id from ResourceSerializer
 
     class Meta:
         model = models.Protocol
