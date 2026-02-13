@@ -369,6 +369,50 @@ class AttributeUpdateSerializer(
         )
 
 
+############
+# Assignment
+############
+class AssignmentSerializer(serializers.ModelSerializer):
+    """Used for GET on Assignments (address-to-interface bindings)."""
+
+    device = serializers.IntegerField(
+        source="interface.device.id",
+        read_only=True,
+        help_text="ID of the Device this assignment belongs to.",
+    )
+    hostname = serializers.CharField(
+        source="interface.device_hostname",
+        read_only=True,
+        help_text="Hostname of the Device this assignment belongs to.",
+    )
+    interface = serializers.IntegerField(
+        source="interface.id",
+        read_only=True,
+        help_text="ID of the Interface this address is assigned to.",
+    )
+    interface_name = serializers.CharField(
+        source="interface.name",
+        read_only=True,
+        help_text="Name of the Interface this address is assigned to.",
+    )
+    address = serializers.CharField(
+        source="address.cidr",
+        read_only=True,
+        help_text="CIDR of the assigned address.",
+    )
+
+    class Meta:
+        model = models.Assignment
+        fields = (
+            "id",
+            "device",
+            "hostname",
+            "interface",
+            "interface_name",
+            "address",
+        )
+
+
 #######
 # Value
 #######
