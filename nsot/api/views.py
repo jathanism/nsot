@@ -82,51 +82,21 @@ class BaseNsotViewSet(viewsets.ReadOnlyModelViewSet):
 
         return Response(data, status=status, headers=headers)
 
-    #: Registry of model -> serializer class for cross-model detail routes.
-    _model_serializer_map = None
+    def list(
+        self,
+        request,
+        site_pk=None,
+        queryset=None,
+        serializer_class=None,
+        *args,
+        **kwargs,
+    ):
+        """List objects optionally filtered by site.
 
-    @classmethod
-    def _get_model_serializer_map(cls):
-        """Lazily build a mapping of model class -> read serializer class."""
-        if cls._model_serializer_map is None:
-            from . import serializers as ser
-
-            cls._model_serializer_map = {
-                ser.SiteSerializer.Meta.model: ser.SiteSerializer,
-                ser.DeviceSerializer.Meta.model: ser.DeviceSerializer,
-                ser.NetworkSerializer.Meta.model: ser.NetworkSerializer,
-                ser.InterfaceSerializer.Meta.model: ser.InterfaceSerializer,
-                ser.CircuitSerializer.Meta.model: ser.CircuitSerializer,
-                ser.ProtocolSerializer.Meta.model: ser.ProtocolSerializer,
-                ser.ProtocolTypeSerializer.Meta.model: ser.ProtocolTypeSerializer,
-                ser.AttributeSerializer.Meta.model: ser.AttributeSerializer,
-            }
-        return cls._model_serializer_map
-
-    def _get_serializer_for_queryset(self, queryset):
-        """Return the appropriate serializer class for a queryset's model.
-
-        If the queryset's model matches this viewset's serializer, use it.
-        Otherwise, look up the correct read serializer from the registry.
+        :param serializer_class:
+            Optional serializer class override for cross-model detail routes
+            (e.g. CircuitViewSet.interfaces() passing InterfaceSerializer).
         """
-        qs_model = getattr(queryset, "model", None)
-        if qs_model is None:
-            # For plain lists, infer model from the first element.
-            if isinstance(queryset, list) and queryset:
-                qs_model = type(queryset[0])
-            else:
-                return self.get_serializer_class()
-        own_model = getattr(
-            getattr(self.get_serializer_class(), "Meta", None), "model", None
-        )
-        if qs_model == own_model:
-            return self.get_serializer_class()
-        return self._get_model_serializer_map().get(
-            qs_model, self.get_serializer_class()
-        )
-
-    def list(self, request, site_pk=None, queryset=None, *args, **kwargs):
-        """List objects optionally filtered by site."""
         if queryset is None:
             queryset = self.filter_queryset(self.get_queryset())
             # Query by site_pk if it's set (e.g. /sites/1/:foo) and make sure
@@ -134,18 +104,24 @@ class BaseNsotViewSet(viewsets.ReadOnlyModelViewSet):
             if site_pk is not None:
                 queryset = queryset.filter(site=site_pk)
 
-        # Use the correct serializer for the queryset's model type.
-        serializer_class = self._get_serializer_for_queryset(queryset)
+        if serializer_class is None:
+            serializer_class = self.get_serializer_class()
+
+        context = self.get_serializer_context()
 
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = serializer_class(
-                page, many=True, context=self.get_serializer_context()
+                page,
+                many=True,
+                context=context,
             )
             return super().get_paginated_response(serializer.data)
 
         serializer = serializer_class(
-            queryset, many=True, context=self.get_serializer_context()
+            queryset,
+            many=True,
+            context=context,
         )
         return self.success(serializer.data)
 
@@ -515,7 +491,13 @@ class DeviceViewSet(ResourceViewSet):
         device = self.get_resource_object(pk, site_pk)
         interfaces = device.interfaces.all()
 
-        return self.list(request, queryset=interfaces, *args, **kwargs)
+        return self.list(
+            request,
+            queryset=interfaces,
+            serializer_class=serializers.InterfaceSerializer,
+            *args,
+            **kwargs,
+        )
 
     @action(methods=["get"], detail=True)
     def circuits(self, request, pk=None, site_pk=None, *args, **kwargs):
@@ -523,7 +505,13 @@ class DeviceViewSet(ResourceViewSet):
         device = self.get_resource_object(pk, site_pk)
         circuits = device.circuits
 
-        return self.list(request, queryset=circuits, *args, **kwargs)
+        return self.list(
+            request,
+            queryset=circuits,
+            serializer_class=serializers.CircuitSerializer,
+            *args,
+            **kwargs,
+        )
 
 
 class NetworkViewSet(ResourceViewSet):
@@ -720,7 +708,13 @@ class NetworkViewSet(ResourceViewSet):
         network = self.get_resource_object(pk, site_pk)
         assignments = network.assignments.all()
 
-        return self.list(request, queryset=assignments, *args, **kwargs)
+        return self.list(
+            request,
+            queryset=assignments,
+            serializer_class=serializers.AssignmentSerializer,
+            *args,
+            **kwargs,
+        )
 
     @action(methods=["get"], detail=False)
     def reserved(self, request, site_pk=None, *args, **kwargs):
@@ -778,20 +772,38 @@ class InterfaceViewSet(ResourceViewSet):
         """Return a list of addresses for this Interface."""
         interface = self.get_resource_object(pk, site_pk)
         addresses = interface.addresses.all()
-        return self.list(request, queryset=addresses, *args, **kwargs)
+        return self.list(
+            request,
+            queryset=addresses,
+            serializer_class=serializers.NetworkSerializer,
+            *args,
+            **kwargs,
+        )
 
     @action(methods=["get"], detail=True)
     def assignments(self, request, pk=None, site_pk=None, *args, **kwargs):
         """Return a list of information about my assigned addresses."""
         interface = self.get_resource_object(pk, site_pk)
         assignments = interface.assignments.all()
-        return self.list(request, queryset=assignments, *args, **kwargs)
+        return self.list(
+            request,
+            queryset=assignments,
+            serializer_class=serializers.AssignmentSerializer,
+            *args,
+            **kwargs,
+        )
 
     @action(methods=["get"], detail=True)
     def networks(self, request, pk=None, site_pk=None, *args, **kwargs):
         """Return all the containing Networks for my assigned addresses."""
         interface = self.get_resource_object(pk, site_pk)
-        return self.list(request, queryset=interface.networks, *args, **kwargs)
+        return self.list(
+            request,
+            queryset=interface.networks,
+            serializer_class=serializers.NetworkSerializer,
+            *args,
+            **kwargs,
+        )
 
     @action(methods=["get"], detail=True)
     def parent(self, request, pk=None, site_pk=None, *args, **kwargs):
@@ -930,7 +942,13 @@ class CircuitViewSet(ResourceViewSet):
         circuit = self.get_resource_object(pk, site_pk)
         addresses = circuit.addresses
 
-        return self.list(request, queryset=addresses, *args, **kwargs)
+        return self.list(
+            request,
+            queryset=addresses,
+            serializer_class=serializers.NetworkSerializer,
+            *args,
+            **kwargs,
+        )
 
     @action(methods=["get"], detail=True)
     def devices(self, request, pk=None, site_pk=None, *args, **kwargs):
@@ -938,7 +956,13 @@ class CircuitViewSet(ResourceViewSet):
         circuit = self.get_resource_object(pk, site_pk)
         devices = circuit.devices
 
-        return self.list(request, queryset=devices, *args, **kwargs)
+        return self.list(
+            request,
+            queryset=devices,
+            serializer_class=serializers.DeviceSerializer,
+            *args,
+            **kwargs,
+        )
 
     @action(methods=["get"], detail=True)
     def interfaces(self, request, pk=None, site_pk=None, *args, **kwargs):
@@ -946,7 +970,13 @@ class CircuitViewSet(ResourceViewSet):
         circuit = self.get_resource_object(pk, site_pk)
         interfaces = circuit.interfaces
 
-        return self.list(request, queryset=interfaces, *args, **kwargs)
+        return self.list(
+            request,
+            queryset=interfaces,
+            serializer_class=serializers.InterfaceSerializer,
+            *args,
+            **kwargs,
+        )
 
 
 class ProtocolTypeViewSet(NsotViewSet):
