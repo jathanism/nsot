@@ -5,6 +5,93 @@ REST API
 NSoT is designed as an API-first application so that all possible actions are
 published as API endpoints.
 
+.. _dynamic-field-selection:
+
+Dynamic Field Selection
+=======================
+
+All resource endpoints support three query parameters for controlling which
+fields appear in the response:
+
+``?fields=field1,field2``
+    **Sparse fieldsets** — only return the specified fields.
+
+``?omit=field1,field2``
+    **Exclude fields** — return everything except the listed fields.
+
+``?expand=field1,field2``
+    **Expand related objects** — replace foreign-key values with the full
+    nested object.
+
+These parameters can be combined freely and work on both list and detail
+endpoints.
+
+Fields & Omit
+-------------
+
+Return only ``id`` and ``hostname`` for devices:
+
+.. code-block:: bash
+
+    $ curl -s "http://localhost:8990/api/sites/1/devices/?fields=id,hostname"
+
+Return devices without the ``attributes`` key:
+
+.. code-block:: bash
+
+    $ curl -s "http://localhost:8990/api/sites/1/devices/?omit=attributes"
+
+Expand
+------
+
+By default, related objects are represented as IDs or natural keys. Use
+``?expand`` to inline the full object.
+
+Expand the site on a device:
+
+.. code-block:: bash
+
+    $ curl -s "http://localhost:8990/api/sites/1/devices/?expand=site_id"
+
+    [
+        {
+            "id": 1,
+            "hostname": "foo-bar1",
+            "site_id": {
+                "id": 1,
+                "name": "Test Site",
+                ...
+            },
+            "attributes": {}
+        }
+    ]
+
+Expand the device on an interface:
+
+.. code-block:: bash
+
+    $ curl -s "http://localhost:8990/api/sites/1/interfaces/?expand=device"
+
+Deep (dot-notation) expansion is also supported:
+
+.. code-block:: bash
+
+    $ curl -s "http://localhost:8990/api/sites/1/interfaces/?expand=device.site_id"
+
+Expandable Fields Reference
+----------------------------
+
+========== ========================
+Resource   Expandable fields
+========== ========================
+Device     ``site_id``
+Network    ``site_id``, ``parent_id``
+Interface  ``device``, ``parent_id``
+Attribute  ``site_id``
+========== ========================
+
+Unknown expand values are silently ignored.
+
 .. _api-ref:
 
 API Reference

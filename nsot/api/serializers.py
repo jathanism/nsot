@@ -5,6 +5,7 @@ from collections import OrderedDict
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from rest_flex_fields.serializers import FlexFieldsSerializerMixin
 from rest_framework import fields, serializers
 from rest_framework import validators as drf_validators
 
@@ -164,7 +165,7 @@ class NaturalKeyRelatedField(serializers.SlugRelatedField):
 ###################
 # Base Serializer #
 ###################
-class NsotSerializer(serializers.ModelSerializer):
+class NsotSerializer(FlexFieldsSerializerMixin, serializers.ModelSerializer):
     """Base serializer that logs change events."""
 
     def to_internal_value(self, data):
@@ -299,6 +300,10 @@ class ChangeSerializer(NsotSerializer):
 ###########
 class AttributeSerializer(NsotSerializer):
     """Used for GET, DELETE on Attributes."""
+
+    expandable_fields = {
+        "site_id": ("nsot.api.serializers.SiteSerializer", {"source": "site"}),
+    }
 
     constraints = serializers.JSONField(read_only=True)
     default = serializers.JSONField(read_only=True)
@@ -505,6 +510,10 @@ class ResourceSerializer(NsotSerializer):
 class DeviceSerializer(ResourceSerializer):
     """Used for GET, DELETE on Devices."""
 
+    expandable_fields = {
+        "site_id": ("nsot.api.serializers.SiteSerializer", {"source": "site"}),
+    }
+
     class Meta:
         model = models.Device
         exclude = ["_attributes_cache", "site"]
@@ -557,6 +566,14 @@ class DeviceUpdateSerializer(DevicePartialUpdateSerializer):
 #########
 class NetworkSerializer(ResourceSerializer):
     """Used for GET, DELETE on Networks."""
+
+    expandable_fields = {
+        "site_id": ("nsot.api.serializers.SiteSerializer", {"source": "site"}),
+        "parent_id": (
+            "nsot.api.serializers.NetworkSerializer",
+            {"source": "parent"},
+        ),
+    }
 
     cidr = serializers.CharField(
         read_only=True,
@@ -643,6 +660,14 @@ class NetworkUpdateSerializer(NetworkPartialUpdateSerializer):
 ###########
 class InterfaceSerializer(ResourceSerializer):
     """Used for GET, DELETE on Interfaces."""
+
+    expandable_fields = {
+        "device": ("nsot.api.serializers.DeviceSerializer", {}),
+        "parent_id": (
+            "nsot.api.serializers.InterfaceSerializer",
+            {"source": "parent"},
+        ),
+    }
 
     parent_id = NaturalKeyRelatedField(
         required=False,

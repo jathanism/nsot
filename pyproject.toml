@@ -38,6 +38,7 @@ dependencies = [
     "django-macaddress~=1.9.0",
     "djangorestframework~=3.16.0",
     "drf-extensions~=0.8.0",
+    "drf-flex-fields>=1.0.2",
     "drf-nested-routers~=0.95.0",
     "gunicorn>=20.0.4",
     "inflection>=0.5.1",
@@ -203,3 +204,9 @@ changelog_file = "CHANGELOG.md"
 [tool.semantic_release.branches.main]
 match = "main"
 prerelease = false
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+    "pytest-django>=4.11.1",
+]
