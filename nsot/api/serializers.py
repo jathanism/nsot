@@ -105,7 +105,7 @@ class NaturalKeyRelatedField(serializers.SlugRelatedField):
     """Field that takes either a primary key or a natural key."""
 
     def to_representation(self, value):
-        return value
+        return getattr(value, self.slug_field)
 
     def to_internal_value(self, value):
         """Try PK followed by slug (natural key) value."""
@@ -189,11 +189,22 @@ class NsotSerializer(serializers.ModelSerializer):
         return super().to_internal_value(data)
 
     def to_representation(self, obj):
-        """Always return the dict representation."""
+        """Use DRF's standard field-based serialization.
+
+        Falls back to to_dict() when the object is not the expected model type
+        (e.g. when a detail route returns related objects of a different type).
+        """
         if isinstance(obj, OrderedDict):
             return obj
 
-        return obj.to_dict()
+        # If the object is not the model this serializer is for, fall back to
+        # to_dict() for backward compatibility with detail routes that return
+        # heterogeneous querysets.
+        expected_model = getattr(self.Meta, "model", None)
+        if expected_model is not None and not isinstance(obj, expected_model):
+            return obj.to_dict()
+
+        return super().to_representation(obj)
 
 
 ######
@@ -237,9 +248,34 @@ class SiteSerializer(serializers.ModelSerializer):
 class ChangeSerializer(NsotSerializer):
     """Used for displaying Change events."""
 
+    site = SiteSerializer(read_only=True)
+    user = serializers.SerializerMethodField()
+    change_at = serializers.SerializerMethodField()
+    resource = serializers.SerializerMethodField()
+
     class Meta:
         model = models.Change
-        fields = "__all__"
+        fields = (
+            "id",
+            "site",
+            "user",
+            "change_at",
+            "event",
+            "resource_name",
+            "resource_id",
+            "resource",
+        )
+
+    def get_user(self, obj):
+        return {"id": obj.user.id, "email": obj.user.email}
+
+    def get_resource(self, obj):
+        return obj.resource
+
+    def get_change_at(self, obj):
+        from calendar import timegm
+
+        return timegm(obj.change_at.timetuple())
 
     def to_representation(self, obj):
         data = super().to_representation(obj)
@@ -255,13 +291,36 @@ class ChangeSerializer(NsotSerializer):
 class AttributeSerializer(NsotSerializer):
     """Used for GET, DELETE on Attributes."""
 
+    constraints = serializers.SerializerMethodField()
+    default = serializers.SerializerMethodField()
+
     class Meta:
         model = models.Attribute
-        fields = "__all__"
+        fields = (
+            "id",
+            "site_id",
+            "description",
+            "name",
+            "resource_name",
+            "required",
+            "display",
+            "multi",
+            "constraints",
+            "default",
+        )
+
+    def get_constraints(self, obj):
+        return obj.constraints
+
+    def get_default(self, obj):
+        return obj.default
 
 
 class AttributeCreateSerializer(AttributeSerializer):
     """Used for POST on Attributes."""
+
+    def to_representation(self, obj):
+        return AttributeSerializer(obj, context=self.context).data
 
     constraints = JSONDictField(
         required=False,
@@ -303,6 +362,9 @@ class AttributeUpdateSerializer(
     may not be updated, there is not much functional difference between PUT and
     PATCH.
     """
+
+    def to_representation(self, obj):
+        return AttributeSerializer(obj, context=self.context).data
 
     class Meta:
         model = models.Attribute
@@ -410,13 +472,28 @@ class ResourceSerializer(NsotSerializer):
 class DeviceSerializer(ResourceSerializer):
     """Used for GET, DELETE on Devices."""
 
+    attributes = serializers.SerializerMethodField()
+
     class Meta:
         model = models.Device
-        fields = "__all__"
+        fields = ("id", "site_id", "hostname", "attributes")
+
+    def get_attributes(self, obj):
+        return obj.get_attributes()
 
 
 class DeviceCreateSerializer(DeviceSerializer):
     """Used for POST on Devices."""
+
+    # Override read-only SerializerMethodField with writable field for input.
+    # Output still uses get_attributes() via to_representation override.
+    attributes = JSONDictField(
+        required=False, help_text="Dictionary of attributes to set."
+    )
+
+    def to_representation(self, obj):
+        # Use the read serializer for output to get proper computed fields.
+        return DeviceSerializer(obj, context=self.context).data
 
     class Meta:
         model = models.Device
@@ -437,6 +514,9 @@ class DevicePartialUpdateSerializer(
 ):
     """Used for PATCH on Devices."""
 
+    def to_representation(self, obj):
+        return DeviceSerializer(obj, context=self.context).data
+
     class Meta:
         model = models.Device
         list_serializer_class = BulkListSerializer
@@ -456,13 +536,44 @@ class DeviceUpdateSerializer(DevicePartialUpdateSerializer):
 class NetworkSerializer(ResourceSerializer):
     """Used for GET, DELETE on Networks."""
 
+    cidr = serializers.CharField(read_only=True)
+    parent = serializers.SerializerMethodField()
+    is_ip = serializers.BooleanField(read_only=True)
+    attributes = serializers.SerializerMethodField()
+
     class Meta:
         model = models.Network
-        fields = "__all__"
+        fields = (
+            "id",
+            "cidr",
+            "parent_id",
+            "parent",
+            "site_id",
+            "is_ip",
+            "ip_version",
+            "network_address",
+            "prefix_length",
+            "state",
+            "attributes",
+        )
+
+    def get_parent(self, obj):
+        return obj.parent.cidr if obj.parent else None
+
+    def get_attributes(self, obj):
+        return obj.get_attributes()
 
 
 class NetworkCreateSerializer(NetworkSerializer):
     """Used for POST on Networks."""
+
+    # Override read-only SerializerMethodField with writable field for input.
+    attributes = JSONDictField(
+        required=False, help_text="Dictionary of attributes to set."
+    )
+
+    def to_representation(self, obj):
+        return NetworkSerializer(obj, context=self.context).data
 
     cidr = fields.CharField(
         write_only=True,
@@ -496,6 +607,9 @@ class NetworkPartialUpdateSerializer(
 ):
     """Used for PATCH on Networks."""
 
+    def to_representation(self, obj):
+        return NetworkSerializer(obj, context=self.context).data
+
     class Meta:
         model = models.Network
         list_serializer_class = BulkListSerializer
@@ -515,33 +629,56 @@ class NetworkUpdateSerializer(NetworkPartialUpdateSerializer):
 class InterfaceSerializer(ResourceSerializer):
     """Used for GET, DELETE on Interfaces."""
 
-    parent_id = NaturalKeyRelatedField(
-        required=False,
-        allow_null=True,
-        slug_field="name_slug",
-        queryset=models.Interface.objects.all(),
-        label=get_field_attr(models.Interface, "parent", "verbose_name"),
-        help_text=get_field_attr(models.Interface, "parent", "help_text"),
-    )
-    device = NaturalKeyRelatedField(
-        slug_field="hostname",
-        queryset=models.Device.objects.all(),
-        label=get_field_attr(models.Interface, "device", "verbose_name"),
-        help_text=get_field_attr(models.Interface, "device", "help_text"),
-    )
-    addresses = JSONListField(
-        required=False, help_text="List of host addresses to assign."
-    )
-    mac_address = MACAddressField(
-        required=False,
-        allow_null=True,
-        label=get_field_attr(models.Interface, "mac_address", "verbose_name"),
-        help_text=get_field_attr(models.Interface, "mac_address", "help_text"),
-    )
+    parent_id = serializers.IntegerField(read_only=True, allow_null=True)
+    parent = serializers.SerializerMethodField()
+    # For read, device returns device_id (matching to_dict output).
+    # InterfaceCreateSerializer overrides this with the writable NaturalKeyRelatedField.
+    device = serializers.IntegerField(source="device_id", read_only=True)
+    device_hostname = serializers.CharField(read_only=True)
+    addresses = serializers.SerializerMethodField()
+    networks = serializers.SerializerMethodField()
+    mac_address = serializers.SerializerMethodField()
+    type_name = serializers.SerializerMethodField()
+    attributes = serializers.SerializerMethodField()
 
     class Meta:
         model = models.Interface
-        fields = "__all__"
+        fields = (
+            "id",
+            "parent_id",
+            "parent",
+            "name",
+            "name_slug",
+            "device",
+            "device_hostname",
+            "description",
+            "addresses",
+            "networks",
+            "mac_address",
+            "speed",
+            "mtu",
+            "type",
+            "type_name",
+            "attributes",
+        )
+
+    def get_parent(self, obj):
+        return obj.parent.name_slug if obj.parent else None
+
+    def get_addresses(self, obj):
+        return obj.get_addresses()
+
+    def get_networks(self, obj):
+        return obj.get_networks()
+
+    def get_mac_address(self, obj):
+        return obj.get_mac_address()
+
+    def get_type_name(self, obj):
+        return obj.get_type_display()
+
+    def get_attributes(self, obj):
+        return obj.get_attributes()
 
     def validate_parent_id(self, value):
         """Cast the parent_id to an int if it's an Interface object."""
@@ -634,6 +771,33 @@ class InterfaceTypeField(serializers.Field):
 class InterfaceCreateSerializer(InterfaceSerializer):
     """Used for POST on Interfaces."""
 
+    # Override read-only fields with writable fields for create/update.
+    parent_id = NaturalKeyRelatedField(
+        required=False,
+        allow_null=True,
+        slug_field="name_slug",
+        queryset=models.Interface.objects.all(),
+        label=get_field_attr(models.Interface, "parent", "verbose_name"),
+        help_text=get_field_attr(models.Interface, "parent", "help_text"),
+    )
+    device = NaturalKeyRelatedField(
+        slug_field="hostname",
+        queryset=models.Device.objects.all(),
+        label=get_field_attr(models.Interface, "device", "verbose_name"),
+        help_text=get_field_attr(models.Interface, "device", "help_text"),
+    )
+    addresses = JSONListField(
+        required=False, help_text="List of host addresses to assign."
+    )
+    mac_address = MACAddressField(
+        required=False,
+        allow_null=True,
+        label=get_field_attr(models.Interface, "mac_address", "verbose_name"),
+        help_text=get_field_attr(models.Interface, "mac_address", "help_text"),
+    )
+    attributes = JSONDictField(
+        required=False, help_text="Dictionary of attributes to set."
+    )
     description = serializers.CharField(
         required=False, allow_blank=True, default="", max_length=255
     )
@@ -642,6 +806,9 @@ class InterfaceCreateSerializer(InterfaceSerializer):
         allow_null=True,
         default=settings.INTERFACE_DEFAULT_TYPE,
     )
+
+    def to_representation(self, obj):
+        return InterfaceSerializer(obj, context=self.context).data
 
     class Meta:
         model = models.Interface
@@ -663,6 +830,9 @@ class InterfacePartialUpdateSerializer(
     BulkSerializerMixin, InterfaceCreateSerializer
 ):
     "Used for PATCH on Interfaces."
+
+    def to_representation(self, obj):
+        return InterfaceSerializer(obj, context=self.context).data
 
     class Meta:
         model = models.Interface
@@ -697,6 +867,36 @@ class InterfaceUpdateSerializer(InterfacePartialUpdateSerializer):
 class CircuitSerializer(ResourceSerializer):
     """Used for GET, DELETE on Circuits"""
 
+    endpoint_a = serializers.SerializerMethodField()
+    endpoint_z = serializers.SerializerMethodField()
+    attributes = serializers.SerializerMethodField()
+
+    class Meta:
+        model = models.Circuit
+        fields = (
+            "id",
+            "site_id",
+            "name",
+            "name_slug",
+            "endpoint_a",
+            "endpoint_z",
+            "attributes",
+        )
+
+    def get_endpoint_a(self, obj):
+        return obj.endpoint_a.name_slug if obj.endpoint_a else None
+
+    def get_endpoint_z(self, obj):
+        return obj.endpoint_z.name_slug if obj.endpoint_z else None
+
+    def get_attributes(self, obj):
+        return obj.get_attributes()
+
+
+class CircuitCreateSerializer(CircuitSerializer):
+    """Used for POST on Circuits."""
+
+    # Override read-only fields with writable fields for create/update.
     endpoint_a = NaturalKeyRelatedField(
         slug_field="name_slug",
         queryset=models.Interface.objects.all(),
@@ -711,14 +911,12 @@ class CircuitSerializer(ResourceSerializer):
         label=get_field_attr(models.Circuit, "endpoint_z", "verbose_name"),
         help_text=get_field_attr(models.Circuit, "endpoint_z", "help_text"),
     )
+    attributes = JSONDictField(
+        required=False, help_text="Dictionary of attributes to set."
+    )
 
-    class Meta:
-        model = models.Circuit
-        fields = "__all__"
-
-
-class CircuitCreateSerializer(CircuitSerializer):
-    """Used for POST on Circuits."""
+    def to_representation(self, obj):
+        return CircuitSerializer(obj, context=self.context).data
 
     class Meta:
         model = models.Circuit
@@ -730,6 +928,9 @@ class CircuitPartialUpdateSerializer(
     BulkSerializerMixin, CircuitCreateSerializer
 ):
     """Used for PATCH on Circuits."""
+
+    def to_representation(self, obj):
+        return CircuitSerializer(obj, context=self.context).data
 
     class Meta:
         model = models.Circuit
@@ -762,7 +963,7 @@ class ProtocolTypeSerializer(NsotSerializer):
 
     class Meta:
         model = models.ProtocolType
-        fields = "__all__"
+        fields = ("id", "name", "description", "required_attributes", "site")
 
 
 ##########
@@ -771,6 +972,52 @@ class ProtocolTypeSerializer(NsotSerializer):
 class ProtocolSerializer(ResourceSerializer):
     """Used for GET, DELETE on Protocols"""
 
+    site = serializers.IntegerField(source="site_id", read_only=True)
+    type = serializers.SerializerMethodField()
+    device = serializers.SerializerMethodField()
+    interface = serializers.SerializerMethodField()
+    circuit = serializers.SerializerMethodField()
+    attributes = serializers.SerializerMethodField()
+
+    class Meta:
+        model = models.Protocol
+        fields = (
+            "id",
+            "site",
+            "type",
+            "device",
+            "interface",
+            "circuit",
+            "description",
+            "auth_string",
+            "attributes",
+        )
+
+    def get_type(self, obj):
+        return obj.type.name
+
+    def get_device(self, obj):
+        return obj.device.hostname
+
+    def get_interface(self, obj):
+        return obj.interface.name_slug if obj.interface else None
+
+    def get_circuit(self, obj):
+        return obj.circuit.name_slug if obj.circuit else None
+
+    def get_attributes(self, obj):
+        return obj.get_attributes()
+
+
+class ProtocolCreateSerializer(ProtocolSerializer):
+    """Used for POST on Protocols."""
+
+    # Override read-only fields with writable fields for create/update.
+    site = serializers.PrimaryKeyRelatedField(
+        queryset=models.Site.objects.all(),
+        help_text="Unique ID of the Site this object is under.",
+        label="Site",
+    )
     type = NaturalKeyRelatedField(
         slug_field="name",
         queryset=models.ProtocolType.objects.all(),
@@ -795,14 +1042,12 @@ class ProtocolSerializer(ResourceSerializer):
         queryset=models.Circuit.objects.all(),
         help_text=get_field_attr(models.Protocol, "circuit", "help_text"),
     )
+    attributes = JSONDictField(
+        required=False, help_text="Dictionary of attributes to set."
+    )
 
-    class Meta:
-        model = models.Protocol
-        fields = "__all__"
-
-
-class ProtocolCreateSerializer(ProtocolSerializer):
-    """Used for POST on Protocols."""
+    def to_representation(self, obj):
+        return ProtocolSerializer(obj, context=self.context).data
 
     class Meta:
         model = models.Protocol
@@ -822,6 +1067,9 @@ class ProtocolPartialUpdateSerializer(
     BulkSerializerMixin, ProtocolCreateSerializer
 ):
     """Used for PATCH on Protocols."""
+
+    def to_representation(self, obj):
+        return ProtocolSerializer(obj, context=self.context).data
 
     class Meta:
         model = models.Protocol
