@@ -55,6 +55,7 @@ A typical Attribute object might look like this:
         "description": "The device manufacturer.",
         "display": true,
         "required": true,
+        "default": "cisco",
         "site_id": 1,
         "id": 2,
         "constraints": {
@@ -108,6 +109,23 @@ display
 
 multi
     Whether the attribute values should be treated as a list type
+
+default
+    A default value for this attribute. When a resource is created or updated
+    without providing this attribute, the default value is automatically
+    applied. For single-value attributes, this should be a string (e.g.
+    ``"cisco"``). For multi-value attributes (``multi=True``), this should be a
+    list of strings (e.g. ``["tag1", "tag2"]``). Set to ``null`` for no
+    default.
+
+    Default values must satisfy the attribute's constraints (``pattern``,
+    ``valid_values``, ``allow_empty``). If a required attribute has a default,
+    resources can be created without explicitly providing that attribute.
+
+    .. note::
+        Explicitly deleting an attribute via PATCH (setting it to ``null``)
+        takes priority over defaults — the attribute will be removed even if a
+        default is defined.
 
 Constraints
 -----------
@@ -415,7 +433,7 @@ ProtocolTypes
 -------------
 
 A ProtocolType represent the type for a Protocol and is a required value for
-the ``Protocol.type`` field when a Protocol is created. 
+the ``Protocol.type`` field when a Protocol is created.
 
 ProtocolTypes are created by specifying the unique name, a user-friendly
 description, and required Protocol attributes for Protocols of this type.
@@ -450,7 +468,7 @@ A typical ProtocolType object might look like:
 Protocols
 ---------
 
-A Protocol represents a session for a network protocol such as BGP, IS-IS, or OSPF. 
+A Protocol represents a session for a network protocol such as BGP, IS-IS, or OSPF.
 
 Before a Protocol can be created, a ProtocolType with the desired name and
 required attributes must first be created. A Protocol must be bound to a Device
