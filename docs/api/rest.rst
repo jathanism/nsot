@@ -88,6 +88,55 @@ fields may revert to their default values, depending on the object type.
 ``PATCH`` allows for partial update of objects for most fields, depending on
 the object type.
 
+.. _partial-attribute-update:
+
+Partial Attribute Updates (PATCH)
+---------------------------------
+
+When using ``PATCH`` to update a resource, attributes are merged with the
+existing attributes rather than replacing them entirely. This allows you to
+update individual attributes without needing to send the complete attribute
+dictionary.
+
+* Providing ``{"attributes": {"key": "value"}}`` will add or update that
+  attribute while leaving all other existing attributes unchanged.
+* Setting an attribute to ``null`` will delete it:
+  ``{"attributes": {"key": null}}``.
+* Required attributes cannot be deleted; attempting to do so will return a
+  validation error.
+
+For example, if a device has ``{"owner": "jathan", "vendor": "juniper"}`` and
+you PATCH with ``{"attributes": {"vendor": "arista"}}``, the result will be
+``{"owner": "jathan", "vendor": "arista"}``.
+
+.. _bulk-delete:
+
+Bulk Delete
+-----------
+
+Multiple resources can be deleted in a single request by sending a ``DELETE``
+request to the resource list endpoint with a JSON body containing a list of
+integer IDs.
+
+**Request**:
+
+.. code-block:: http
+
+    DELETE /api/sites/1/devices/
+    Content-Type: application/json
+
+    [1, 2, 3]
+
+**Response**:
+
+.. code-block:: javascript
+
+    HTTP 204 No Content
+
+Each object's permissions are validated before deletion. All IDs must be
+integers. If any ID is invalid or not found, the request will return an error.
+Duplicate IDs are automatically deduplicated.
+
 ``OPTIONS`` will provide the schema for any endpoint.
 
 Responses
@@ -353,4 +402,3 @@ an error will be returned.
             "code": 400
         }
     }
-
