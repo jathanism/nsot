@@ -275,7 +275,7 @@ class AttributeSerializer(NsotSerializer):
 
     constraints = serializers.JSONField(read_only=True)
     default = serializers.JSONField(read_only=True)
-    site_id = serializers.IntegerField(source="site.id", read_only=True)
+    site_id = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = models.Attribute
