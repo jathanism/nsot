@@ -198,6 +198,23 @@ class NsotSerializer(serializers.ModelSerializer):
         return super().to_representation(obj)
 
 
+class WriteSerializerMixin:
+    """Mixin for create/update serializers that delegates read output to the
+    corresponding read serializer.
+
+    Subclasses must define ``read_serializer_class`` pointing to the read
+    serializer whose output format should be used for ``to_representation``.
+    """
+
+    read_serializer_class = None
+
+    def to_representation(self, obj):
+        if self.read_serializer_class is None:
+            msg = f"{self.__class__.__name__} must set read_serializer_class"
+            raise NotImplementedError(msg)
+        return self.read_serializer_class(obj, context=self.context).data
+
+
 ######
 # User
 ######
@@ -292,11 +309,10 @@ class AttributeSerializer(NsotSerializer):
         exclude = ["_default", "site"]
 
 
-class AttributeCreateSerializer(AttributeSerializer):
+class AttributeCreateSerializer(WriteSerializerMixin, AttributeSerializer):
     """Used for POST on Attributes."""
 
-    def to_representation(self, obj):
-        return AttributeSerializer(obj, context=self.context).data
+    read_serializer_class = AttributeSerializer
 
     constraints = JSONDictField(
         required=False,
@@ -338,9 +354,6 @@ class AttributeUpdateSerializer(
     may not be updated, there is not much functional difference between PUT and
     PATCH.
     """
-
-    def to_representation(self, obj):
-        return AttributeSerializer(obj, context=self.context).data
 
     class Meta:
         model = models.Attribute
@@ -449,18 +462,15 @@ class DeviceSerializer(ResourceSerializer):
         exclude = ["_attributes_cache", "site"]
 
 
-class DeviceCreateSerializer(DeviceSerializer):
+class DeviceCreateSerializer(WriteSerializerMixin, DeviceSerializer):
     """Used for POST on Devices."""
 
+    read_serializer_class = DeviceSerializer
+
     # Override read-only SerializerMethodField with writable field for input.
-    # Output still uses get_attributes() via to_representation override.
     attributes = JSONDictField(
         required=False, help_text="Dictionary of attributes to set."
     )
-
-    def to_representation(self, obj):
-        # Use the read serializer for output to get proper computed fields.
-        return DeviceSerializer(obj, context=self.context).data
 
     class Meta:
         model = models.Device
@@ -480,9 +490,6 @@ class DevicePartialUpdateSerializer(
     BulkSerializerMixin, DeviceCreateSerializer
 ):
     """Used for PATCH on Devices."""
-
-    def to_representation(self, obj):
-        return DeviceSerializer(obj, context=self.context).data
 
     class Meta:
         model = models.Device
@@ -528,16 +535,15 @@ class NetworkSerializer(ResourceSerializer):
         return obj.parent.cidr if obj.parent else None
 
 
-class NetworkCreateSerializer(NetworkSerializer):
+class NetworkCreateSerializer(WriteSerializerMixin, NetworkSerializer):
     """Used for POST on Networks."""
+
+    read_serializer_class = NetworkSerializer
 
     # Override read-only SerializerMethodField with writable field for input.
     attributes = JSONDictField(
         required=False, help_text="Dictionary of attributes to set."
     )
-
-    def to_representation(self, obj):
-        return NetworkSerializer(obj, context=self.context).data
 
     cidr = fields.CharField(
         write_only=True,
@@ -570,9 +576,6 @@ class NetworkPartialUpdateSerializer(
     BulkSerializerMixin, NetworkCreateSerializer
 ):
     """Used for PATCH on Networks."""
-
-    def to_representation(self, obj):
-        return NetworkSerializer(obj, context=self.context).data
 
     class Meta:
         model = models.Network
@@ -740,10 +743,12 @@ class InterfaceTypeField(serializers.Field):
         return value
 
 
-class InterfaceCreateSerializer(InterfaceSerializer):
+class InterfaceCreateSerializer(WriteSerializerMixin, InterfaceSerializer):
     """Used for POST on Interfaces."""
 
-    # Override read-only fields with writable fields for create/update.
+    read_serializer_class = InterfaceSerializer
+
+    # Override read-only SerializerMethodFields with writable fields.
     parent_id = NaturalKeyRelatedField(
         required=False,
         allow_null=True,
@@ -752,20 +757,8 @@ class InterfaceCreateSerializer(InterfaceSerializer):
         label=get_field_attr(models.Interface, "parent", "verbose_name"),
         help_text=get_field_attr(models.Interface, "parent", "help_text"),
     )
-    device = NaturalKeyRelatedField(
-        slug_field="hostname",
-        queryset=models.Device.objects.all(),
-        label=get_field_attr(models.Interface, "device", "verbose_name"),
-        help_text=get_field_attr(models.Interface, "device", "help_text"),
-    )
     addresses = JSONListField(
         required=False, help_text="List of host addresses to assign."
-    )
-    mac_address = MACAddressField(
-        required=False,
-        allow_null=True,
-        label=get_field_attr(models.Interface, "mac_address", "verbose_name"),
-        help_text=get_field_attr(models.Interface, "mac_address", "help_text"),
     )
     attributes = JSONDictField(
         required=False, help_text="Dictionary of attributes to set."
@@ -778,9 +771,6 @@ class InterfaceCreateSerializer(InterfaceSerializer):
         allow_null=True,
         default=settings.INTERFACE_DEFAULT_TYPE,
     )
-
-    def to_representation(self, obj):
-        return InterfaceSerializer(obj, context=self.context).data
 
     class Meta:
         model = models.Interface
@@ -802,9 +792,6 @@ class InterfacePartialUpdateSerializer(
     BulkSerializerMixin, InterfaceCreateSerializer
 ):
     "Used for PATCH on Interfaces."
-
-    def to_representation(self, obj):
-        return InterfaceSerializer(obj, context=self.context).data
 
     class Meta:
         model = models.Interface
@@ -857,10 +844,12 @@ class CircuitSerializer(ResourceSerializer):
         return obj.endpoint_z.name_slug if obj.endpoint_z else None
 
 
-class CircuitCreateSerializer(CircuitSerializer):
+class CircuitCreateSerializer(WriteSerializerMixin, CircuitSerializer):
     """Used for POST on Circuits."""
 
-    # Override read-only fields with writable fields for create/update.
+    read_serializer_class = CircuitSerializer
+
+    # Override read-only SerializerMethodFields with writable fields.
     endpoint_a = NaturalKeyRelatedField(
         slug_field="name_slug",
         queryset=models.Interface.objects.all(),
@@ -879,9 +868,6 @@ class CircuitCreateSerializer(CircuitSerializer):
         required=False, help_text="Dictionary of attributes to set."
     )
 
-    def to_representation(self, obj):
-        return CircuitSerializer(obj, context=self.context).data
-
     class Meta:
         model = models.Circuit
         # Display name is auto-generated, don't include it here.
@@ -892,9 +878,6 @@ class CircuitPartialUpdateSerializer(
     BulkSerializerMixin, CircuitCreateSerializer
 ):
     """Used for PATCH on Circuits."""
-
-    def to_representation(self, obj):
-        return CircuitSerializer(obj, context=self.context).data
 
     class Meta:
         model = models.Circuit
@@ -927,7 +910,7 @@ class ProtocolTypeSerializer(NsotSerializer):
 
     class Meta:
         model = models.ProtocolType
-        fields = ("id", "name", "description", "required_attributes", "site")
+        fields = "__all__"
 
 
 ##########
@@ -954,7 +937,10 @@ class ProtocolSerializer(ResourceSerializer):
         help_text=get_field_attr(models.Protocol, "circuit", "help_text"),
     )
 
-    site_id = None  # Suppress inherited site_id from ResourceSerializer
+    # Protocol's to_dict() uses "site" (not "site_id") as the key name, so we
+    # suppress the inherited declared field from ResourceSerializer.  This is
+    # the standard DRF mechanism for removing inherited declared fields.
+    site_id = None
 
     class Meta:
         model = models.Protocol
@@ -973,8 +959,10 @@ class ProtocolSerializer(ResourceSerializer):
         return obj.circuit.name_slug if obj.circuit else None
 
 
-class ProtocolCreateSerializer(ProtocolSerializer):
+class ProtocolCreateSerializer(WriteSerializerMixin, ProtocolSerializer):
     """Used for POST on Protocols."""
+
+    read_serializer_class = ProtocolSerializer
 
     # Override read-only fields with writable fields for create/update.
     site = serializers.PrimaryKeyRelatedField(
@@ -1010,9 +998,6 @@ class ProtocolCreateSerializer(ProtocolSerializer):
         required=False, help_text="Dictionary of attributes to set."
     )
 
-    def to_representation(self, obj):
-        return ProtocolSerializer(obj, context=self.context).data
-
     class Meta:
         model = models.Protocol
         fields = (
@@ -1031,9 +1016,6 @@ class ProtocolPartialUpdateSerializer(
     BulkSerializerMixin, ProtocolCreateSerializer
 ):
     """Used for PATCH on Protocols."""
-
-    def to_representation(self, obj):
-        return ProtocolSerializer(obj, context=self.context).data
 
     class Meta:
         model = models.Protocol
