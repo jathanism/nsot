@@ -282,20 +282,13 @@ class ChangeSerializer(NsotSerializer):
 class AttributeSerializer(NsotSerializer):
     """Used for GET, DELETE on Attributes."""
 
-    constraints = serializers.SerializerMethodField()
-    default = serializers.SerializerMethodField()
-
+    constraints = serializers.JSONField(read_only=True)
+    default = serializers.JSONField(read_only=True)
     site_id = serializers.IntegerField(source="site.id", read_only=True)
 
     class Meta:
         model = models.Attribute
         exclude = ["_default", "site"]
-
-    def get_constraints(self, obj):
-        return obj.constraints
-
-    def get_default(self, obj):
-        return obj.default
 
 
 class AttributeCreateSerializer(AttributeSerializer):
@@ -386,15 +379,16 @@ class ValueCreateSerializer(ValueSerializer):
 class ResourceSerializer(NsotSerializer):
     """For any object that can have attributes."""
 
-    attributes = JSONDictField(
-        required=False, help_text="Dictionary of attributes to set."
-    )
+    attributes = serializers.SerializerMethodField()
     site_id = serializers.PrimaryKeyRelatedField(
         source="site",
         queryset=models.Site.objects.all(),
         help_text="Unique ID of the Site this object is under.",
         label="Site",
     )
+
+    def get_attributes(self, obj):
+        return obj.get_attributes()
 
     def create(self, validated_data, commit=True):
         """Create that is aware of attributes."""
@@ -447,14 +441,9 @@ class ResourceSerializer(NsotSerializer):
 class DeviceSerializer(ResourceSerializer):
     """Used for GET, DELETE on Devices."""
 
-    attributes = serializers.SerializerMethodField()
-
     class Meta:
         model = models.Device
         exclude = ["_attributes_cache", "site"]
-
-    def get_attributes(self, obj):
-        return obj.get_attributes()
 
 
 class DeviceCreateSerializer(DeviceSerializer):
@@ -515,7 +504,6 @@ class NetworkSerializer(ResourceSerializer):
     parent_id = serializers.IntegerField(read_only=True, allow_null=True)
     parent = serializers.SerializerMethodField()
     is_ip = serializers.BooleanField(read_only=True)
-    attributes = serializers.SerializerMethodField()
 
     class Meta:
         model = models.Network
@@ -523,9 +511,6 @@ class NetworkSerializer(ResourceSerializer):
 
     def get_parent(self, obj):
         return obj.parent.cidr if obj.parent else None
-
-    def get_attributes(self, obj):
-        return obj.get_attributes()
 
 
 class NetworkCreateSerializer(NetworkSerializer):
@@ -606,7 +591,6 @@ class InterfaceSerializer(ResourceSerializer):
     networks = serializers.SerializerMethodField()
     mac_address = serializers.SerializerMethodField()
     type_name = serializers.SerializerMethodField()
-    attributes = serializers.SerializerMethodField()
 
     class Meta:
         model = models.Interface
@@ -631,9 +615,6 @@ class InterfaceSerializer(ResourceSerializer):
 
     def get_type_name(self, obj):
         return obj.get_type_display()
-
-    def get_attributes(self, obj):
-        return obj.get_attributes()
 
     def validate_parent_id(self, value):
         """Cast the parent_id to an int if it's an Interface object."""
@@ -824,7 +805,6 @@ class CircuitSerializer(ResourceSerializer):
 
     endpoint_a = serializers.SerializerMethodField()
     endpoint_z = serializers.SerializerMethodField()
-    attributes = serializers.SerializerMethodField()
 
     class Meta:
         model = models.Circuit
@@ -835,9 +815,6 @@ class CircuitSerializer(ResourceSerializer):
 
     def get_endpoint_z(self, obj):
         return obj.endpoint_z.name_slug if obj.endpoint_z else None
-
-    def get_attributes(self, obj):
-        return obj.get_attributes()
 
 
 class CircuitCreateSerializer(CircuitSerializer):
@@ -924,7 +901,6 @@ class ProtocolSerializer(ResourceSerializer):
     device = serializers.SerializerMethodField()
     interface = serializers.SerializerMethodField()
     circuit = serializers.SerializerMethodField()
-    attributes = serializers.SerializerMethodField()
 
     site_id = None  # Suppress inherited site_id from ResourceSerializer
 
@@ -943,9 +919,6 @@ class ProtocolSerializer(ResourceSerializer):
 
     def get_circuit(self, obj):
         return obj.circuit.name_slug if obj.circuit else None
-
-    def get_attributes(self, obj):
-        return obj.get_attributes()
 
 
 class ProtocolCreateSerializer(ProtocolSerializer):
