@@ -240,9 +240,15 @@ class ChangeSerializer(NsotSerializer):
     """Used for displaying Change events."""
 
     site = SiteSerializer(read_only=True)
-    user = serializers.SerializerMethodField()
-    change_at = serializers.SerializerMethodField()
-    resource = serializers.SerializerMethodField()
+    user = serializers.SerializerMethodField(
+        help_text="User who made this change.",
+    )
+    change_at = serializers.SerializerMethodField(
+        help_text="Unix timestamp of when the change occurred.",
+    )
+    resource = serializers.SerializerMethodField(
+        help_text="Full resource payload at the time of the change.",
+    )
 
     class Meta:
         model = models.Change
@@ -275,7 +281,11 @@ class AttributeSerializer(NsotSerializer):
 
     constraints = serializers.JSONField(read_only=True)
     default = serializers.JSONField(read_only=True)
-    site_id = serializers.IntegerField(read_only=True)
+    site_id = serializers.IntegerField(
+        read_only=True,
+        label=get_field_attr(models.Attribute, "site", "verbose_name"),
+        help_text=get_field_attr(models.Attribute, "site", "help_text"),
+    )
 
     class Meta:
         model = models.Attribute
@@ -370,7 +380,9 @@ class ValueCreateSerializer(ValueSerializer):
 class ResourceSerializer(NsotSerializer):
     """For any object that can have attributes."""
 
-    attributes = serializers.SerializerMethodField()
+    attributes = serializers.SerializerMethodField(
+        help_text="Dictionary of attributes to set.",
+    )
     site_id = serializers.PrimaryKeyRelatedField(
         source="site",
         queryset=models.Site.objects.all(),
@@ -491,10 +503,22 @@ class DeviceUpdateSerializer(DevicePartialUpdateSerializer):
 class NetworkSerializer(ResourceSerializer):
     """Used for GET, DELETE on Networks."""
 
-    cidr = serializers.CharField(read_only=True)
-    parent_id = serializers.IntegerField(read_only=True, allow_null=True)
-    parent = serializers.SerializerMethodField()
-    is_ip = serializers.BooleanField(read_only=True)
+    cidr = serializers.CharField(
+        read_only=True,
+        help_text="IPv4/IPv6 CIDR address.",
+    )
+    parent_id = serializers.IntegerField(
+        read_only=True,
+        allow_null=True,
+        help_text="ID of the parent Network, if any.",
+    )
+    parent = serializers.SerializerMethodField(
+        help_text="CIDR of the parent Network, if any.",
+    )
+    is_ip = serializers.BooleanField(
+        read_only=True,
+        help_text="Whether this is a host address (/32 or /128).",
+    )
 
     class Meta:
         model = models.Network
@@ -578,23 +602,34 @@ class InterfaceSerializer(ResourceSerializer):
         label=get_field_attr(models.Interface, "parent", "verbose_name"),
         help_text=get_field_attr(models.Interface, "parent", "help_text"),
     )
-    parent = serializers.SerializerMethodField()
+    parent = serializers.SerializerMethodField(
+        help_text="Natural key (slug) of the parent Interface, if any.",
+    )
     device = NaturalKeyRelatedField(
         slug_field="hostname",
         queryset=models.Device.objects.all(),
         label=get_field_attr(models.Interface, "device", "verbose_name"),
         help_text=get_field_attr(models.Interface, "device", "help_text"),
     )
-    device_hostname = serializers.CharField(read_only=True)
-    addresses = serializers.SerializerMethodField()
-    networks = serializers.SerializerMethodField()
+    device_hostname = serializers.CharField(
+        read_only=True,
+        help_text="Hostname of the device this Interface belongs to.",
+    )
+    addresses = serializers.SerializerMethodField(
+        help_text="List of host addresses assigned to this Interface.",
+    )
+    networks = serializers.SerializerMethodField(
+        help_text="List of parent networks derived from assigned addresses.",
+    )
     mac_address = MACAddressField(
         required=False,
         allow_null=True,
         label=get_field_attr(models.Interface, "mac_address", "verbose_name"),
         help_text=get_field_attr(models.Interface, "mac_address", "help_text"),
     )
-    type_name = serializers.SerializerMethodField()
+    type_name = serializers.SerializerMethodField(
+        help_text="Human-readable name of the interface type.",
+    )
 
     class Meta:
         model = models.Interface
@@ -804,8 +839,12 @@ class InterfaceUpdateSerializer(InterfacePartialUpdateSerializer):
 class CircuitSerializer(ResourceSerializer):
     """Used for GET, DELETE on Circuits"""
 
-    endpoint_a = serializers.SerializerMethodField()
-    endpoint_z = serializers.SerializerMethodField()
+    endpoint_a = serializers.SerializerMethodField(
+        help_text="Natural key (slug) of the A-side Interface.",
+    )
+    endpoint_z = serializers.SerializerMethodField(
+        help_text="Natural key (slug) of the Z-side Interface.",
+    )
 
     class Meta:
         model = models.Circuit
@@ -897,11 +936,23 @@ class ProtocolTypeSerializer(NsotSerializer):
 class ProtocolSerializer(ResourceSerializer):
     """Used for GET, DELETE on Protocols"""
 
-    site = serializers.IntegerField(source="site_id", read_only=True)
-    type = serializers.SerializerMethodField()
-    device = serializers.SerializerMethodField()
-    interface = serializers.SerializerMethodField()
-    circuit = serializers.SerializerMethodField()
+    site = serializers.IntegerField(
+        source="site_id",
+        read_only=True,
+        help_text="Unique ID of the Site this object is under.",
+    )
+    type = serializers.SerializerMethodField(
+        help_text=get_field_attr(models.Protocol, "type", "help_text"),
+    )
+    device = serializers.SerializerMethodField(
+        help_text=get_field_attr(models.Protocol, "device", "help_text"),
+    )
+    interface = serializers.SerializerMethodField(
+        help_text=get_field_attr(models.Protocol, "interface", "help_text"),
+    )
+    circuit = serializers.SerializerMethodField(
+        help_text=get_field_attr(models.Protocol, "circuit", "help_text"),
+    )
 
     site_id = None  # Suppress inherited site_id from ResourceSerializer
 
