@@ -316,6 +316,7 @@ A typical Interface object might look like:
         "device": 1,
         "device_hostname": "lax-r1",
         "speed": 10000,
+        "mtu": 9000,
         "networks": [
             "10.10.10.0/24"
         ],
@@ -331,6 +332,10 @@ A typical Interface object might look like:
         },
         "type": 6
     }
+
+The ``mtu`` field is an optional integer representing the interface's Maximum
+Transmission Unit in bytes. Valid values are between 68 and 65535. If not
+provided, it defaults to ``null``.
 
 Addresses
 ~~~~~~~~~
@@ -381,6 +386,10 @@ A Circuit's "name slug" may sometimes differ from its name due to certain
 special characters that complicate API lookups. The name slug is used to
 uniquely identify the Circuit internally.
 
+Circuits can be filtered by ``device_hostname`` to find all circuits associated
+with a particular device. For example:
+``GET /api/sites/1/circuits/?device_hostname=lax-r1``
+
 A typical Circuit object might look like:
 
 .. code-block:: javascript
@@ -397,8 +406,10 @@ A typical Circuit object might look like:
 Addresses
 ~~~~~~~~~
 
-Returns the addresses assigned to the member Interfaces of the Circuit, as well as the addresses
-assigned to the child Interfaces of the Circuit, if any.
+Returns the addresses assigned to the member Interfaces (A-side and Z-side) of
+the Circuit, as well as the addresses assigned to all descendant (child,
+grandchild, etc.) Interfaces of those members. This provides a complete view of
+all addresses reachable through the circuit's interface hierarchy.
 
 Devices
 ~~~~~~~
@@ -415,7 +426,7 @@ ProtocolTypes
 -------------
 
 A ProtocolType represent the type for a Protocol and is a required value for
-the ``Protocol.type`` field when a Protocol is created. 
+the ``Protocol.type`` field when a Protocol is created.
 
 ProtocolTypes are created by specifying the unique name, a user-friendly
 description, and required Protocol attributes for Protocols of this type.
@@ -450,7 +461,7 @@ A typical ProtocolType object might look like:
 Protocols
 ---------
 
-A Protocol represents a session for a network protocol such as BGP, IS-IS, or OSPF. 
+A Protocol represents a session for a network protocol such as BGP, IS-IS, or OSPF.
 
 Before a Protocol can be created, a ProtocolType with the desired name and
 required attributes must first be created. A Protocol must be bound to a Device
@@ -511,6 +522,13 @@ A typical Change object might look like:
             "email": "admin@localhost"
         },
         "resource_id": 9,
+        "resource_diff": {
+            "multi": {"old": null, "new": false},
+            "resource_name": {"old": null, "new": "Interface"},
+            "description": {"old": null, "new": ""},
+            "required": {"old": null, "new": false},
+            "name": {"old": null, "new": "foo"}
+        },
         "id": 36,
         "site": {
             "description": "This is a demonstration site for NSoT.",
@@ -518,6 +536,15 @@ A typical Change object might look like:
             "name": "Demo Site"
         }
     }
+
+The ``resource_diff`` field is included when retrieving a single Change (detail
+view) and provides a structured JSON diff of what changed. The format for each
+field is ``{"old": <previous_value>, "new": <current_value>}``:
+
+* **Create**: All fields appear as additions (``old`` is ``null``).
+* **Update**: Only fields that changed are included, with their before and after
+  values.
+* **Delete**: All fields appear as removals (``new`` is ``null``).
 
 Users
 =====
