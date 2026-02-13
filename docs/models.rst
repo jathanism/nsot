@@ -55,6 +55,7 @@ A typical Attribute object might look like this:
         "description": "The device manufacturer.",
         "display": true,
         "required": true,
+        "default": "cisco",
         "site_id": 1,
         "id": 2,
         "constraints": {
@@ -108,6 +109,23 @@ display
 
 multi
     Whether the attribute values should be treated as a list type
+
+default
+    A default value for this attribute. When a resource is created or updated
+    without providing this attribute, the default value is automatically
+    applied. For single-value attributes, this should be a string (e.g.
+    ``"cisco"``). For multi-value attributes (``multi=True``), this should be a
+    list of strings (e.g. ``["tag1", "tag2"]``). Set to ``null`` for no
+    default.
+
+    Default values must satisfy the attribute's constraints (``pattern``,
+    ``valid_values``, ``allow_empty``). If a required attribute has a default,
+    resources can be created without explicitly providing that attribute.
+
+    .. note::
+        Explicitly deleting an attribute via PATCH (setting it to ``null``)
+        takes priority over defaults — the attribute will be removed even if a
+        default is defined.
 
 Constraints
 -----------
