@@ -95,7 +95,9 @@ class MACAddressField(fields.Field):
     """Field used to validate MAC address objects as integer or string."""
 
     def to_representation(self, value):
-        return value
+        if value is None:
+            return None
+        return str(value)
 
     def to_internal_value(self, value):
         return validators.validate_mac_address(value)
@@ -189,20 +191,9 @@ class NsotSerializer(serializers.ModelSerializer):
         return super().to_internal_value(data)
 
     def to_representation(self, obj):
-        """Use DRF's standard field-based serialization.
-
-        Falls back to to_dict() when the object is not the expected model type
-        (e.g. when a detail route returns related objects of a different type).
-        """
+        """Use DRF's standard field-based serialization."""
         if isinstance(obj, OrderedDict):
             return obj
-
-        # If the object is not the model this serializer is for, fall back to
-        # to_dict() for backward compatibility with detail routes that return
-        # heterogeneous querysets.
-        expected_model = getattr(self.Meta, "model", None)
-        if expected_model is not None and not isinstance(obj, expected_model):
-            return obj.to_dict()
 
         return super().to_representation(obj)
 
@@ -581,15 +572,31 @@ class InterfaceSerializer(ResourceSerializer):
     # Suppress site_id from ResourceSerializer — Interface output doesn't
     # include it (matches to_dict output used by detail routes).
     site_id = None
-    parent_id = serializers.IntegerField(read_only=True, allow_null=True)
+    parent_id = NaturalKeyRelatedField(
+        source="parent",
+        required=False,
+        allow_null=True,
+        slug_field="name_slug",
+        queryset=models.Interface.objects.all(),
+        label=get_field_attr(models.Interface, "parent", "verbose_name"),
+        help_text=get_field_attr(models.Interface, "parent", "help_text"),
+    )
     parent = serializers.SerializerMethodField()
-    # For read, device returns device_id (matching to_dict output).
-    # InterfaceCreateSerializer overrides this with the writable NaturalKeyRelatedField.
-    device = serializers.IntegerField(source="device_id", read_only=True)
+    device = NaturalKeyRelatedField(
+        slug_field="hostname",
+        queryset=models.Device.objects.all(),
+        label=get_field_attr(models.Interface, "device", "verbose_name"),
+        help_text=get_field_attr(models.Interface, "device", "help_text"),
+    )
     device_hostname = serializers.CharField(read_only=True)
     addresses = serializers.SerializerMethodField()
     networks = serializers.SerializerMethodField()
-    mac_address = serializers.SerializerMethodField()
+    mac_address = MACAddressField(
+        required=False,
+        allow_null=True,
+        label=get_field_attr(models.Interface, "mac_address", "verbose_name"),
+        help_text=get_field_attr(models.Interface, "mac_address", "help_text"),
+    )
     type_name = serializers.SerializerMethodField()
 
     class Meta:
@@ -609,9 +616,6 @@ class InterfaceSerializer(ResourceSerializer):
 
     def get_networks(self, obj):
         return obj.get_networks()
-
-    def get_mac_address(self, obj):
-        return obj.get_mac_address()
 
     def get_type_name(self, obj):
         return obj.get_type_display()

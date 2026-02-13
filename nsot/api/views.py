@@ -82,6 +82,49 @@ class BaseNsotViewSet(viewsets.ReadOnlyModelViewSet):
 
         return Response(data, status=status, headers=headers)
 
+    #: Registry of model -> serializer class for cross-model detail routes.
+    _model_serializer_map = None
+
+    @classmethod
+    def _get_model_serializer_map(cls):
+        """Lazily build a mapping of model class -> read serializer class."""
+        if cls._model_serializer_map is None:
+            from . import serializers as ser
+
+            cls._model_serializer_map = {
+                ser.SiteSerializer.Meta.model: ser.SiteSerializer,
+                ser.DeviceSerializer.Meta.model: ser.DeviceSerializer,
+                ser.NetworkSerializer.Meta.model: ser.NetworkSerializer,
+                ser.InterfaceSerializer.Meta.model: ser.InterfaceSerializer,
+                ser.CircuitSerializer.Meta.model: ser.CircuitSerializer,
+                ser.ProtocolSerializer.Meta.model: ser.ProtocolSerializer,
+                ser.ProtocolTypeSerializer.Meta.model: ser.ProtocolTypeSerializer,
+                ser.AttributeSerializer.Meta.model: ser.AttributeSerializer,
+            }
+        return cls._model_serializer_map
+
+    def _get_serializer_for_queryset(self, queryset):
+        """Return the appropriate serializer class for a queryset's model.
+
+        If the queryset's model matches this viewset's serializer, use it.
+        Otherwise, look up the correct read serializer from the registry.
+        """
+        qs_model = getattr(queryset, "model", None)
+        if qs_model is None:
+            # For plain lists, infer model from the first element.
+            if isinstance(queryset, list) and queryset:
+                qs_model = type(queryset[0])
+            else:
+                return self.get_serializer_class()
+        own_model = getattr(
+            getattr(self.get_serializer_class(), "Meta", None), "model", None
+        )
+        if qs_model == own_model:
+            return self.get_serializer_class()
+        return self._get_model_serializer_map().get(
+            qs_model, self.get_serializer_class()
+        )
+
     def list(self, request, site_pk=None, queryset=None, *args, **kwargs):
         """List objects optionally filtered by site."""
         if queryset is None:
@@ -91,12 +134,19 @@ class BaseNsotViewSet(viewsets.ReadOnlyModelViewSet):
             if site_pk is not None:
                 queryset = queryset.filter(site=site_pk)
 
+        # Use the correct serializer for the queryset's model type.
+        serializer_class = self._get_serializer_for_queryset(queryset)
+
         page = self.paginate_queryset(queryset)
         if page is not None:
-            serializer = self.get_serializer(page, many=True)
+            serializer = serializer_class(
+                page, many=True, context=self.get_serializer_context()
+            )
             return super().get_paginated_response(serializer.data)
 
-        serializer = self.get_serializer(queryset, many=True)
+        serializer = serializer_class(
+            queryset, many=True, context=self.get_serializer_context()
+        )
         return self.success(serializer.data)
 
     def retrieve(self, request, pk=None, site_pk=None, *args, **kwargs):
