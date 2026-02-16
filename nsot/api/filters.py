@@ -46,6 +46,24 @@ class ResourceFilter(django_filters.rest_framework.FilterSet):
     """Attribute-aware filtering for Resource objects."""
 
     attributes = django_filters.CharFilter(method="filter_attributes")
+    expired = django_filters.BooleanFilter(
+        method="filter_expired",
+        help_text="Filter by expiration status (true=expired, false=not expired).",
+    )
+    expires_before = django_filters.IsoDateTimeFilter(
+        field_name="expires_at",
+        lookup_expr="lte",
+        help_text="Resources expiring on or before this ISO timestamp.",
+    )
+    expires_after = django_filters.IsoDateTimeFilter(
+        field_name="expires_at",
+        lookup_expr="gte",
+        help_text="Resources expiring on or after this ISO timestamp.",
+    )
+
+    def filter_expired(self, queryset, name, value):
+        """Delegate to the queryset's ``.expired()`` method."""
+        return queryset.expired(expired=value)
 
     def filter_attributes(self, queryset, name, value):
         """
@@ -78,7 +96,13 @@ class DeviceFilter(ResourceFilter):
 
     class Meta:
         model = models.Device
-        fields = ["hostname", "attributes"]
+        fields = [
+            "hostname",
+            "attributes",
+            "expired",
+            "expires_before",
+            "expires_after",
+        ]
 
 
 class NetworkFilter(ResourceFilter):
@@ -104,6 +128,9 @@ class NetworkFilter(ResourceFilter):
             "ip_version",
             "state",
             "attributes",
+            "expired",
+            "expires_before",
+            "expires_after",
         ]
 
     def filter_include_networks(self, queryset, name, value):
@@ -174,6 +201,9 @@ class InterfaceFilter(ResourceFilter):
             "parent_id",
             "attributes",
             "device_hostname",
+            "expired",
+            "expires_before",
+            "expires_after",
         ]
 
     def filter_mac_address(self, queryset, name, value):
@@ -203,6 +233,9 @@ class CircuitFilter(ResourceFilter):
             "name",
             "device_hostname",
             "attributes",
+            "expired",
+            "expires_before",
+            "expires_after",
         ]
 
     # FIXME(jathan): The copy/pasted methods can be ripped out once we upgrade
@@ -251,7 +284,16 @@ class ProtocolFilter(ResourceFilter):
 
     class Meta:
         model = models.Protocol
-        fields = ["device", "type", "interface", "circuit", "description"]
+        fields = [
+            "device",
+            "type",
+            "interface",
+            "circuit",
+            "description",
+            "expired",
+            "expires_before",
+            "expires_after",
+        ]
 
     def filter_device(self, queryset, name, value):
         """Overload to use natural key."""

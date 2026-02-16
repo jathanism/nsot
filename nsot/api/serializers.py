@@ -549,7 +549,7 @@ class DeviceCreateSerializer(WriteSerializerMixin, DeviceSerializer):
 
     class Meta:
         model = models.Device
-        fields = ("hostname", "attributes", "site_id")
+        fields = ("hostname", "attributes", "site_id", "expires_at")
         # TODO(jathan): Manaully set unique_together validator required due to
         # bug in DRF 3.11. Remove me in DRF 3.12 when it is fixed.
         # Ref: https://github.com/encode/django-rest-framework/issues/7100
@@ -569,7 +569,7 @@ class DevicePartialUpdateSerializer(
     class Meta:
         model = models.Device
         list_serializer_class = BulkListSerializer
-        fields = ("id", "hostname", "attributes")
+        fields = ("id", "hostname", "attributes", "expires_at")
 
 
 class DeviceUpdateSerializer(DevicePartialUpdateSerializer):
@@ -648,6 +648,7 @@ class NetworkCreateSerializer(WriteSerializerMixin, NetworkSerializer):
             "attributes",
             "state",
             "site_id",
+            "expires_at",
         )
         extra_kwargs = {
             "network_address": {"required": False},
@@ -663,7 +664,7 @@ class NetworkPartialUpdateSerializer(
     class Meta:
         model = models.Network
         list_serializer_class = BulkListSerializer
-        fields = ("id", "attributes", "state")
+        fields = ("id", "attributes", "state", "expires_at")
 
 
 class NetworkUpdateSerializer(NetworkPartialUpdateSerializer):
@@ -875,6 +876,7 @@ class InterfaceCreateSerializer(WriteSerializerMixin, InterfaceSerializer):
             "parent_id",
             "addresses",
             "attributes",
+            "expires_at",
         )
 
 
@@ -897,6 +899,7 @@ class InterfacePartialUpdateSerializer(
             "parent_id",
             "addresses",
             "attributes",
+            "expires_at",
         )
 
 
@@ -961,7 +964,14 @@ class CircuitCreateSerializer(WriteSerializerMixin, CircuitSerializer):
     class Meta:
         model = models.Circuit
         # Display name is auto-generated, don't include it here.
-        fields = ("site_id", "endpoint_a", "endpoint_z", "name", "attributes")
+        fields = (
+            "site_id",
+            "endpoint_a",
+            "endpoint_z",
+            "name",
+            "attributes",
+            "expires_at",
+        )
 
 
 class CircuitPartialUpdateSerializer(
@@ -972,7 +982,14 @@ class CircuitPartialUpdateSerializer(
     class Meta:
         model = models.Circuit
         list_serializer_class = BulkListSerializer
-        fields = ("id", "endpoint_a", "endpoint_z", "name", "attributes")
+        fields = (
+            "id",
+            "endpoint_a",
+            "endpoint_z",
+            "name",
+            "attributes",
+            "expires_at",
+        )
 
 
 class CircuitUpdateSerializer(CircuitPartialUpdateSerializer):
@@ -1099,6 +1116,7 @@ class ProtocolCreateSerializer(WriteSerializerMixin, ProtocolSerializer):
             "interface",
             "circuit",
             "attributes",
+            "expires_at",
         )
 
 
@@ -1120,6 +1138,7 @@ class ProtocolPartialUpdateSerializer(
             "interface",
             "circuit",
             "attributes",
+            "expires_at",
         )
 
 
