@@ -1,7 +1,9 @@
 import logging
+from datetime import timedelta
 
 from django.db import models
 from django.db.models.query_utils import Q
+from django.utils import timezone
 
 from .. import exc, fields, util
 from .attribute import Attribute
@@ -121,6 +123,29 @@ class ResourceSetTheoryQuerySet(models.query.QuerySet):
         # Gotta call .distinct() or we might get dupes.
         return objects.distinct()
 
+    def expired(self, expired=True):
+        """Filter by expiration status.
+
+        :param expired:
+            If ``True`` (default), return resources whose ``expires_at`` is in
+            the past. If ``False``, return resources that are **not** expired
+            (either no expiry set, or expiry in the future).
+        """
+        now = timezone.now()
+        if expired:
+            return self.filter(expires_at__lte=now)
+        return self.filter(Q(expires_at__isnull=True) | Q(expires_at__gt=now))
+
+    def expiring_within_days(self, days=7):
+        """Resources that expire within the next *days* days (not already expired).
+
+        :param days:
+            Number of days from now to look ahead. Defaults to ``7``.
+        """
+        now = timezone.now()
+        cutoff = now + timedelta(days=days)
+        return self.filter(expires_at__gt=now, expires_at__lte=cutoff)
+
     def by_attribute(self, name, value, site_id=None):
         """
         Lookup objects by Attribute ``name`` and ``value``.
@@ -199,6 +224,14 @@ class ResourceManager(models.Manager):
         """
         return self.get_queryset().by_attribute(name, value, site_id)
 
+    def expired(self, expired=True):
+        """Proxy to queryset ``expired()`` method."""
+        return self.get_queryset().expired(expired=expired)
+
+    def expiring_within_days(self, days=7):
+        """Proxy to queryset ``expiring_within_days()`` method."""
+        return self.get_queryset().expiring_within_days(days=days)
+
 
 class Resource(models.Model):
     """Base for heirarchial Resource objects that may have attributes."""
@@ -207,6 +240,17 @@ class Resource(models.Model):
         null=False,
         blank=True,
         help_text="Local cache of attributes. (Internal use only)",
+    )
+
+    expires_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        default=None,
+        db_index=True,
+        help_text=(
+            "Optional expiration timestamp. Resources with expires_at in "
+            "the past are considered expired."
+        ),
     )
 
     # Subclasses set this to the field name to derive site from (e.g., 'device')
