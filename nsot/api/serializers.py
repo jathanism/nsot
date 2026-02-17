@@ -445,11 +445,14 @@ class AttributeCreateSerializer(WriteSerializerMixin, AttributeSerializer):
         return data
 
     def create(self, validated_data):
+        from django.db import transaction
+
         depends_on = validated_data.pop("depends_on", [])
         instance = super().create(validated_data)
         if depends_on:
-            instance.depends_on.set(depends_on)
-            instance.validate_dependencies()
+            with transaction.atomic():
+                instance.depends_on.set(depends_on)
+                instance.validate_dependencies()
         return instance
 
     class Meta:
@@ -527,11 +530,14 @@ class AttributeUpdateSerializer(
         return data
 
     def update(self, instance, validated_data):
+        from django.db import transaction
+
         depends_on = validated_data.pop("depends_on", None)
         instance = super().update(instance, validated_data)
         if depends_on is not None:
-            instance.depends_on.set(depends_on)
-            instance.validate_dependencies()
+            with transaction.atomic():
+                instance.depends_on.set(depends_on)
+                instance.validate_dependencies()
         return instance
 
     class Meta:
