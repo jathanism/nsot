@@ -36,6 +36,15 @@ class AttributeFilter(django_filters.rest_framework.FilterSet):
     required = django_filters.BooleanFilter()
     display = django_filters.BooleanFilter()
     multi = django_filters.BooleanFilter()
+    has_dependencies = django_filters.BooleanFilter(
+        method="filter_has_dependencies",
+        help_text="Filter attributes that have dependencies (true) or don't (false).",
+    )
+
+    def filter_has_dependencies(self, queryset, name, value):
+        if value:
+            return queryset.filter(depends_on__isnull=False).distinct()
+        return queryset.filter(depends_on__isnull=True)
 
     class Meta:
         model = models.Attribute

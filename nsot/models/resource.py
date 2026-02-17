@@ -383,6 +383,22 @@ class Resource(models.Model):
                 {"attributes": f"Missing required attributes: {names}"}
             )
 
+        # Check attribute dependencies (transitive)
+        for attr_name, attr in valid_attributes.items():
+            if attr_name not in attributes:
+                continue
+            all_deps = attr.get_all_dependencies()
+            missing_deps = [
+                dep.name for dep in all_deps if dep.name not in attributes
+            ]
+            if missing_deps:
+                raise exc.ValidationError(
+                    {
+                        "attributes": f"Attribute '{attr_name}' requires: "
+                        f"{', '.join(sorted(missing_deps))}"
+                    }
+                )
+
         # Run validation each attribute value and prepare them for DB
         # insertion, raising any validation errors immediately.
         inserts = []

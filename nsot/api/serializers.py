@@ -325,6 +325,12 @@ class AttributeSerializer(NsotSerializer):
 
     constraints = serializers.JSONField(read_only=True)
     default = serializers.JSONField(read_only=True)
+    depends_on = serializers.SlugRelatedField(
+        many=True,
+        slug_field="name",
+        read_only=True,
+        help_text="List of attribute names this attribute depends on.",
+    )
     site_id = serializers.IntegerField(
         read_only=True,
         label=get_field_attr(models.Attribute, "site", "verbose_name"),
@@ -351,10 +357,46 @@ class AttributeCreateSerializer(WriteSerializerMixin, AttributeSerializer):
         allow_null=True,
         help_text=get_field_attr(models.Attribute, "_default", "help_text"),
     )
+    depends_on = serializers.SlugRelatedField(
+        many=True,
+        slug_field="name",
+        queryset=models.Attribute.objects.all(),
+        required=False,
+        help_text="List of attribute names this attribute depends on.",
+    )
     site_id = fields.IntegerField(
         label=get_field_attr(models.Attribute, "site", "verbose_name"),
         help_text=get_field_attr(models.Attribute, "site", "help_text"),
     )
+
+    def validate(self, data):
+        depends_on = data.get("depends_on", [])
+        if depends_on:
+            site_id = data.get("site_id") or data.get("site", {})
+            resource_name = data.get("resource_name", "")
+            for dep in depends_on:
+                if dep.site_id != site_id:
+                    raise exc.ValidationError(
+                        {
+                            "depends_on": f"Dependency '{dep.name}' belongs to a different site."
+                        }
+                    )
+                if dep.resource_name != resource_name:
+                    raise exc.ValidationError(
+                        {
+                            "depends_on": f"Dependency '{dep.name}' is for resource type "
+                            f"'{dep.resource_name}', expected '{resource_name}'."
+                        }
+                    )
+        return data
+
+    def create(self, validated_data):
+        depends_on = validated_data.pop("depends_on", [])
+        instance = super().create(validated_data)
+        if depends_on:
+            instance.depends_on.set(depends_on)
+            instance.validate_dependencies()
+        return instance
 
     class Meta:
         model = models.Attribute
@@ -367,6 +409,7 @@ class AttributeCreateSerializer(WriteSerializerMixin, AttributeSerializer):
             "multi",
             "constraints",
             "default",
+            "depends_on",
             "site_id",
         )
 
@@ -382,6 +425,35 @@ class AttributeUpdateSerializer(
     PATCH.
     """
 
+    def validate(self, data):
+        # For updates, get site_id and resource_name from the instance
+        depends_on = data.get("depends_on", [])
+        if depends_on:
+            instance = self.instance
+            for dep in depends_on:
+                if dep.site_id != instance.site_id:
+                    raise exc.ValidationError(
+                        {
+                            "depends_on": f"Dependency '{dep.name}' belongs to a different site."
+                        }
+                    )
+                if dep.resource_name != instance.resource_name:
+                    raise exc.ValidationError(
+                        {
+                            "depends_on": f"Dependency '{dep.name}' is for resource type "
+                            f"'{dep.resource_name}', expected '{instance.resource_name}'."
+                        }
+                    )
+        return data
+
+    def update(self, instance, validated_data):
+        depends_on = validated_data.pop("depends_on", None)
+        instance = super().update(instance, validated_data)
+        if depends_on is not None:
+            instance.depends_on.set(depends_on)
+            instance.validate_dependencies()
+        return instance
+
     class Meta:
         model = models.Attribute
         list_serializer_class = BulkListSerializer
@@ -393,6 +465,7 @@ class AttributeUpdateSerializer(
             "multi",
             "constraints",
             "default",
+            "depends_on",
         )
 
 
