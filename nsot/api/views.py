@@ -318,6 +318,9 @@ class NsotViewSet(BaseNsotViewSet, viewsets.ModelViewSet):
         except exc.ProtectedError as err:
             change.delete()
             raise exc.Conflict(err.args[0])
+        except exc.ValidationError as err:
+            change.delete()
+            raise
 
     def bulk_destroy(self, request, site_pk=None, *args, **kwargs):
         """
