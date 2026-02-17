@@ -369,19 +369,73 @@ class AttributeCreateSerializer(WriteSerializerMixin, AttributeSerializer):
         help_text=get_field_attr(models.Attribute, "site", "help_text"),
     )
 
+    def validate_depends_on(self, value):
+        """Resolve dependency names scoped to the same site and resource_name.
+
+        SlugRelatedField with an unscoped queryset may match wrong attributes
+        when the same name exists across sites/resource_names. Re-resolve here
+        using the request data for proper scoping.
+        """
+        if not value:
+            return value
+
+        # Get site_id and resource_name from request data
+        request = self.context.get("request")
+        site_id = None
+        resource_name = None
+        if (
+            request
+            and hasattr(request, "data")
+            and isinstance(request.data, dict)
+        ):
+            site_id = request.data.get("site_id")
+            resource_name = request.data.get("resource_name")
+
+        # For URL-nested site (e.g. /api/sites/{id}/attributes/), check view kwargs
+        if site_id is None and request:
+            view = self.context.get("view")
+            if view:
+                site_id = view.kwargs.get("site_pk")
+
+        if site_id is not None and resource_name:
+            # Re-resolve each name within the correct scope
+            resolved = []
+            for dep in value:
+                name = dep.name if hasattr(dep, "name") else dep
+                try:
+                    attr = models.Attribute.objects.get(
+                        site_id=site_id, resource_name=resource_name, name=name
+                    )
+                    resolved.append(attr)
+                except models.Attribute.DoesNotExist:
+                    msg = (
+                        f"Attribute '{name}' does not exist for resource type "
+                        f"'{resource_name}' in site {site_id}."
+                    )
+                    raise exc.ValidationError(msg)
+                except models.Attribute.MultipleObjectsReturned:
+                    msg = (
+                        f"Multiple attributes named '{name}' found. "
+                        f"Specify site_id and resource_name to disambiguate."
+                    )
+                    raise exc.ValidationError(msg)
+            return resolved
+
+        return value
+
     def validate(self, data):
         depends_on = data.get("depends_on", [])
         if depends_on:
-            site_id = data.get("site_id") or data.get("site", {})
+            site_id = data.get("site_id")
             resource_name = data.get("resource_name", "")
             for dep in depends_on:
-                if dep.site_id != site_id:
+                if site_id is not None and dep.site_id != site_id:
                     raise exc.ValidationError(
                         {
                             "depends_on": f"Dependency '{dep.name}' belongs to a different site."
                         }
                     )
-                if dep.resource_name != resource_name:
+                if resource_name and dep.resource_name != resource_name:
                     raise exc.ValidationError(
                         {
                             "depends_on": f"Dependency '{dep.name}' is for resource type "
@@ -425,25 +479,51 @@ class AttributeUpdateSerializer(
     PATCH.
     """
 
+    def validate_depends_on(self, value):
+        """Re-resolve dependency names scoped to the instance's site/resource_name."""
+        if not value:
+            return value
+        instance = self.instance
+        if instance and hasattr(instance, "site_id"):
+            resolved = []
+            for dep in value:
+                name = dep.name if hasattr(dep, "name") else dep
+                try:
+                    attr = models.Attribute.objects.get(
+                        site_id=instance.site_id,
+                        resource_name=instance.resource_name,
+                        name=name,
+                    )
+                    resolved.append(attr)
+                except models.Attribute.DoesNotExist:
+                    msg = (
+                        f"Attribute '{name}' does not exist for resource type "
+                        f"'{instance.resource_name}' in site {instance.site_id}."
+                    )
+                    raise exc.ValidationError(msg)
+            return resolved
+        return value
+
     def validate(self, data):
         # For updates, get site_id and resource_name from the instance
         depends_on = data.get("depends_on", [])
         if depends_on:
             instance = self.instance
-            for dep in depends_on:
-                if dep.site_id != instance.site_id:
-                    raise exc.ValidationError(
-                        {
-                            "depends_on": f"Dependency '{dep.name}' belongs to a different site."
-                        }
-                    )
-                if dep.resource_name != instance.resource_name:
-                    raise exc.ValidationError(
-                        {
-                            "depends_on": f"Dependency '{dep.name}' is for resource type "
-                            f"'{dep.resource_name}', expected '{instance.resource_name}'."
-                        }
-                    )
+            if instance and hasattr(instance, "site_id"):
+                for dep in depends_on:
+                    if dep.site_id != instance.site_id:
+                        raise exc.ValidationError(
+                            {
+                                "depends_on": f"Dependency '{dep.name}' belongs to a different site."
+                            }
+                        )
+                    if dep.resource_name != instance.resource_name:
+                        raise exc.ValidationError(
+                            {
+                                "depends_on": f"Dependency '{dep.name}' is for resource type "
+                                f"'{dep.resource_name}', expected '{instance.resource_name}'."
+                            }
+                        )
         return data
 
     def update(self, instance, validated_data):
