@@ -94,6 +94,14 @@ class Attribute(models.Model):
         else:
             self._default = {_DEFAULT_VALUE_KEY: value}
 
+    depends_on = models.ManyToManyField(
+        "self",
+        symmetrical=False,
+        blank=True,
+        related_name="dependents",
+        help_text="Attributes that must also be present on a resource when this Attribute is set.",
+    )
+
     site = models.ForeignKey(
         "Site",
         db_index=True,
@@ -277,6 +285,64 @@ class Attribute(models.Model):
             inserts.append(self._validate_single_value(val, constraints))
 
         return inserts
+
+    def get_all_dependencies(self):
+        """Return the full set of transitive dependencies (not just direct)."""
+        visited = set()
+        stack = list(self.depends_on.all())
+        while stack:
+            dep = stack.pop()
+            if dep.pk not in visited:
+                visited.add(dep.pk)
+                stack.extend(dep.depends_on.all())
+        return Attribute.objects.filter(pk__in=visited)
+
+    def validate_dependencies(self):
+        """Validate that depends_on entries are valid (same site/resource_name, no cycles)."""
+        for dep in self.depends_on.all():
+            if dep.pk == self.pk:
+                raise exc.ValidationError(
+                    {"depends_on": "An attribute cannot depend on itself."}
+                )
+            if dep.site_id != self.site_id:
+                raise exc.ValidationError(
+                    {
+                        "depends_on": f"Dependency '{dep.name}' belongs to a different site."
+                    }
+                )
+            if dep.resource_name != self.resource_name:
+                raise exc.ValidationError(
+                    {
+                        "depends_on": f"Dependency '{dep.name}' is for resource type "
+                        f"'{dep.resource_name}', expected '{self.resource_name}'."
+                    }
+                )
+
+        # Cycle detection via DFS
+        visited = set()
+        stack = list(self.depends_on.all())
+        while stack:
+            dep = stack.pop()
+            if dep.pk == self.pk:
+                raise exc.ValidationError(
+                    {"depends_on": "Circular dependency detected."}
+                )
+            if dep.pk not in visited:
+                visited.add(dep.pk)
+                stack.extend(dep.depends_on.all())
+
+    def delete(self, *args, **kwargs):
+        """Prevent deletion if other attributes depend on this one."""
+        dependents = self.dependents.all()
+        if dependents.exists():
+            names = ", ".join(sorted(d.name for d in dependents))
+            raise exc.ValidationError(
+                {
+                    "depends_on": f"Cannot delete attribute '{self.name}' because "
+                    f"the following attributes depend on it: {names}"
+                }
+            )
+        return super().delete(*args, **kwargs)
 
     def save(self, *args, **kwargs):
         """Always enforce constraints."""
