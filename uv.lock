@@ -226,30 +226,6 @@ wheels = [
 ]
 
 [[package]]
-name = "coreapi"
-version = "2.3.3"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "coreschema" },
-    { name = "itypes" },
-    { name = "requests" },
-    { name = "uritemplate" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/ca/f2/5fc0d91a0c40b477b016c0f77d9d419ba25fc47cc11a96c825875ddce5a6/coreapi-2.3.3.tar.gz", hash = "sha256:46145fcc1f7017c076a2ef684969b641d18a2991051fddec9458ad3f78ffc1cb", size = 18788, upload-time = "2017-10-05T14:04:38.221Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/fc/3a/9dedaad22962770edd334222f2b3c3e7ad5e1c8cab1d6a7992c30329e2e5/coreapi-2.3.3-py2.py3-none-any.whl", hash = "sha256:bf39d118d6d3e171f10df9ede5666f63ad80bba9a29a8ec17726a66cf52ee6f3", size = 25636, upload-time = "2017-10-05T14:04:40.687Z" },
-]
-
-[[package]]
-name = "coreschema"
-version = "0.0.4"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "jinja2" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/93/08/1d105a70104e078718421e6c555b8b293259e7fc92f7e9a04869947f198f/coreschema-0.0.4.tar.gz", hash = "sha256:9503506007d482ab0867ba14724b93c18a33b22b6d19fb419ef2d239dd4a1607", size = 10974, upload-time = "2017-02-08T12:23:49.42Z" }
-
-[[package]]
 name = "cryptography"
 version = "46.0.5"
 source = { registry = "https://pypi.org/simple" }
@@ -789,7 +765,6 @@ name = "nsot"
 version = "2.11.0"
 source = { editable = "." }
 dependencies = [
-    { name = "coreapi" },
     { name = "cryptography" },
     { name = "dj-static" },
     { name = "django" },
@@ -811,6 +786,7 @@ dependencies = [
     { name = "packaging" },
     { name = "requests" },
     { name = "static3" },
+    { name = "uritemplate" },
     { name = "urllib3" },
 ]
 
@@ -843,7 +819,6 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "attrs", marker = "extra == 'dev'", specifier = ">=22.0" },
-    { name = "coreapi", specifier = ">=2.3.3" },
     { name = "cryptography", specifier = ">=3.4" },
     { name = "dj-static", specifier = ">=0.0.6" },
     { name = "django", specifier = "~=5.2.0" },
@@ -874,6 +849,7 @@ requires-dist = [
     { name = "sphinx-autobuild", marker = "extra == 'docs'", specifier = ">=2021.0" },
     { name = "sphinx-rtd-theme", marker = "extra == 'docs'", specifier = ">=1.0" },
     { name = "static3", specifier = ">=0.6.1" },
+    { name = "uritemplate", specifier = ">=3.0" },
     { name = "urllib3", specifier = ">=2.0" },
 ]
 provides-extras = ["dev", "docs"]
