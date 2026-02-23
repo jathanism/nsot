@@ -309,7 +309,15 @@ class Interface(Resource):
         while p is not None:
             ancestors.append(p.id)
             p = p.parent
-        return Interface.objects.filter(id__in=ancestors)
+        if not ancestors:
+            return Interface.objects.none()
+        # Preserve nearest-first ordering using the collected id list.
+        from django.db.models import Case, When
+
+        ordering = Case(
+            *[When(id=pk, then=pos) for pos, pk in enumerate(ancestors)]
+        )
+        return Interface.objects.filter(id__in=ancestors).order_by(ordering)
 
     def get_children(self):
         """Return the immediate children of an Interface."""

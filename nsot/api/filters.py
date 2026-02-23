@@ -163,14 +163,30 @@ class ResourceFilter(django_filters.rest_framework.FilterSet):
                             .values_list("resource_id", flat=True)
                         )
 
+                        # Recursively exclude the entire subtree below
+                        # each overrider, since those descendants inherit
+                        # the overrider's value, not the original.
+                        overrider_subtree_ids = set()
+                        overrider_resources = queryset.model.objects.filter(
+                            id__in=overrider_ids
+                        )
+                        for overrider in overrider_resources:
+                            overrider_subtree_ids.update(
+                                overrider.get_descendants().values_list(
+                                    "id", flat=True
+                                )
+                            )
+
                         # Also exclude descendants that have the SAME value
                         # explicitly — they're already in explicit_ids or
                         # should be included anyway.
                         matching_ids = explicit_ids | (
-                            descendant_ids - overrider_ids
+                            descendant_ids
+                            - overrider_ids
+                            - overrider_subtree_ids
                         )
-            except Exception:
-                log.debug(
+            except (models.Attribute.DoesNotExist, ValueError, TypeError):
+                log.warning(
                     "Inheritance expansion failed for %r, using explicit only",
                     attr_name,
                     exc_info=True,
