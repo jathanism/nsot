@@ -153,14 +153,28 @@ class ResourceFilter(django_filters.rest_framework.FilterSet):
 
                         # Exclude descendants that have their own explicit
                         # value for this attribute (they override).
-                        overrider_ids = set(
+                        # For multi-value attributes, a resource that has
+                        # BOTH the matching value and a different value is
+                        # NOT an overrider — it still matches.  Only
+                        # resources that have a value for this attribute
+                        # but do NOT have the queried value are overriders.
+                        descendants_with_attr = set(
                             models.Value.objects.filter(
                                 name=attr_name,
                                 resource_name=resource_name,
                                 resource_id__in=descendant_ids,
-                            )
-                            .exclude(value=attr_value)
-                            .values_list("resource_id", flat=True)
+                            ).values_list("resource_id", flat=True)
+                        )
+                        descendants_with_match = set(
+                            models.Value.objects.filter(
+                                name=attr_name,
+                                resource_name=resource_name,
+                                resource_id__in=descendant_ids,
+                                value=attr_value,
+                            ).values_list("resource_id", flat=True)
+                        )
+                        overrider_ids = (
+                            descendants_with_attr - descendants_with_match
                         )
 
                         # Recursively exclude the entire subtree below
@@ -193,10 +207,46 @@ class ResourceFilter(django_filters.rest_framework.FilterSet):
                             for ro in queryset.model.objects.filter(
                                 id__in=re_overrider_ids
                             ):
-                                re_overrider_subtree_ids.update(
+                                ro_descendants = set(
                                     ro.get_descendants().values_list(
                                         "id", flat=True
                                     )
+                                )
+                                # Apply the same overrider-exclusion
+                                # logic: exclude descendants that have
+                                # their own explicit override to a
+                                # DIFFERENT value within these subtrees.
+                                ro_desc_with_attr = set(
+                                    models.Value.objects.filter(
+                                        name=attr_name,
+                                        resource_name=resource_name,
+                                        resource_id__in=ro_descendants,
+                                    ).values_list("resource_id", flat=True)
+                                )
+                                ro_desc_with_match = set(
+                                    models.Value.objects.filter(
+                                        name=attr_name,
+                                        resource_name=resource_name,
+                                        resource_id__in=ro_descendants,
+                                        value=attr_value,
+                                    ).values_list("resource_id", flat=True)
+                                )
+                                ro_overriders = (
+                                    ro_desc_with_attr - ro_desc_with_match
+                                )
+                                ro_overrider_subtrees = set()
+                                for roo in queryset.model.objects.filter(
+                                    id__in=ro_overriders
+                                ):
+                                    ro_overrider_subtrees.update(
+                                        roo.get_descendants().values_list(
+                                            "id", flat=True
+                                        )
+                                    )
+                                re_overrider_subtree_ids.update(
+                                    ro_descendants
+                                    - ro_overriders
+                                    - ro_overrider_subtrees
                                 )
 
                         matching_ids = (
