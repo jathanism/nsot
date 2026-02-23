@@ -44,6 +44,9 @@ EVENT_CHOICES = [(c, c) for c in CHANGE_EVENTS]
 IP_VERSION_CHOICES = [(c, c) for c in settings.IP_VERSIONS]
 RESOURCE_CHOICES = [(c, c) for c in VALID_ATTRIBUTE_RESOURCES]
 
+# Resource types that support parent-child hierarchy (inheritable attributes)
+INHERITABLE_RESOURCES = ("Network", "Interface")
+
 # Unique interface type IDs.
 INTERFACE_TYPES = [t[0] for t in settings.INTERFACE_TYPE_CHOICES]
 

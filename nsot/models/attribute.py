@@ -37,6 +37,18 @@ class Attribute(models.Model):
         help_text="Whether the Attribute should be required.",
     )
 
+    # Whether attribute values propagate from parent to child resources.
+    # Only valid for resource types with parent chains (Network, Interface).
+    inheritable = models.BooleanField(
+        default=False,
+        null=False,
+        help_text=(
+            "Whether this Attribute's values are inherited by child resources "
+            "that do not define their own explicit value. Only allowed for "
+            "resource types with parent-child hierarchies (Network, Interface)."
+        ),
+    )
+
     # In UIs this attribute will be displayed by default. Required implies
     # display.
     display = models.BooleanField(
@@ -230,12 +242,31 @@ class Attribute(models.Model):
 
         return value
 
+    def clean_inheritable(self, value):
+        """Validate that inheritable is only set for hierarchical resources."""
+        if value and self.resource_name not in constants.INHERITABLE_RESOURCES:
+            raise exc.ValidationError(
+                {
+                    "inheritable": (
+                        "Inheritable attributes are only supported for "
+                        "resource types with parent-child hierarchies: %s. "
+                        "Got: %r."
+                        % (
+                            ", ".join(constants.INHERITABLE_RESOURCES),
+                            self.resource_name,
+                        )
+                    )
+                }
+            )
+        return value
+
     def clean_fields(self, exclude=None):
         self.constraints = self.clean_constraints(self.constraints)
         self.display = self.clean_display(self.display)
         self.resource_name = self.clean_resource_name(self.resource_name)
         self.name = self.clean_name(self.name)
         self.default = self.clean_default(self.default)
+        self.inheritable = self.clean_inheritable(self.inheritable)
 
     def _validate_single_value(self, value, constraints=None):
         if not isinstance(value, str):
@@ -361,4 +392,5 @@ class Attribute(models.Model):
             "multi": self.multi,
             "constraints": self.constraints,
             "default": self.default,
+            "inheritable": self.inheritable,
         }

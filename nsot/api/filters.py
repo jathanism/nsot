@@ -78,6 +78,10 @@ class ResourceFilter(django_filters.rest_framework.FilterSet):
         """
         Reads 'attributes' from query params and joins them together as an
         intersection set query.
+
+        When an attribute is marked as ``inheritable``, resources that inherit
+        the value from an ancestor (i.e. they don't have their own explicit
+        value but an ancestor does) are included in the results.
         """
         attributes = self.data.getlist("attributes", [])
         resource_name = queryset.model.__name__
@@ -87,14 +91,92 @@ class ResourceFilter(django_filters.rest_framework.FilterSet):
         log.debug("GOT ATTRIBUTES: %r", attributes)
 
         for attribute in attributes:
-            name, _, value = attribute.partition("=")
-            # Retrieve next set of objects using the same arguments as the
-            # initial query.
-            next_set = Q(
-                id__in=models.Value.objects.filter(
-                    name=name, value=value, resource_name=resource_name
+            attr_name, _, attr_value = attribute.partition("=")
+
+            # Retrieve next set of objects with explicit matches.
+            explicit_ids = set(
+                models.Value.objects.filter(
+                    name=attr_name,
+                    value=attr_value,
+                    resource_name=resource_name,
                 ).values_list("resource_id", flat=True)
             )
+
+            matching_ids = set(explicit_ids)
+
+            # Check if this attribute is inheritable and expand to descendants.
+            try:
+                # Derive site from the queryset (all resources share a site).
+                site_id = None
+                view = getattr(self, "request", None)
+                if view is None:
+                    view = self.data.get("site_pk") or self.data.get("site_id")
+                    if view:
+                        site_id = int(view)
+                if site_id is None:
+                    # Try from view kwargs
+                    request = getattr(self, "request", None)
+                    if request:
+                        view_obj = getattr(request, "parser_context", {}).get(
+                            "view"
+                        )
+                        if view_obj:
+                            site_id = view_obj.kwargs.get("site_pk")
+                if site_id is None:
+                    # Last resort: peek at queryset
+                    first = queryset.first()
+                    if first:
+                        site_id = first.site_id
+
+                if site_id is not None:
+                    attr_obj = models.Attribute.objects.filter(
+                        name=attr_name,
+                        resource_name=resource_name,
+                        site_id=site_id,
+                        inheritable=True,
+                    ).first()
+
+                    if attr_obj is not None and hasattr(
+                        queryset.model, "get_descendants"
+                    ):
+                        # For each explicit match, get its descendants.
+                        explicit_resources = queryset.model.objects.filter(
+                            id__in=explicit_ids
+                        )
+                        descendant_ids = set()
+                        for resource in explicit_resources:
+                            descendant_ids.update(
+                                resource.get_descendants().values_list(
+                                    "id", flat=True
+                                )
+                            )
+
+                        # Exclude descendants that have their own explicit
+                        # value for this attribute (they override).
+                        overrider_ids = set(
+                            models.Value.objects.filter(
+                                name=attr_name,
+                                resource_name=resource_name,
+                                resource_id__in=descendant_ids,
+                            )
+                            .exclude(value=attr_value)
+                            .values_list("resource_id", flat=True)
+                        )
+
+                        # Also exclude descendants that have the SAME value
+                        # explicitly — they're already in explicit_ids or
+                        # should be included anyway.
+                        matching_ids = explicit_ids | (
+                            descendant_ids - overrider_ids
+                        )
+            except Exception:
+                log.debug(
+                    "Inheritance expansion failed for %r, using explicit only",
+                    attr_name,
+                    exc_info=True,
+                )
+
+            next_set = Q(id__in=matching_ids)
             queryset = queryset.filter(next_set)
 
         return queryset
