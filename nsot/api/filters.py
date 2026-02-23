@@ -177,13 +177,37 @@ class ResourceFilter(django_filters.rest_framework.FilterSet):
                                 )
                             )
 
-                        # Also exclude descendants that have the SAME value
-                        # explicitly — they're already in explicit_ids or
-                        # should be included anyway.
-                        matching_ids = explicit_ids | (
-                            descendant_ids
-                            - overrider_ids
-                            - overrider_subtree_ids
+                        # Check for re-overrides back to the queried
+                        # value within excluded subtrees — those nodes
+                        # and their subtrees should be included.
+                        re_overrider_ids = set(
+                            models.Value.objects.filter(
+                                name=attr_name,
+                                resource_name=resource_name,
+                                resource_id__in=overrider_subtree_ids,
+                                value=attr_value,
+                            ).values_list("resource_id", flat=True)
+                        )
+                        re_overrider_subtree_ids = set()
+                        if re_overrider_ids:
+                            for ro in queryset.model.objects.filter(
+                                id__in=re_overrider_ids
+                            ):
+                                re_overrider_subtree_ids.update(
+                                    ro.get_descendants().values_list(
+                                        "id", flat=True
+                                    )
+                                )
+
+                        matching_ids = (
+                            explicit_ids
+                            | (
+                                descendant_ids
+                                - overrider_ids
+                                - overrider_subtree_ids
+                            )
+                            | re_overrider_ids
+                            | re_overrider_subtree_ids
                         )
             except (models.Attribute.DoesNotExist, ValueError, TypeError):
                 log.warning(
