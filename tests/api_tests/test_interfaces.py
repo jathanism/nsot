@@ -288,8 +288,8 @@ def test_tree_traversal(site, client):
 
     assert_created(ifc7_resp, ifc7_obj_uri)
 
-    # test Ancestors by calling it on ifc3
-    expected = [ifc1, ifc2]
+    # test Ancestors by calling it on ifc3 (nearest-first)
+    expected = [ifc2, ifc1]
     uri = reverse("interface-ancestors", args=(site.id, ifc3["id"]))
     assert_success(client.retrieve(uri), expected)
 
