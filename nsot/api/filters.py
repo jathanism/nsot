@@ -108,20 +108,20 @@ class ResourceFilter(django_filters.rest_framework.FilterSet):
             try:
                 # Derive site from the queryset (all resources share a site).
                 site_id = None
-                view = getattr(self, "request", None)
-                if view is None:
-                    view = self.data.get("site_pk") or self.data.get("site_id")
-                    if view:
-                        site_id = int(view)
-                if site_id is None:
+                request = getattr(self, "request", None)
+                if request is None:
+                    site_value = self.data.get("site_pk") or self.data.get(
+                        "site_id"
+                    )
+                    if site_value:
+                        site_id = int(site_value)
+                if site_id is None and request is not None:
                     # Try from view kwargs
-                    request = getattr(self, "request", None)
-                    if request:
-                        view_obj = getattr(request, "parser_context", {}).get(
-                            "view"
-                        )
-                        if view_obj:
-                            site_id = view_obj.kwargs.get("site_pk")
+                    view_obj = getattr(request, "parser_context", {}).get(
+                        "view"
+                    )
+                    if view_obj:
+                        site_id = view_obj.kwargs.get("site_pk")
                 if site_id is None:
                     # Last resort: peek at queryset
                     first = queryset.first()
