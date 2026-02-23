@@ -289,6 +289,82 @@ class Resource(models.Model):
         """Return the JSON-encoded attributes as a dict."""
         return self._attributes_cache
 
+    def get_merged_attributes(self):
+        """Return attributes merged with inherited values from ancestors.
+
+        Walks the ancestor chain collecting inheritable attribute values.
+        Explicit values on this resource always take precedence over inherited
+        ones.
+
+        Returns a dict keyed by attribute name::
+
+            {
+                "region": {
+                    "value": "us-west",
+                    "source": "10.0.0.0/8",
+                    "inherited": True
+                },
+                "vlan": {
+                    "value": "100",
+                    "source": "self",
+                    "inherited": False
+                }
+            }
+
+        Only works for resource types with ``get_ancestors()`` (Network,
+        Interface). Returns plain attributes dict wrapped with source metadata
+        for resources without ancestor support.
+        """
+        my_attrs = self.get_attributes() or {}
+        result = {}
+
+        # Add explicit (self) attributes first — these always win.
+        for name, value in my_attrs.items():
+            result[name] = {
+                "value": value,
+                "source": "self",
+                "inherited": False,
+            }
+
+        # Only walk ancestors if the model supports it.
+        if not hasattr(self, "get_ancestors"):
+            return result
+
+        # Get the set of inheritable attribute names for this resource type.
+        inheritable_names = set(
+            Attribute.objects.filter(
+                resource_name=self._resource_name,
+                site_id=self.site_id,
+                inheritable=True,
+            ).values_list("name", flat=True)
+        )
+
+        if not inheritable_names:
+            return result
+
+        # Walk ancestors (nearest first) collecting inheritable values.
+        # Network.get_ancestors supports ascending kwarg for nearest-first;
+        # Interface.get_ancestors already returns nearest-first.
+        try:
+            ancestors = self.get_ancestors(ascending=True)
+        except TypeError:
+            ancestors = self.get_ancestors()
+
+        for ancestor in ancestors:
+            ancestor_attrs = ancestor._attributes_cache or {}
+            for attr_name in inheritable_names:
+                # Skip if we already have a value (explicit or from nearer ancestor).
+                if attr_name in result:
+                    continue
+                if attr_name in ancestor_attrs:
+                    result[attr_name] = {
+                        "value": ancestor_attrs[attr_name],
+                        "source": str(ancestor),
+                        "inherited": True,
+                    }
+
+        return result
+
     def set_attributes(self, attributes, valid_attributes=None, partial=False):
         """Validate and store the attributes dict as a JSON-encoded string.
 

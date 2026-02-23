@@ -467,6 +467,7 @@ class AttributeCreateSerializer(WriteSerializerMixin, AttributeSerializer):
             "constraints",
             "default",
             "depends_on",
+            "inheritable",
             "site_id",
         )
 
@@ -552,6 +553,7 @@ class AttributeUpdateSerializer(
             "constraints",
             "default",
             "depends_on",
+            "inheritable",
         )
 
 
@@ -626,6 +628,13 @@ class ResourceSerializer(NsotSerializer):
     attributes = serializers.SerializerMethodField(
         help_text="Dictionary of attributes to set.",
     )
+    merged_attributes = serializers.SerializerMethodField(
+        help_text=(
+            "Attributes merged with inherited values from ancestor resources. "
+            "Only populated when '?include_inherited=true' is passed. Each "
+            "entry includes 'value', 'source', and 'inherited' metadata."
+        ),
+    )
     site_id = serializers.PrimaryKeyRelatedField(
         source="site",
         queryset=models.Site.objects.all(),
@@ -635,6 +644,13 @@ class ResourceSerializer(NsotSerializer):
 
     def get_attributes(self, obj):
         return obj.get_attributes()
+
+    def get_merged_attributes(self, obj):
+        """Return merged attributes if ``?include_inherited=true``."""
+        request = self.context.get("request")
+        if request and request.query_params.get("include_inherited") == "true":
+            return obj.get_merged_attributes()
+        return None
 
     def create(self, validated_data, commit=True):
         """Create that is aware of attributes."""
