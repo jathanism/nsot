@@ -293,7 +293,7 @@ class ResourceFilter(django_filters.rest_framework.FilterSet):
                             | re_overrider_ids
                             | re_overrider_subtree_ids
                         )
-            except (models.Attribute.DoesNotExist, ValueError, TypeError):
+            except ValueError:
                 log.warning(
                     "Inheritance expansion failed for %r, using explicit only",
                     attr_name,
