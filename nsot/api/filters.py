@@ -173,6 +173,15 @@ class ResourceFilter(django_filters.rest_framework.FilterSet):
                                 value=attr_value,
                             ).values_list("resource_id", flat=True)
                         )
+                        # Set difference: resources that have this attr
+                        # but NOT with the queried value. These are
+                        # "overriders" — children that set their own
+                        # different value, breaking the inheritance chain.
+                        #
+                        # Example: root has region=us-west, child has
+                        # region=us-east → child is an overrider.
+                        # But if child has region=us-west too (multi),
+                        # it's NOT an overrider (it still matches).
                         overrider_ids = (
                             descendants_with_attr - descendants_with_match
                         )
@@ -180,6 +189,8 @@ class ResourceFilter(django_filters.rest_framework.FilterSet):
                         # Recursively exclude the entire subtree below
                         # each overrider, since those descendants inherit
                         # the overrider's value, not the original.
+                        # E.g. if B overrides A's region, then B's
+                        # children C, D also inherit B's value, not A's.
                         overrider_subtree_ids = set()
                         overrider_resources = queryset.model.objects.filter(
                             id__in=overrider_ids
@@ -191,9 +202,14 @@ class ResourceFilter(django_filters.rest_framework.FilterSet):
                                 )
                             )
 
-                        # Check for re-overrides back to the queried
-                        # value within excluded subtrees — those nodes
-                        # and their subtrees should be included.
+                        # Re-override check: within the excluded subtrees,
+                        # find any descendant that sets the attr BACK to
+                        # the queried value. These "re-overriders" restart
+                        # the inheritance chain for their own subtree.
+                        #
+                        # Example: A(us-west) → B(us-east) → C(us-west)
+                        # B is an overrider, but C re-overrides back to
+                        # us-west, so C and C's children should match.
                         re_overrider_ids = set(
                             models.Value.objects.filter(
                                 name=attr_name,
@@ -249,6 +265,24 @@ class ResourceFilter(django_filters.rest_framework.FilterSet):
                                     - ro_overrider_subtrees
                                 )
 
+                        # Final set assembly:
+                        #
+                        #   explicit_ids         — resources that explicitly
+                        #                          have the queried attr=value
+                        #
+                        #   descendant_ids        — ALL descendants of explicit
+                        #     - overrider_ids       matches, MINUS overriders
+                        #     - overrider_subtree_ids (different value) and
+                        #                          their subtrees
+                        #
+                        #   re_overrider_ids      — descendants within excluded
+                        #   re_overrider_subtree_ids subtrees that set the value
+                        #                          BACK to the queried value,
+                        #                          plus THEIR subtrees
+                        #
+                        # This produces the complete set of resources that
+                        # either explicitly have the value OR would inherit
+                        # it from an ancestor through the parent chain.
                         matching_ids = (
                             explicit_ids
                             | (

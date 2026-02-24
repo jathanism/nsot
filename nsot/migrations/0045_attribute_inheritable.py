@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('nsot', '0043_circuit_expires_at_device_expires_at_and_more'),
+        ('nsot', '0044_attribute_depends_on'),
     ]
 
     operations = [
