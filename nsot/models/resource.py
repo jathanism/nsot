@@ -342,9 +342,12 @@ class Resource(models.Model):
         if not inheritable_names:
             return result
 
-        # Walk ancestors (nearest first) collecting inheritable values.
-        # Network.get_ancestors supports ascending kwarg for nearest-first;
-        # Interface.get_ancestors already returns nearest-first.
+        # Walk ancestors nearest-first so closer values take precedence.
+        #
+        # Network.get_ancestors(ascending=True) returns nearest parent first.
+        # Interface.get_ancestors() doesn't accept kwargs but already returns
+        # nearest-first by default. We try the kwarg form first and fall back
+        # to the no-arg form if the method doesn't support it (TypeError).
         try:
             ancestors = self.get_ancestors(ascending=True)
         except TypeError:
