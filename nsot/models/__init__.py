@@ -2,6 +2,7 @@ from django.db import models as djmodels
 
 from .assignment import Assignment
 from .attribute import Attribute
+from .autonomous_system import AutonomousSystem
 from .change import Change
 from .circuit import Circuit
 from .device import Device
@@ -17,6 +18,7 @@ from .value import Value
 __all__ = [
     "Assignment",
     "Attribute",
+    "AutonomousSystem",
     "Change",
     "Circuit",
     "Device",

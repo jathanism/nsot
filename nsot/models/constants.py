@@ -17,6 +17,7 @@ RESOURCE_BY_IDX = (
     "Circuit",
     "Protocol",
     "ProtocolType",
+    "AutonomousSystem",
 )
 RESOURCE_BY_NAME = OrderedDict(
     (obj_type, idx) for idx, obj_type in enumerate(RESOURCE_BY_IDX)
@@ -35,6 +36,7 @@ VALID_ATTRIBUTE_RESOURCES = (
     "Interface",
     "Circuit",
     "Protocol",
+    "AutonomousSystem",
 )
 
 # Lists of 2-tuples of (value, option) for displaying choices in certain model
