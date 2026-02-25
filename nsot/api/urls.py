@@ -9,6 +9,7 @@ router = routers.BulkRouter(trailing_slash=settings.APPEND_SLASH)
 # Resources pinned to API index at /
 router.register(r"sites", views.SiteViewSet)
 router.register(r"attributes", views.AttributeViewSet)
+router.register(r"autonomous_systems", views.AutonomousSystemViewSet)
 router.register(r"changes", views.ChangeViewSet)
 router.register(r"circuits", views.CircuitViewSet)
 router.register(r"devices", views.DeviceViewSet)
@@ -26,6 +27,7 @@ sites_router = routers.BulkNestedRouter(
 
 # Resources that are nested under /sites
 sites_router.register(r"attributes", views.AttributeViewSet)
+sites_router.register(r"autonomous_systems", views.AutonomousSystemViewSet)
 sites_router.register(r"changes", views.ChangeViewSet)
 sites_router.register(r"circuits", views.CircuitViewSet)
 sites_router.register(r"devices", views.DeviceViewSet)

@@ -150,7 +150,7 @@ class ResourceSetTheoryQuerySet(models.query.QuerySet):
         """
         Lookup objects by Attribute ``name`` and ``value``.
         """
-        resource_name = self.model._meta.model_name.title()
+        resource_name = self.model.__name__
         query = self.filter(
             id__in=Value.objects.filter(
                 name=name, value=value, resource_name=resource_name

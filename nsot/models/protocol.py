@@ -63,6 +63,15 @@ class Protocol(Resource):
         on_delete=models.CASCADE,
         help_text="Circuit that this protocol is running over.",
     )
+    autonomous_system = models.ForeignKey(
+        "AutonomousSystem",
+        null=True,
+        blank=True,
+        db_index=True,
+        related_name="protocols",
+        on_delete=models.PROTECT,
+        help_text="The Autonomous System associated with this protocol instance.",
+    )
     auth_string = models.CharField(
         max_length=255,
         default="",
@@ -123,6 +132,20 @@ class Protocol(Resource):
 
         return value
 
+    def clean_autonomous_system(self, value):
+        """Ensure that AutonomousSystem matches our site."""
+        if value and self.site != value.site:
+            raise exc.ValidationError(
+                {
+                    "autonomous_system": (
+                        "The autonomous_system must be on the same site as"
+                        " this Protocol"
+                    )
+                }
+            )
+
+        return value
+
     def clean_type(self, value):
         """Ensure that ProtocolType matches our site."""
         if self.site != value.site:
@@ -158,6 +181,9 @@ class Protocol(Resource):
         self.type = self.clean_type(self.type)
         self.interface = self.clean_interface(self.interface)
         self.circuit = self.clean_circuit(self.circuit)
+        self.autonomous_system = self.clean_autonomous_system(
+            self.autonomous_system
+        )
 
     # TODO(jathan): type, device, interface, circuit need indexing. We might
     # consider caching these values ON the Protocol object similarly how we've
@@ -171,6 +197,7 @@ class Protocol(Resource):
             "device": self.device.hostname,
             "interface": self.interface and self.interface.name_slug,
             "circuit": self.circuit and self.circuit.name_slug,
+            "autonomous_system": self.autonomous_system_id,
             "description": self.description,
             "auth_string": self.auth_string,
             "attributes": self.get_attributes(),

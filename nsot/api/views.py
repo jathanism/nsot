@@ -467,6 +467,71 @@ class AttributeViewSet(ResourceViewSet):
         return self.serializer_class
 
 
+class AutonomousSystemViewSet(ResourceViewSet):
+    """
+    API endpoint that allows Autonomous Systems to be viewed or edited.
+    """
+
+    queryset = models.AutonomousSystem.objects.all()
+    serializer_class = serializers.AutonomousSystemSerializer
+    filterset_class = filters.AutonomousSystemFilter
+    natural_key = "number"
+
+    def get_object(self):
+        """Override to support numeric natural key (ASN number).
+
+        Since ASN numbers are integers, ``pk.isdigit()`` is always True and
+        the base implementation would only try PK lookup. We try PK first,
+        then fall back to natural key (number) lookup.
+        """
+        queryset = self.queryset
+        site_pk = self.kwargs.get("site_pk")
+        pk = self.kwargs.get("pk")
+
+        if isinstance(pk, int):
+            pk = str(pk)
+
+        lookup_kwargs = {}
+        if site_pk is not None:
+            lookup_kwargs["site"] = site_pk
+
+        # Try natural key (number) lookup first to avoid PK/number collisions
+        if pk is not None and pk.isdigit():
+            try:
+                obj = queryset.get(number=pk, **lookup_kwargs)
+                self.check_object_permissions(self.request, obj)
+                return obj
+            except exc.ObjectDoesNotExist:
+                # Fall through to PK lookup
+                pass
+            except exc.MultipleObjectsReturned:
+                raise exc.ValidationError(
+                    "Multiple %ss matched number=%r. Use a site-specific "
+                    "endpoint or lookup by ID." % (self.model_name, pk)
+                )
+
+            # Fall back to PK lookup
+            try:
+                obj = queryset.get(pk=pk, **lookup_kwargs)
+                self.check_object_permissions(self.request, obj)
+                return obj
+            except exc.ObjectDoesNotExist:
+                pass
+
+        self.not_found(pk, site_pk)
+        return None  # unreachable; satisfies linter
+
+    def get_serializer_class(self):
+        if self.request.method == "POST":
+            return serializers.AutonomousSystemCreateSerializer
+        if self.request.method == "PUT":
+            return serializers.AutonomousSystemUpdateSerializer
+        if self.request.method == "PATCH":
+            return serializers.AutonomousSystemPartialUpdateSerializer
+
+        return self.serializer_class
+
+
 class DeviceViewSet(ResourceViewSet):
     """
     API endpoint that allows Devices to be viewed or edited.
