@@ -495,28 +495,28 @@ class AutonomousSystemViewSet(ResourceViewSet):
         if site_pk is not None:
             lookup_kwargs["site"] = site_pk
 
-        # Try PK lookup first
+        # Try natural key (number) lookup first to avoid PK/number collisions
         if pk is not None and pk.isdigit():
-            try:
-                obj = queryset.get(pk=pk, **lookup_kwargs)
-                self.check_object_permissions(self.request, obj)
-                return obj
-            except exc.ObjectDoesNotExist:
-                # Fall through to natural key lookup
-                pass
-
-            # Try natural key (number) lookup
             try:
                 obj = queryset.get(number=pk, **lookup_kwargs)
                 self.check_object_permissions(self.request, obj)
                 return obj
             except exc.ObjectDoesNotExist:
-                self.not_found(pk, site_pk)
+                # Fall through to PK lookup
+                pass
             except exc.MultipleObjectsReturned:
                 raise exc.ValidationError(
                     "Multiple %ss matched number=%r. Use a site-specific "
                     "endpoint or lookup by ID." % (self.model_name, pk)
                 )
+
+            # Fall back to PK lookup
+            try:
+                obj = queryset.get(pk=pk, **lookup_kwargs)
+                self.check_object_permissions(self.request, obj)
+                return obj
+            except exc.ObjectDoesNotExist:
+                pass
 
         self.not_found(pk, site_pk)
         return None  # unreachable; satisfies linter

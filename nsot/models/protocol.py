@@ -132,6 +132,20 @@ class Protocol(Resource):
 
         return value
 
+    def clean_autonomous_system(self, value):
+        """Ensure that AutonomousSystem matches our site."""
+        if value and self.site != value.site:
+            raise exc.ValidationError(
+                {
+                    "autonomous_system": (
+                        "The autonomous_system must be on the same site as"
+                        " this Protocol"
+                    )
+                }
+            )
+
+        return value
+
     def clean_type(self, value):
         """Ensure that ProtocolType matches our site."""
         if self.site != value.site:
@@ -167,6 +181,9 @@ class Protocol(Resource):
         self.type = self.clean_type(self.type)
         self.interface = self.clean_interface(self.interface)
         self.circuit = self.clean_circuit(self.circuit)
+        self.autonomous_system = self.clean_autonomous_system(
+            self.autonomous_system
+        )
 
     # TODO(jathan): type, device, interface, circuit need indexing. We might
     # consider caching these values ON the Protocol object similarly how we've
