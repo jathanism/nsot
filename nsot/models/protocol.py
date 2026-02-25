@@ -63,6 +63,15 @@ class Protocol(Resource):
         on_delete=models.CASCADE,
         help_text="Circuit that this protocol is running over.",
     )
+    autonomous_system = models.ForeignKey(
+        "AutonomousSystem",
+        null=True,
+        blank=True,
+        db_index=True,
+        related_name="protocols",
+        on_delete=models.PROTECT,
+        help_text="The Autonomous System associated with this protocol instance.",
+    )
     auth_string = models.CharField(
         max_length=255,
         default="",
@@ -171,6 +180,7 @@ class Protocol(Resource):
             "device": self.device.hostname,
             "interface": self.interface and self.interface.name_slug,
             "circuit": self.circuit and self.circuit.name_slug,
+            "autonomous_system": self.autonomous_system_id,
             "description": self.description,
             "auth_string": self.auth_string,
             "attributes": self.get_attributes(),

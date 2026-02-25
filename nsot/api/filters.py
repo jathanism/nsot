@@ -306,6 +306,21 @@ class ResourceFilter(django_filters.rest_framework.FilterSet):
         return queryset
 
 
+class AutonomousSystemFilter(ResourceFilter):
+    """Filter for AutonomousSystem objects."""
+
+    class Meta:
+        model = models.AutonomousSystem
+        fields = [
+            "number",
+            "description",
+            "attributes",
+            "expired",
+            "expires_before",
+            "expires_after",
+        ]
+
+
 class DeviceFilter(ResourceFilter):
     """Filter for Device objects."""
 
