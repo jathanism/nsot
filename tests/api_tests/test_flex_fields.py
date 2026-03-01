@@ -330,16 +330,16 @@ class TestExpandAllModels:
 
     # -- ProtocolType --
     def test_expand_site_on_protocol_type(self, client, site):
-        """?expand=site_id on protocol_types returns nested site object."""
+        """?expand=site on protocol_types returns nested site object."""
         pt_uri = site.list_uri("protocoltype")
         resp = client.create(pt_uri, name="bgp", description="BGP protocol")
         assert resp.status_code == 201, resp.json()
 
-        resp = client.get(pt_uri, params={"expand": "site_id"})
+        resp = client.get(pt_uri, params={"expand": "site"})
         assert resp.status_code == 200
         pt = get_result(resp)[0]
-        assert isinstance(pt["site_id"], dict)
-        assert "name" in pt["site_id"]
+        assert isinstance(pt["site"], dict)
+        assert "name" in pt["site"]
 
     # -- Protocol --
     def test_expand_site_on_protocol(self, client, site):
