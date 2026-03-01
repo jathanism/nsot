@@ -319,10 +319,6 @@ class ChangeSerializer(NsotSerializer):
 class AttributeSerializer(NsotSerializer):
     """Used for GET, DELETE on Attributes."""
 
-    expandable_fields = {
-        "site_id": ("nsot.api.serializers.SiteSerializer", {"source": "site"}),
-    }
-
     constraints = serializers.JSONField(read_only=True)
     default = serializers.JSONField(read_only=True)
     depends_on = serializers.SlugRelatedField(
@@ -340,6 +336,12 @@ class AttributeSerializer(NsotSerializer):
     class Meta:
         model = models.Attribute
         exclude = ["_default", "site"]
+        expandable_fields = {
+            "site_id": (
+                "nsot.api.serializers.SiteSerializer",
+                {"source": "site"},
+            ),
+        }
 
 
 class AttributeCreateSerializer(WriteSerializerMixin, AttributeSerializer):
@@ -703,13 +705,15 @@ class ResourceSerializer(NsotSerializer):
 class DeviceSerializer(ResourceSerializer):
     """Used for GET, DELETE on Devices."""
 
-    expandable_fields = {
-        "site_id": ("nsot.api.serializers.SiteSerializer", {"source": "site"}),
-    }
-
     class Meta:
         model = models.Device
         exclude = ["_attributes_cache", "site"]
+        expandable_fields = {
+            "site_id": (
+                "nsot.api.serializers.SiteSerializer",
+                {"source": "site"},
+            ),
+        }
 
 
 class DeviceCreateSerializer(WriteSerializerMixin, DeviceSerializer):
@@ -760,14 +764,6 @@ class DeviceUpdateSerializer(DevicePartialUpdateSerializer):
 class NetworkSerializer(ResourceSerializer):
     """Used for GET, DELETE on Networks."""
 
-    expandable_fields = {
-        "site_id": ("nsot.api.serializers.SiteSerializer", {"source": "site"}),
-        "parent_id": (
-            "nsot.api.serializers.NetworkSerializer",
-            {"source": "parent"},
-        ),
-    }
-
     cidr = serializers.CharField(
         read_only=True,
         help_text="IPv4/IPv6 CIDR address.",
@@ -788,6 +784,16 @@ class NetworkSerializer(ResourceSerializer):
     class Meta:
         model = models.Network
         exclude = ["_attributes_cache", "broadcast_address", "site"]
+        expandable_fields = {
+            "site_id": (
+                "nsot.api.serializers.SiteSerializer",
+                {"source": "site"},
+            ),
+            "parent_id": (
+                "nsot.api.serializers.NetworkSerializer",
+                {"source": "parent"},
+            ),
+        }
 
     def get_parent(self, obj):
         return obj.parent.cidr if obj.parent else None
@@ -855,14 +861,6 @@ class NetworkUpdateSerializer(NetworkPartialUpdateSerializer):
 class InterfaceSerializer(ResourceSerializer):
     """Used for GET, DELETE on Interfaces."""
 
-    expandable_fields = {
-        "device": ("nsot.api.serializers.DeviceSerializer", {}),
-        "parent_id": (
-            "nsot.api.serializers.InterfaceSerializer",
-            {"source": "parent"},
-        ),
-    }
-
     parent_id = NaturalKeyRelatedField(
         required=False,
         allow_null=True,
@@ -908,6 +906,13 @@ class InterfaceSerializer(ResourceSerializer):
             "_networks_cache",
             "site",
         ]
+        expandable_fields = {
+            "device": ("nsot.api.serializers.DeviceSerializer", {}),
+            "parent_id": (
+                "nsot.api.serializers.InterfaceSerializer",
+                {"source": "parent"},
+            ),
+        }
 
     def get_parent(self, obj):
         return obj.parent.name_slug if obj.parent else None
@@ -1104,6 +1109,20 @@ class CircuitSerializer(ResourceSerializer):
     class Meta:
         model = models.Circuit
         exclude = ["_attributes_cache", "site"]
+        expandable_fields = {
+            "site_id": (
+                "nsot.api.serializers.SiteSerializer",
+                {"source": "site"},
+            ),
+            "endpoint_a": (
+                "nsot.api.serializers.InterfaceSerializer",
+                {},
+            ),
+            "endpoint_z": (
+                "nsot.api.serializers.InterfaceSerializer",
+                {},
+            ),
+        }
 
     def get_endpoint_a(self, obj):
         return obj.endpoint_a.name_slug if obj.endpoint_a else None
@@ -1193,6 +1212,12 @@ class ProtocolTypeSerializer(NsotSerializer):
     class Meta:
         model = models.ProtocolType
         fields = "__all__"
+        expandable_fields = {
+            "site": (
+                "nsot.api.serializers.SiteSerializer",
+                {},
+            ),
+        }
 
 
 ##########
@@ -1227,6 +1252,28 @@ class ProtocolSerializer(ResourceSerializer):
     class Meta:
         model = models.Protocol
         exclude = ["_attributes_cache"]
+        expandable_fields = {
+            "site": (
+                "nsot.api.serializers.SiteSerializer",
+                {},
+            ),
+            "type": (
+                "nsot.api.serializers.ProtocolTypeSerializer",
+                {},
+            ),
+            "device": (
+                "nsot.api.serializers.DeviceSerializer",
+                {},
+            ),
+            "interface": (
+                "nsot.api.serializers.InterfaceSerializer",
+                {},
+            ),
+            "circuit": (
+                "nsot.api.serializers.CircuitSerializer",
+                {},
+            ),
+        }
 
     def get_type(self, obj):
         return obj.type.name
