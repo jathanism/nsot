@@ -1213,9 +1213,9 @@ class ProtocolTypeSerializer(NsotSerializer):
         model = models.ProtocolType
         fields = "__all__"
         expandable_fields = {
-            "site_id": (
+            "site": (
                 "nsot.api.serializers.SiteSerializer",
-                {"source": "site"},
+                {},
             ),
         }
 
