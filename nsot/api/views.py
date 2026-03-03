@@ -481,8 +481,8 @@ class AutonomousSystemViewSet(ResourceViewSet):
         """Override to support numeric natural key (ASN number).
 
         Since ASN numbers are integers, ``pk.isdigit()`` is always True and
-        the base implementation would only try PK lookup. We try PK first,
-        then fall back to natural key (number) lookup.
+        the base implementation would only try PK lookup. We try natural key
+        (number) first, then fall back to PK lookup to avoid collisions.
         """
         queryset = self.queryset
         site_pk = self.kwargs.get("site_pk")
