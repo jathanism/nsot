@@ -1400,7 +1400,8 @@ class ProtocolCreateSerializer(WriteSerializerMixin, ProtocolSerializer):
         queryset=models.Circuit.objects.all(),
         help_text=get_field_attr(models.Protocol, "circuit", "help_text"),
     )
-    autonomous_system = serializers.PrimaryKeyRelatedField(
+    autonomous_system = NaturalKeyRelatedField(
+        slug_field="number",
         required=False,
         allow_null=True,
         queryset=models.AutonomousSystem.objects.all(),
