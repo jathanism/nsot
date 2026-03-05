@@ -572,4 +572,4 @@ class ProtocolFilter(ResourceFilter):
 
         if value.isdigit():
             return queryset.filter(autonomous_system__number=value)
-        return queryset.filter(autonomous_system=value)
+        return queryset.none()
