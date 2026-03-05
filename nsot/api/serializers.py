@@ -120,11 +120,17 @@ class NaturalKeyRelatedField(serializers.SlugRelatedField):
         if isinstance(value, int):
             value = str(value)
 
-        # Is digit? Is PK.
-        if value.isdigit():
-            field = serializers.PrimaryKeyRelatedField(
-                queryset=self.get_queryset()
-            )
+        queryset = self.get_queryset()
+
+        # When the slug_field is itself numeric (e.g. ASN "number"), digit
+        # values are ambiguous between PK and natural key. Try slug lookup
+        # first so that e.g. 65001 resolves to AS number=65001 rather than
+        # the row with pk=65001.
+        slug_field_is_numeric = self.slug_field in ("number", "id", "pk")
+
+        # Is digit? Is PK (unless slug_field is numeric).
+        if value.isdigit() and not slug_field_is_numeric:
+            field = serializers.PrimaryKeyRelatedField(queryset=queryset)
             log.debug(
                 "NaturalKeyRelatedField: %s using PK field for value %s",
                 self.field_name,
@@ -134,7 +140,7 @@ class NaturalKeyRelatedField(serializers.SlugRelatedField):
         else:
             field = serializers.SlugRelatedField(
                 slug_field=self.slug_field,
-                queryset=self.get_queryset(),
+                queryset=queryset,
             )
             log.debug(
                 "NaturalKeyRelatedField: %s using SLUG field for value %s",
@@ -1400,7 +1406,7 @@ class ProtocolCreateSerializer(WriteSerializerMixin, ProtocolSerializer):
         queryset=models.Circuit.objects.all(),
         help_text=get_field_attr(models.Protocol, "circuit", "help_text"),
     )
-    autonomous_system = serializers.SlugRelatedField(
+    autonomous_system = NaturalKeyRelatedField(
         slug_field="number",
         required=False,
         allow_null=True,
