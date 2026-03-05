@@ -511,6 +511,9 @@ class ProtocolFilter(ResourceFilter):
     type = django_filters.CharFilter(method="filter_type")
     interface = django_filters.CharFilter(method="filter_interface")
     circuit = django_filters.CharFilter(method="filter_circuit")
+    autonomous_system = django_filters.CharFilter(
+        method="filter_autonomous_system"
+    )
 
     class Meta:
         model = models.Protocol
@@ -519,6 +522,7 @@ class ProtocolFilter(ResourceFilter):
             "type",
             "interface",
             "circuit",
+            "autonomous_system",
             "description",
             "expired",
             "expires_before",
@@ -560,3 +564,12 @@ class ProtocolFilter(ResourceFilter):
         if value.isdigit():
             return queryset.filter(circuit=value)
         return queryset.filter(circuit__name_slug=value)
+
+    def filter_autonomous_system(self, queryset, name, value):
+        """Overload to use natural key (ASN number)."""
+        if isinstance(value, int):
+            value = str(value)
+
+        if value.isdigit():
+            return queryset.filter(autonomous_system__number=value)
+        return queryset.filter(autonomous_system=value)
