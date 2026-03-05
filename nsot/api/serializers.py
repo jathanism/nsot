@@ -1362,7 +1362,7 @@ class ProtocolSerializer(ResourceSerializer):
         return obj.circuit.name_slug if obj.circuit else None
 
     def get_autonomous_system(self, obj):
-        return obj.autonomous_system_id
+        return obj.autonomous_system.number if obj.autonomous_system else None
 
 
 class ProtocolCreateSerializer(WriteSerializerMixin, ProtocolSerializer):

@@ -210,4 +210,4 @@ def test_protocol_fk(client, site):
         autonomous_system=asn["id"],
     )
     proto = get_result(proto_resp)
-    assert proto["autonomous_system"] == asn["id"]
+    assert proto["autonomous_system"] == asn["number"]
