@@ -711,10 +711,6 @@ class ResourceSerializer(NsotSerializer):
 class AutonomousSystemSerializer(ResourceSerializer):
     """Used for GET, DELETE on Autonomous Systems."""
 
-    expandable_fields = {
-        "site_id": ("nsot.api.serializers.SiteSerializer", {"source": "site"}),
-    }
-
     number_asdot = serializers.CharField(
         read_only=True,
         help_text="ASDOT notation for this ASN.",
@@ -723,6 +719,12 @@ class AutonomousSystemSerializer(ResourceSerializer):
     class Meta:
         model = models.AutonomousSystem
         exclude = ["_attributes_cache", "site"]
+        expandable_fields = {
+            "site_id": (
+                "nsot.api.serializers.SiteSerializer",
+                {"source": "site"},
+            ),
+        }
 
 
 class AutonomousSystemCreateSerializer(
