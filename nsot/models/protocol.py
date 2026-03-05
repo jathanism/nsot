@@ -197,7 +197,9 @@ class Protocol(Resource):
             "device": self.device.hostname,
             "interface": self.interface and self.interface.name_slug,
             "circuit": self.circuit and self.circuit.name_slug,
-            "autonomous_system": self.autonomous_system_id,
+            "autonomous_system": self.autonomous_system.number
+            if self.autonomous_system
+            else None,
             "description": self.description,
             "auth_string": self.auth_string,
             "attributes": self.get_attributes(),

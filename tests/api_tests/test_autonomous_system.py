@@ -207,7 +207,7 @@ def test_protocol_fk(client, site):
         proto_uri,
         device=dev["id"],
         type=pt["name"],
-        autonomous_system=asn["id"],
+        autonomous_system=asn["number"],
     )
     proto = get_result(proto_resp)
     assert proto["autonomous_system"] == asn["number"]
