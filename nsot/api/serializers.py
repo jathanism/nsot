@@ -120,11 +120,17 @@ class NaturalKeyRelatedField(serializers.SlugRelatedField):
         if isinstance(value, int):
             value = str(value)
 
-        # Is digit? Is PK.
-        if value.isdigit():
-            field = serializers.PrimaryKeyRelatedField(
-                queryset=self.get_queryset()
-            )
+        queryset = self.get_queryset()
+
+        # When the slug_field is itself numeric (e.g. ASN "number"), digit
+        # values are ambiguous between PK and natural key. Try slug lookup
+        # first so that e.g. 65001 resolves to AS number=65001 rather than
+        # the row with pk=65001.
+        slug_field_is_numeric = self.slug_field in ("number", "id", "pk")
+
+        # Is digit? Is PK (unless slug_field is numeric).
+        if value.isdigit() and not slug_field_is_numeric:
+            field = serializers.PrimaryKeyRelatedField(queryset=queryset)
             log.debug(
                 "NaturalKeyRelatedField: %s using PK field for value %s",
                 self.field_name,
@@ -134,7 +140,7 @@ class NaturalKeyRelatedField(serializers.SlugRelatedField):
         else:
             field = serializers.SlugRelatedField(
                 slug_field=self.slug_field,
-                queryset=self.get_queryset(),
+                queryset=queryset,
             )
             log.debug(
                 "NaturalKeyRelatedField: %s using SLUG field for value %s",
@@ -699,6 +705,77 @@ class ResourceSerializer(NsotSerializer):
         return obj
 
 
+####################
+# Autonomous System
+####################
+class AutonomousSystemSerializer(ResourceSerializer):
+    """Used for GET, DELETE on Autonomous Systems."""
+
+    number_asdot = serializers.CharField(
+        read_only=True,
+        help_text="ASDOT notation for this ASN.",
+    )
+
+    class Meta:
+        model = models.AutonomousSystem
+        exclude = ["_attributes_cache", "site"]
+        expandable_fields = {
+            "site_id": (
+                "nsot.api.serializers.SiteSerializer",
+                {"source": "site"},
+            ),
+        }
+
+
+class AutonomousSystemCreateSerializer(
+    WriteSerializerMixin, AutonomousSystemSerializer
+):
+    """Used for POST on Autonomous Systems."""
+
+    read_serializer_class = AutonomousSystemSerializer
+
+    # Override read-only SerializerMethodField with writable field for input.
+    attributes = JSONDictField(
+        required=False, help_text="Dictionary of attributes to set."
+    )
+
+    class Meta:
+        model = models.AutonomousSystem
+        fields = (
+            "number",
+            "description",
+            "attributes",
+            "site_id",
+            "expires_at",
+        )
+        validators = [
+            drf_validators.UniqueTogetherValidator(
+                queryset=models.AutonomousSystem.objects.all(),
+                fields=["site_id", "number"],
+            )
+        ]
+
+
+class AutonomousSystemPartialUpdateSerializer(
+    BulkSerializerMixin, AutonomousSystemCreateSerializer
+):
+    """Used for PATCH on Autonomous Systems."""
+
+    class Meta:
+        model = models.AutonomousSystem
+        list_serializer_class = BulkListSerializer
+        fields = ("id", "number", "description", "attributes", "expires_at")
+
+
+class AutonomousSystemUpdateSerializer(
+    AutonomousSystemPartialUpdateSerializer
+):
+    """Used for PUT on Autonomous Systems."""
+
+    class Meta(AutonomousSystemPartialUpdateSerializer.Meta):
+        extra_kwargs = {"attributes": {"required": True}}
+
+
 ########
 # Device
 ########
@@ -1243,6 +1320,11 @@ class ProtocolSerializer(ResourceSerializer):
     circuit = serializers.SerializerMethodField(
         help_text=get_field_attr(models.Protocol, "circuit", "help_text"),
     )
+    autonomous_system = serializers.SerializerMethodField(
+        help_text=get_field_attr(
+            models.Protocol, "autonomous_system", "help_text"
+        ),
+    )
 
     # Protocol's to_dict() uses "site" (not "site_id") as the key name, so we
     # suppress the inherited declared field from ResourceSerializer.  This is
@@ -1287,6 +1369,9 @@ class ProtocolSerializer(ResourceSerializer):
     def get_circuit(self, obj):
         return obj.circuit.name_slug if obj.circuit else None
 
+    def get_autonomous_system(self, obj):
+        return obj.autonomous_system.number if obj.autonomous_system else None
+
 
 class ProtocolCreateSerializer(WriteSerializerMixin, ProtocolSerializer):
     """Used for POST on Protocols."""
@@ -1323,6 +1408,15 @@ class ProtocolCreateSerializer(WriteSerializerMixin, ProtocolSerializer):
         queryset=models.Circuit.objects.all(),
         help_text=get_field_attr(models.Protocol, "circuit", "help_text"),
     )
+    autonomous_system = NaturalKeyRelatedField(
+        slug_field="number",
+        required=False,
+        allow_null=True,
+        queryset=models.AutonomousSystem.objects.all(),
+        help_text=get_field_attr(
+            models.Protocol, "autonomous_system", "help_text"
+        ),
+    )
     attributes = JSONDictField(
         required=False, help_text="Dictionary of attributes to set."
     )
@@ -1337,6 +1431,7 @@ class ProtocolCreateSerializer(WriteSerializerMixin, ProtocolSerializer):
             "auth_string",
             "interface",
             "circuit",
+            "autonomous_system",
             "attributes",
             "expires_at",
         )
@@ -1359,6 +1454,7 @@ class ProtocolPartialUpdateSerializer(
             "auth_string",
             "interface",
             "circuit",
+            "autonomous_system",
             "attributes",
             "expires_at",
         )
