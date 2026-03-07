@@ -481,8 +481,13 @@ class AutonomousSystemViewSet(ResourceViewSet):
         """Override to support numeric natural key (ASN number).
 
         Since ASN numbers are integers, ``pk.isdigit()`` is always True and
-        the base implementation would only try PK lookup. We try natural key
-        (number) first, then fall back to PK lookup to avoid collisions.
+        the base implementation would only try PK lookup.
+
+        When ``site_pk`` is provided, the number lookup is scoped to a single
+        site and therefore unambiguous, so we try number first and fall back to
+        PK.  When there is no ``site_pk`` (top-level endpoint), the same ASN
+        number may exist in multiple sites, so we try PK first and fall back to
+        number to avoid ``MultipleObjectsReturned`` blocking a valid PK lookup.
         """
         queryset = self.queryset
         site_pk = self.kwargs.get("site_pk")
@@ -495,14 +500,21 @@ class AutonomousSystemViewSet(ResourceViewSet):
         if site_pk is not None:
             lookup_kwargs["site"] = site_pk
 
-        # Try natural key (number) lookup first to avoid PK/number collisions
         if pk is not None and pk.isdigit():
+            if site_pk is not None:
+                # Site-scoped: number lookup first (unambiguous), PK fallback
+                first_lookup = {"number": pk}
+                second_lookup = {"pk": pk}
+            else:
+                # Top-level: PK first (unique), number fallback
+                first_lookup = {"pk": pk}
+                second_lookup = {"number": pk}
+
             try:
-                obj = queryset.get(number=pk, **lookup_kwargs)
+                obj = queryset.get(**first_lookup, **lookup_kwargs)
                 self.check_object_permissions(self.request, obj)
                 return obj
             except exc.ObjectDoesNotExist:
-                # Fall through to PK lookup
                 pass
             except exc.MultipleObjectsReturned:
                 raise exc.ValidationError(
@@ -510,13 +522,18 @@ class AutonomousSystemViewSet(ResourceViewSet):
                     "endpoint or lookup by ID." % (self.model_name, pk)
                 )
 
-            # Fall back to PK lookup
+            # Fallback
             try:
-                obj = queryset.get(pk=pk, **lookup_kwargs)
+                obj = queryset.get(**second_lookup, **lookup_kwargs)
                 self.check_object_permissions(self.request, obj)
                 return obj
             except exc.ObjectDoesNotExist:
                 pass
+            except exc.MultipleObjectsReturned:
+                raise exc.ValidationError(
+                    "Multiple %ss matched number=%r. Use a site-specific "
+                    "endpoint or lookup by ID." % (self.model_name, pk)
+                )
 
         self.not_found(pk, site_pk)
         return None  # unreachable; satisfies linter
