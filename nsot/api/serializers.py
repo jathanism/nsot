@@ -1355,6 +1355,10 @@ class ProtocolSerializer(ResourceSerializer):
                 "nsot.api.serializers.CircuitSerializer",
                 {},
             ),
+            "autonomous_system": (
+                "nsot.api.serializers.AutonomousSystemSerializer",
+                {},
+            ),
         }
 
     def get_type(self, obj):
