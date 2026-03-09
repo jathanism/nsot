@@ -517,10 +517,10 @@ class AutonomousSystemViewSet(ResourceViewSet):
             except exc.ObjectDoesNotExist:
                 pass
             except exc.MultipleObjectsReturned:
-                raise exc.ValidationError(
-                    "Multiple %ss matched number=%r. Use a site-specific "
-                    "endpoint or lookup by ID." % (self.model_name, pk)
-                )
+                # Fall through to second lookup instead of raising — the
+                # fallback may resolve to a unique object (e.g. PK lookup
+                # after an ambiguous number match).
+                pass
 
             # Fallback
             try:
