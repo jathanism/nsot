@@ -467,6 +467,88 @@ class AttributeViewSet(ResourceViewSet):
         return self.serializer_class
 
 
+class AutonomousSystemViewSet(ResourceViewSet):
+    """
+    API endpoint that allows Autonomous Systems to be viewed or edited.
+    """
+
+    queryset = models.AutonomousSystem.objects.all()
+    serializer_class = serializers.AutonomousSystemSerializer
+    filterset_class = filters.AutonomousSystemFilter
+    natural_key = "number"
+
+    def get_object(self):
+        """Override to support numeric natural key (ASN number).
+
+        Since ASN numbers are integers, ``pk.isdigit()`` is always True and
+        the base implementation would only try PK lookup.
+
+        When ``site_pk`` is provided, the number lookup is scoped to a single
+        site and therefore unambiguous, so we try number first and fall back to
+        PK.  When there is no ``site_pk`` (top-level endpoint), the same ASN
+        number may exist in multiple sites, so we try PK first and fall back to
+        number to avoid ``MultipleObjectsReturned`` blocking a valid PK lookup.
+        """
+        queryset = self.queryset
+        site_pk = self.kwargs.get("site_pk")
+        pk = self.kwargs.get("pk")
+
+        if isinstance(pk, int):
+            pk = str(pk)
+
+        lookup_kwargs = {}
+        if site_pk is not None:
+            lookup_kwargs["site"] = site_pk
+
+        if pk is not None and pk.isdigit():
+            if site_pk is not None:
+                # Site-scoped: number lookup first (unambiguous), PK fallback
+                first_lookup = {"number": pk}
+                second_lookup = {"pk": pk}
+            else:
+                # Top-level: PK first (unique), number fallback
+                first_lookup = {"pk": pk}
+                second_lookup = {"number": pk}
+
+            try:
+                obj = queryset.get(**first_lookup, **lookup_kwargs)
+                self.check_object_permissions(self.request, obj)
+                return obj
+            except exc.ObjectDoesNotExist:
+                pass
+            except exc.MultipleObjectsReturned:
+                # Fall through to second lookup instead of raising — the
+                # fallback may resolve to a unique object (e.g. PK lookup
+                # after an ambiguous number match).
+                pass
+
+            # Fallback
+            try:
+                obj = queryset.get(**second_lookup, **lookup_kwargs)
+                self.check_object_permissions(self.request, obj)
+                return obj
+            except exc.ObjectDoesNotExist:
+                pass
+            except exc.MultipleObjectsReturned:
+                raise exc.ValidationError(
+                    "Multiple %ss matched number=%r. Use a site-specific "
+                    "endpoint or lookup by ID." % (self.model_name, pk)
+                )
+
+        self.not_found(pk, site_pk)
+        return None  # unreachable; satisfies linter
+
+    def get_serializer_class(self):
+        if self.request.method == "POST":
+            return serializers.AutonomousSystemCreateSerializer
+        if self.request.method == "PUT":
+            return serializers.AutonomousSystemUpdateSerializer
+        if self.request.method == "PATCH":
+            return serializers.AutonomousSystemPartialUpdateSerializer
+
+        return self.serializer_class
+
+
 class DeviceViewSet(ResourceViewSet):
     """
     API endpoint that allows Devices to be viewed or edited.
