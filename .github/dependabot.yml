@@ -1,0 +1,17 @@
+version: 2
+updates:
+  - package-ecosystem: "uv"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      uv:
+        patterns:
+          - "*"
+    ignore:
+      # djangorestframework 3.17 removed coreapi, which drf-flex-fields
+      # (abandoned upstream, pinned ~=1.0.2) imports at module load time.
+      # See pyproject.toml: djangorestframework~=3.16.0, which dependabot's
+      # settings-based updates otherwise ignore.
+      - dependency-name: "djangorestframework"
+        versions: [">=3.17"]
