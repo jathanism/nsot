@@ -15,3 +15,10 @@ updates:
       # settings-based updates otherwise ignore.
       - dependency-name: "djangorestframework"
         versions: [">=3.17"]
+      # django-filter 25.1 removed the built-in DRF schema-generation methods
+      # (deprecated upstream since v23.2) that DRF's OpenAPI generator calls
+      # when rendering /schema.json, so every filtered list view 500s and
+      # test_swagger_docs_work fails. Stay on 24.x until the API migrates to
+      # drf-spectacular. See pyproject.toml: django-filter~=24.3.
+      - dependency-name: "django-filter"
+        versions: [">=25"]
